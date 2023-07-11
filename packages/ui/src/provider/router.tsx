@@ -1,5 +1,4 @@
 import { $, createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useVisibleTask$ } from "@builder.io/qwik";
-import { LoginContext } from "./login";
 import {isServer} from '@builder.io/qwik/build';
 
 export interface RouteLocation {
@@ -27,9 +26,9 @@ export const RouterContext = createContextId<Location>(
   'docs.router-context'
 );
 
-export const Router =  component$(() => {
+export const Router =  component$((props: { url: string}) => {
     const theme = useStore<Location>({
-        url: "https://localhost:5173/",
+        url: props.url,
         segments: [''],
     });
     useContextProvider(RouterContext, theme);
@@ -88,16 +87,7 @@ export function getRoutingStateByPath(path: string): Location {
 // export declare interface FunctionComponent<P = Record<string, any>> {
 //   (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 // }
-export function listenToRouteChanges(routingState: Location): void {
-  if (!isServer) {
-      // when the navigation buttons are being used
-      // we want to set the routing state
-      getWindow()?.addEventListener('popstate', (e) => {
-          const path = e.state.page;
-          setRoutingState(path, routingState);
-      })
-  }
-}
+
 
 export type RoutingConfigItem = {
   component: any;
@@ -141,7 +131,14 @@ export const RouterOutlet = component$(
   () => {
       const routingState = useContext(RouterContext);
       useVisibleTask$(() => {
-          listenToRouteChanges(routingState);
+        if (!isServer) {
+          // when the navigation buttons are being used
+          // we want to set the routing state
+          getWindow()?.addEventListener('popstate', (e) => {
+              const path = e.state.page;
+              setRoutingState(path, routingState);
+          })
+      }
       });
       return getMatchingConfig(routingState.segments, routingConfig)?.component
 

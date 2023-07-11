@@ -3,20 +3,19 @@
 import { LanguageProvider, LoginProvider, ThemeProvider, ThemeBootstrap } from "./provider";
 import { Router, RouterOutlet } from "./provider/router";
 
-export default () => {
+export default (opts: RenderOptions) => {
   return (
     <>
-      <Router>
+      <Router url={opts.url}>
       <LanguageProvider avail='en es iw' default='en'>
       <LoginProvider  >
       <head>
         <meta charSet="utf-8" />
         <link rel="manifest" href="/manifest.json" />
-        
       </head>
       <body lang="en" class='prose dark:prose-invert dark:bg-black dark:text-white'>
         <ThemeProvider />
-          <RouterOutlet/>
+          <RouterOutlet />
         <ThemeBootstrap />
       </body>
       </LoginProvider>
