@@ -1,7 +1,7 @@
 
 
 import { LanguageProvider, LoginProvider, ThemeProvider, ThemeBootstrap } from "./provider";
-import { Router } from "./provider/router";
+import { Router, RouterOutlet } from "./provider/router";
 
 export default () => {
   return (
