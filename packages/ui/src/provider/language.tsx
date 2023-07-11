@@ -13,7 +13,7 @@ export interface Language {
   avail: string[]
 }
 export const LanguageContext = createContextId<Language>(
-  'docs.theme-context'
+  'LANGUAGE_CONTEXT'
 );
 
 const rtl = ["iw","ar"]
@@ -26,7 +26,7 @@ export interface Props {
 export const LanguageProvider =  component$<Props>((props) => {
   const loc = useLocation()
   let ln = loc.url.pathname.split('/')[1]
-  if (!props.avail.includes(ln)) {
+  if (!ln || !props.avail.includes(ln)) {
     ln = props.default
   }
   const lang = useStore<Language>({

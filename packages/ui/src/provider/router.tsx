@@ -1,4 +1,4 @@
-import { $, createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useVisibleTask$ } from "@builder.io/qwik";
+import { $, createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useVisibleTask$, useServerData } from "@builder.io/qwik";
 import { isServer } from '@builder.io/qwik/build';
 
 
@@ -9,39 +9,34 @@ export const RouterContext = createContextId<Location>(
   'docs.router-context'
 );
 
-export const Router = component$(() => {
+export const Router2 = component$(() => {
+  //const svr = useServerData('url') as string
+  const svr = "https://localhost:5173/"
   const routingState = useStore<Location>({
-    url: '',
+    url: svr,
   });
   useContextProvider(RouterContext, routingState);
   
   useVisibleTask$(() => {
     if (!isServer) {
-      // when the navigation buttons are being used
-      // we want to set the routing state
       routingState.url = window.location.href;
       getWindow()?.addEventListener('popstate', (e) => {
         const path = e.state.page;
         const oldUrl = new URL(routingState.url);
-        const newUrl = new URL(oldUrl.origin + path);
-
-        // this will retrieve the routingstate by the path (the current url)
-        const getRoutingStateByPath = (path: string): Location => {
-          const url = new URL(path);
-          const segments = url.pathname.split('/');
-          segments.splice(0, 1);
-          return {
-            url: path,
-          }
-        }
-        const { url } = getRoutingStateByPath(newUrl.toString())
-        routingState.url = url;
+        routingState.url = oldUrl.origin + path
       })
     }
   });
   return <Slot />
 });
-
+export const Router = component$(() => {
+  const svr = useServerData<string|null>('url') 
+  const routingState = useStore<Location>({
+    url: svr??"",
+  });
+  useContextProvider(RouterContext, routingState);
+  return <Slot />
+})
 
 // logout is tricky, we can't get the context from an event handler can we?
 // log out of all tabs
@@ -63,10 +58,10 @@ export interface RouteLocation {
   readonly isNavigating: boolean;
 }
 export const useLocation = (): RouteLocation => {
-  //const x = useContext(RouterContext).url
+  const x = useContext(RouterContext).url
   return {
     params: {},
-    url: new URL("https://localhost:5173/users"),
+    url: new URL(x),
     isNavigating: false,
   }
 }
@@ -117,9 +112,11 @@ export const RouterOutlet = component$(() => {
     return config.find(item => segmentsMatch(segments, item)) || null
   }
 
-  const url = useContext(RouterContext).url;
-  const segments = url.split('/');
+  const loc = useLocation();
+  const segments = loc.url.pathname.split('/');
   segments.splice(0, 1); // remove empty segment 
-  return getMatchingConfig(segments, routingConfig)?.component
+  return <div>WTF({JSON.stringify(segments)})
+      {getMatchingConfig(segments, routingConfig)?.component}
+      </div>
 }
 );
