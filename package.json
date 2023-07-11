@@ -1,0 +1,14 @@
+{
+  "name": "@datagrove/monorepo",
+  "description": "Monorepo for DataGrove packages",
+  "version": "0.11.1",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": ""
+}
