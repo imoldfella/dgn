@@ -3,10 +3,10 @@
 import { LanguageProvider, LoginProvider, ThemeProvider, ThemeBootstrap } from "./provider";
 import { Router, RouterOutlet } from "./provider/router";
 
-export default (opts: RenderOptions) => {
+export default () => {
   return (
     <>
-      <Router url={opts.url}>
+      <Router>
       <LanguageProvider avail='en es iw' default='en'>
       <LoginProvider  >
       <head>
