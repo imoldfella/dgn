@@ -1,23 +1,24 @@
 
 
-import { LanguageProvider, LoginProvider, ThemeProvider, ThemeBootstrap, useLanguage, useLogin, useTheme } from "./provider";
-import { Router, RouterOutlet, useLocation } from "./provider/router";
+import { LanguageProvider, LoginProvider, ThemeBootstrap, ThemeProvider, useLanguage, useLogin, useTheme } from "./provider";
+import { Router, RouterOutlet, RoutingConfigItem, useLocation } from "./provider/router";
 
 import "./global.css";
 import { component$ } from "@builder.io/qwik";
-import { Onboard } from "./onboard";
+import { Onboard, Signin } from "./onboard";
 
 
 export default () => {
   return <>
-    <head>
+    <head >
       <meta charSet="utf-8" />
+      <ThemeBootstrap/>
     </head>
     <body lang="en" class='prose dark:prose-invert dark:bg-black dark:text-white'>
       <Router>
         <LanguageProvider avail='en es iw' default='en'>
           <LoginProvider  >
-          <ThemeProvider >
+          <ThemeProvider>
             <App />
           </ThemeProvider>
           </LoginProvider>
@@ -40,9 +41,24 @@ export const Info = component$(() => {
     </>
 })
 
+type RoutingConfig = RoutingConfigItem[];
+const routingConfig: RoutingConfig = [
+  {
+    path: '',
+    component: <Onboard/>
+  },
+  {
+    path: 'signin',
+    component: <Signin/>
+  },
+  {
+    path: 'home',
+    component: <div>user</div>
+  }
+]
+
 const App = component$(() => {
   return <>
-    <Onboard/>
-    <RouterOutlet />
+    <RouterOutlet config={routingConfig} />
   </>
 })

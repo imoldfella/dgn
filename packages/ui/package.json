@@ -32,7 +32,9 @@
     "lint": "eslint \"src/**/*.ts*\"",
     "release": "np",
     "start": "vite --open --mode ssr",
-    "qwik": "qwik"
+    "qwik": "qwik",
+    "i18n-extract": "../../node_modules/.bin/localize-extract -s \"lib/*.mjs\" -f json -o src/locale/message.en.json",
+    "i18n-translate": "../../node_modules/.bin/localize-translate -s \"*.js\" -t src/locale/message.*.json -o dist/build/{{LOCALE}} -r ./dist/build"
   },
   "devDependencies": {
     "@builder.io/qwik": "1.2.6",

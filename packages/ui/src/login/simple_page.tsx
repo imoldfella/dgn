@@ -1,5 +1,5 @@
 import { Slot, component$ } from "@builder.io/qwik"
-import { Ab, DarkButton, LanguageSelect, useLanguage } from ".."
+import { DarkButton, LanguageSelect, useLanguage } from ".."
 
 
 
@@ -15,6 +15,7 @@ export const SimplePage = component$(() => {
     </div>
         <div class="flex items-center justify-center w-screen h-screen">
             <div class='w-96'>
+                <div>Language {JSON.stringify(ln)}</div>
                 <Slot />
             </div>
         </div>

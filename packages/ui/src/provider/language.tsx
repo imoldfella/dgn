@@ -5,7 +5,7 @@ import {
   createContextId,
 } from '@builder.io/qwik';
 import { useLocation } from './router';
- 
+
 export interface Language {
   ln: string
   lc: string
@@ -32,7 +32,7 @@ export const LanguageProvider =  component$<Props>((props) => {
   const lang = useStore<Language>({
     ln: ln,
     lc: props.defaultlc ?? props.default,
-    dir: rtl.includes(props.default) ? 'rtl' : 'ltr',
+    dir: rtl.includes(ln) ? 'rtl' : 'ltr',
     avail: props.avail.split(' '),
   })
   useContextProvider(LanguageContext, lang);

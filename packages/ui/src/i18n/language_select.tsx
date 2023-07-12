@@ -36,7 +36,6 @@ export const LanguageSelect = component$((props: Props) => {
         <label class='block mx-2' for='ln'><Icon svg={language}/></label>
         <select
             id='ln'
-            value={'en'}
             aria-label={$localize`Select language`}
             class='flex-1  rounded-md dark:bg-neutral-900 text-black dark:text-white '
             onInput$={(e, target) => {
@@ -48,7 +47,7 @@ export const LanguageSelect = component$((props: Props) => {
            
                 {wtf.map((lnx) => {
                     const lnd = languages[lnx]
-                    return <option key={lnx} value={lnx}>{lnd.name}</option>
+                    return <option selected={lnx==ln.ln} key={lnx} value={lnx}>{lnd.name}</option>
                 })}
         </select>
     </div>

@@ -4,7 +4,7 @@ import { Ab } from "../theme"
 //const PaperClipIcon = (props: {class:string})=><Icon class={props.class} path={paperClip}/>
 export const Onboard = component$(() => {
     return <SimplePage>
-            <div q:slot="top-left"><Ab href='/signin'>Sign in</Ab></div>
+            <div q:slot="top-left"><Ab href='/signin'>{$localize`Sign in`}</Ab></div>
             <h1 class='w-full text-center mt-16 mb-8'>Datagrove</h1>
             <form action="#" class="relative">
                 <div class="overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">

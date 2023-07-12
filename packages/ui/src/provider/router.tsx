@@ -80,24 +80,8 @@ export type RoutingConfigItem = {
   component: any;
   path: string;
 }
-export const RouterOutlet = component$(() => {
-  type RoutingConfig = RoutingConfigItem[];
-  const routingConfig: RoutingConfig = [
-    {
-      path: '',
-      component: <div>home</div>
-    },
-    {
-      path: 'users',
-      component: <div>users</div>
-    },
-    {
-      path: 'users/:id',
-      component: <div>user</div>
-    }
-  ]
-
-  const getMatchingConfig = (segments: string[], config: RoutingConfig): RoutingConfigItem | null => {
+export const RouterOutlet = component$<{config: RoutingConfigItem[]}>((props) => {
+  const getMatchingConfig = (segments: string[], config: RoutingConfigItem[]): RoutingConfigItem | null => {
     const segmentsMatch = (pathSegments: string[], configItem: RoutingConfigItem): boolean => {
       const configItemSegments = configItem.path.split('/');
       if (configItemSegments.length !== pathSegments.length) {
@@ -108,15 +92,14 @@ export const RouterOutlet = component$(() => {
       });
       return matches.length === pathSegments.length;
     }
-
     return config.find(item => segmentsMatch(segments, item)) || null
   }
 
   const loc = useLocation();
   const segments = loc.url.pathname.split('/');
-  segments.splice(0, 1); // remove empty segment 
-  return <div>WTF({JSON.stringify(segments)})
-      {getMatchingConfig(segments, routingConfig)?.component}
-      </div>
-}
-);
+  segments.splice(0, 2); // remove empty segment and language
+  if (segments.length === 0) {
+    return props.config[0].component
+  }
+  return getMatchingConfig(segments, props.config)?.component
+})
