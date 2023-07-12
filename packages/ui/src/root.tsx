@@ -6,22 +6,55 @@ import { Router, RouterOutlet, RoutingConfigItem } from "./provider/router";
 import "./global.css";
 import { component$, } from "@builder.io/qwik";
 import { Onboard, Signin } from "./onboard";
+import { isServer } from "@builder.io/qwik/build";
+//import { initTranslations } from "./i18n";
 
+import EN from "./locale/message.en.json";
+import IW from "./locale/message.iw.json";
+import ES from "./locale/message.es.json";
+const foo = { EN, IW, ES }
 
+const trl(ln: string,key: string, ...args: any[]) {
+  const data = {
+    en: EN,
+    iw: IW,
+    es: ES
+  }
+  const a : Translation = data[ln]
+  
+  const templ = data[ln].translations[key]
+  for (
+}
+export function translate(key: TemplateStringsArray, ...args: readonly any[]):string {
 
+  return foo
+}
+
+<<<<<<< Updated upstream
 export default () => {
-  Object.defineProperty($localize, "TRANSLATIONS", {
-    get: () => {
-      return {
-        "": {
-          "Select language": "Select language",
-          "English": "English",
-          "Español": "Español",
-          "עברית": "עברית"
-        }
-      }
+=======
+
+export const ThemeBootstrap = component$(() => {
+
+  const code = `      if(localStorage.theme==="dark"){
+    document.documentElement.classList.add("dark");}
+  else if(typeof localStorage.theme==="undefined"){
+    if(window.matchMedia("(prefers-color-scheme: dark)").matches){
+      document.documentElement.classList.add("dark");}
+      localStorage.theme="dark";
     }
-  })
+    window.$localize = (key) => {
+        return key[0]
+      }
+    `
+  return <script dangerouslySetInnerHTML={code} />
+})
+export default component$(() => {
+   if (isServer) {
+      global.$localize = translate
+    }
+
+>>>>>>> Stashed changes
   return <>
     <head >
       <meta charSet="utf-8" />
