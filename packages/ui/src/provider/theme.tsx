@@ -44,9 +44,6 @@ export const ThemeBootstrap = component$(() => {
       document.documentElement.classList.add("dark");}
       localStorage.theme="dark";
     }
-    window.$localize = (key) => {
-        return key[0]
-      }
     `
   return <script dangerouslySetInnerHTML={code} />
 })

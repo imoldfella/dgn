@@ -9,17 +9,18 @@ import { Onboard, Signin } from "./onboard";
 
 export default component$(() => {
   return <>
+   <Router avail='en es iw' default='en'>
     <head >
       <meta charSet="utf-8" />
+      <script src='./root2' />
       <ThemeBootstrap/>
     </head>
-    <body lang="en" class='prose dark:prose-invert dark:bg-black dark:text-white'>
-      <Router avail='en es iw' default='en'>
+    <body lang="en" class='prose dark:prose-invert dark:bg-black dark:text-white'> 
           <ThemeProvider>
             <App />
           </ThemeProvider>
-      </Router>
     </body>
+    </Router>
   </>
 })
 

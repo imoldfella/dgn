@@ -1,8 +1,12 @@
-import { $, useOnWindow, createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData, useTask$ } from "@builder.io/qwik";
+import { $, useOnWindow,  createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData, useTask$ } from "@builder.io/qwik";
 import { isServer } from '@builder.io/qwik/build';
-import { translate } from "../i18n";
+import { data, en } from "../root2";
+
 
 const rtl = ["iw","ar"]
+declare global {  
+  let global: any
+}
  
 export interface Location {
   url: string;
@@ -39,14 +43,13 @@ export const Router = component$<Props>((props) => {
   });
 
   if (isServer) {
-    global.$localize = (key: TemplateStringsArray, ...args: readonly any[]) => {
-      return translate(routingState.ln,key,...args)
+    global.$localize = (keys: TemplateStringsArray, ...args: readonly any[]) => {
+        const [key, msg] = keys[0].split(':')
+            ; (args)
+        const a: Record<string, string> = data[routingState.ln] ?? en
+        return a[key] ?? en[key] ?? msg ?? key
     }
-  } else {
-    window.$localize = (key: TemplateStringsArray, ...args: readonly any[]) => {
-      return translate(routingState.ln,key,...args)
-    }
-  }  
+  } 
 
   useOnWindow('popstate', $((e: Event) => {
     const o = e as PopStateEvent
@@ -54,9 +57,6 @@ export const Router = component$<Props>((props) => {
       setLocation(routingState, o.state.page as string)
     }))
   useContextProvider(RouterContext, routingState);
-  useTask$(() => {
-    (routingState.url)
-  })
   return <Slot />
 })
 
@@ -117,6 +117,10 @@ export const RouterOutlet = component$<{config: RoutingConfigItem[]}>((props) =>
   }
 
   const loc = useLocation();
+  useTask$(()=>{
+    loc.ln
+    loc.url
+  })
   const segments = new URL(loc.url).pathname.split('/');
   segments.splice(0, 2); // remove empty segment and language
   if (segments.length === 0) {
