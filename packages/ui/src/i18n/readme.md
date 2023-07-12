@@ -25,4 +25,5 @@ localize`:ddd`
 we could use typescript and compile it in? then production needs to compile it out, but that's probably pretty standard.
 
 
+what if each dictionary was a store? that still doesn't get us functions.
 

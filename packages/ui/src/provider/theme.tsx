@@ -35,3 +35,18 @@ export const ThemeProvider =  component$(() => {
 
 export const useTheme = () => useContext(ThemeContext);
 
+export const ThemeBootstrap = component$(() => {
+
+  const code = `      if(localStorage.theme==="dark"){
+    document.documentElement.classList.add("dark");}
+  else if(typeof localStorage.theme==="undefined"){
+    if(window.matchMedia("(prefers-color-scheme: dark)").matches){
+      document.documentElement.classList.add("dark");}
+      localStorage.theme="dark";
+    }
+    window.$localize = (key) => {
+        return key[0]
+      }
+    `
+  return <script dangerouslySetInnerHTML={code} />
+})

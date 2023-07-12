@@ -1,6 +1,5 @@
-import { $, createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useVisibleTask$, useServerData } from "@builder.io/qwik";
+import { $, useOnWindow, createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData } from "@builder.io/qwik";
 import { isServer } from '@builder.io/qwik/build';
-
 
 export interface Location {
   url: string;
@@ -9,31 +8,16 @@ export const RouterContext = createContextId<Location>(
   'docs.router-context'
 );
 
-export const Router2 = component$(() => {
-  //const svr = useServerData('url') as string
-  const svr = "https://localhost:5173/"
-  const routingState = useStore<Location>({
-    url: svr,
-  });
-  useContextProvider(RouterContext, routingState);
-  
-  useVisibleTask$(() => {
-    if (!isServer) {
-      routingState.url = window.location.href;
-      getWindow()?.addEventListener('popstate', (e) => {
-        const path = e.state.page;
-        const oldUrl = new URL(routingState.url);
-        routingState.url = oldUrl.origin + path
-      })
-    }
-  });
-  return <Slot />
-});
 export const Router = component$(() => {
   const svr = useServerData<string|null>('url') 
   const routingState = useStore<Location>({
     url: svr??"",
   });
+  useOnWindow('popstate', $((e: Event) => {
+    const o = e as PopStateEvent
+      console.log('popstate',o.state.page)
+      routingState.url = o.state.page;
+    }))
   useContextProvider(RouterContext, routingState);
   return <Slot />
 })
@@ -41,8 +25,12 @@ export const Router = component$(() => {
 // logout is tricky, we can't get the context from an event handler can we?
 // log out of all tabs
 export const useNavigate = () => {
+  const ctx = useContext(RouterContext)
   return $((loc: string) => {
-    history.pushState({}, '', loc);
+    const to =  new URL(loc, ctx.url).href
+    history.pushState({}, loc, to) // does not cause a popstate.
+    ctx.url =to
+    console.log('pushstate', loc)
   })
 }
 
