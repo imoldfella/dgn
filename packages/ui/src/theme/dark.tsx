@@ -28,9 +28,9 @@ export const DarkButton = component$(() => {
         onClick$={() => toggleDark()}
       >
         {dark.value ? (
-          <Icon class="w-8 h-8" svg={sun}/>
+          <Icon class="w-8 h-8" svg={sun()}/>
         ) : (
-          <Icon class="w-8 h-8" svg={moon}/>
+          <Icon class="w-8 h-8" svg={moon()}/>
         )}
       </button>
     </>

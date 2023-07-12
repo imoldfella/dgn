@@ -33,7 +33,7 @@ export const LanguageSelect = component$((props: Props) => {
         console.log('ln', ln)
     })
     return (<div class='flex  text-black dark:text-white rounded-md items-center '>
-        <label class='block mx-2' for='ln'><Icon svg={language}/></label>
+        <label class='block mx-2' for='ln'><Icon svg={language()}/></label>
         <select
             id='ln'
             aria-label={$localize`Select language`}

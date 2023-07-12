@@ -1,13 +1,27 @@
 
 
-import { LanguageProvider, LoginProvider, ThemeBootstrap, ThemeProvider } from "./provider";
+import { LanguageProvider, LoginProvider, ThemeProvider } from "./provider";
 import { Router, RouterOutlet, RoutingConfigItem } from "./provider/router";
 
 import "./global.css";
-import { component$ } from "@builder.io/qwik";
+import { component$, } from "@builder.io/qwik";
 import { Onboard, Signin } from "./onboard";
 
+
+
 export default () => {
+  Object.defineProperty($localize, "TRANSLATIONS", {
+    get: () => {
+      return {
+        "": {
+          "Select language": "Select language",
+          "English": "English",
+          "Español": "Español",
+          "עברית": "עברית"
+        }
+      }
+    }
+  })
   return <>
     <head >
       <meta charSet="utf-8" />
@@ -18,7 +32,6 @@ export default () => {
         <LanguageProvider avail='en es iw' default='en'>
           <LoginProvider  >
           <ThemeProvider>
-            {$localize``}
             <App />
           </ThemeProvider>
           </LoginProvider>
@@ -26,7 +39,7 @@ export default () => {
       </Router>
     </body>
   </>
-}
+})
 
 
 type RoutingConfig = RoutingConfigItem[];

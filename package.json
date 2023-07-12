@@ -12,7 +12,6 @@
   },
   "author": "",
   "dependencies": {
-    "@angular/localize": "^16.1.4",
     "@github/webauthn-json": "^2.1.1",
     "cbor-x": "^1.5.3"
   },

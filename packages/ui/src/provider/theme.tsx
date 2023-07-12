@@ -14,16 +14,6 @@ export const ThemeContext = createContextId<Theme>(
   'docs.theme-context'
 );
 
-export const ThemeBootstrap = component$(() => {
-  const code = `      if(localStorage.theme==="dark"){
-    document.documentElement.classList.add("dark");}
-  else if(typeof localStorage.theme==="undefined"){
-    if(window.matchMedia("(prefers-color-scheme: dark)").matches){
-      document.documentElement.classList.add("dark");}
-      localStorage.theme="dark";
-    }`
-  return <script dangerouslySetInnerHTML={code} />
-})
 
 // not sure what to do about theme provider if it needs to be global or not.
 // we probably do want to impact the body tag, but maybe we don't need to.

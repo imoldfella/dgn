@@ -5,21 +5,6 @@ import {
   createContextId,
 } from '@builder.io/qwik';
 import { useLocation } from './router';
-import { loadTranslations } from "@angular/localize";
-
-import EN from "../locale/message.en.json";
-import IW from "../locale/message.iw.json";
-import ES from "../locale/message.es.json";
-
-interface Translation {
-  locale: string
-  translations: Record<string,string>
-}
-const translations : Record<string,Translation> = {
-  "en": EN as Translation,
-  "iw": IW as Translation,
-  "es": ES as Translation,
-}
 
 export interface Language {
   ln: string
@@ -51,7 +36,6 @@ export const LanguageProvider =  component$<Props>((props) => {
     avail: props.avail.split(' '),
   })
 
-  loadTranslations(translations[ln].translations )
   useContextProvider(LanguageContext, lang);
   return <Slot />
 });
