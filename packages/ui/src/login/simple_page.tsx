@@ -1,10 +1,9 @@
 import { Slot, component$ } from "@builder.io/qwik"
-import { DarkButton, LanguageSelect, useLanguage } from ".."
-
-
+import { DarkButton, LanguageSelect } from ".."
+import { useLocation } from "../provider/router"
 
 export const SimplePage = component$(() => {
-    const ln = useLanguage()
+    const ln = useLocation()
 
     return <><div dir={ln.dir} class='px-2 space-x-1 my-2 fixed w-screen flex flex-row items-center'>
         <div><Slot name='top-left' /></div>
@@ -14,7 +13,6 @@ export const SimplePage = component$(() => {
     </div>
         <div class="flex items-center justify-center w-screen h-screen">
             <div class='w-96'>
-                <div>Language {JSON.stringify(ln)}</div>
                 <Slot />
             </div>
         </div>

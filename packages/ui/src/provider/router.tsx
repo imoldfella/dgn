@@ -1,24 +1,62 @@
-import { $, useOnWindow, createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData } from "@builder.io/qwik";
+import { $, useOnWindow, createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData, useTask$ } from "@builder.io/qwik";
 import { isServer } from '@builder.io/qwik/build';
+import { translate } from "../i18n";
 
+const rtl = ["iw","ar"]
+ 
 export interface Location {
   url: string;
+  ln: string
+  lc: string
+  dir: 'ltr'|'rtl'|'auto'
+  avail: string[]
+}
+function setLocation(loc: Location, path: string) {
+  loc.ln = path.split('/')[1]
+  loc.dir = rtl.includes(loc.ln)?"rtl":"ltr"
 }
 export const RouterContext = createContextId<Location>(
   'docs.router-context'
 );
 
-export const Router = component$(() => {
+export interface Props {
+  avail: string
+  default: string
+  defaultlc?: string
+}
+export const Router = component$<Props>((props) => {
+  const urlLang = (url: string) => {
+    const path = new URL(url).pathname
+    return path.split('/')[1]
+  }
   const svr = useServerData<string|null>('url') 
   const routingState = useStore<Location>({
     url: svr??"",
+    ln: svr?urlLang(svr):props.default,
+    lc: props.defaultlc??'en',
+    dir: rtl.includes(props.default)?"rtl":"ltr",
+    avail: props.avail.split(',')
   });
+
+  if (isServer) {
+    global.$localize = (key: TemplateStringsArray, ...args: readonly any[]) => {
+      return translate(routingState.ln,key,...args)
+    }
+  } else {
+    window.$localize = (key: TemplateStringsArray, ...args: readonly any[]) => {
+      return translate(routingState.ln,key,...args)
+    }
+  }  
+
   useOnWindow('popstate', $((e: Event) => {
     const o = e as PopStateEvent
       console.log('popstate',o.state.page)
-      routingState.url = o.state.page;
+      setLocation(routingState, o.state.page as string)
     }))
   useContextProvider(RouterContext, routingState);
+  useTask$(() => {
+    (routingState.url)
+  })
   return <Slot />
 })
 
@@ -29,8 +67,7 @@ export const useNavigate = () => {
   return $((loc: string) => {
     const to =  new URL(loc, ctx.url).href
     history.pushState({}, loc, to) // does not cause a popstate.
-    ctx.url =to
-    console.log('pushstate', loc)
+    setLocation(ctx,loc)
   })
 }
 
@@ -45,13 +82,9 @@ export interface RouteLocation {
   readonly url: URL;
   readonly isNavigating: boolean;
 }
-export const useLocation = (): RouteLocation => {
-  const x = useContext(RouterContext).url
-  return {
-    params: {},
-    url: new URL(x),
-    isNavigating: false,
-  }
+export const useLocation = (): Location => {
+  return useContext(RouterContext)
+
 }
 
 export function getWindow(): Window | undefined {
@@ -84,10 +117,11 @@ export const RouterOutlet = component$<{config: RoutingConfigItem[]}>((props) =>
   }
 
   const loc = useLocation();
-  const segments = loc.url.pathname.split('/');
+  const segments = new URL(loc.url).pathname.split('/');
   segments.splice(0, 2); // remove empty segment and language
   if (segments.length === 0) {
     return props.config[0].component
   }
   return getMatchingConfig(segments, props.config)?.component
 })
+

@@ -1,9 +1,9 @@
-import { HTMLAttributes, component$, useVisibleTask$ } from "@builder.io/qwik";
-import { useLanguage } from "../provider";
+import { HTMLAttributes, component$ } from "@builder.io/qwik";
+
 
 import { language } from "./heroicon";
 import { Icon } from "../headless";
-import { useNavigate } from "../provider/router";
+import { useLocation, useNavigate } from "../provider/router";
 
 
 type LanguageMap = {
@@ -24,14 +24,29 @@ const languages: LanguageMap = {
     }
 }
 const wtf = ['en', 'es', 'iw']
+const en : Record<string,string>= {
+    
+}
+const es = {
+  "Sign in": "Iniciar sesión",
+}
+const iw = {
+
+}
+const data : Record<string,Record<string,string>> = { en, es, iw }
+export function translate(ln: string,keys: TemplateStringsArray, ...args: any[]) {
+const [key,msg] = keys[0].split(':')
+;(args)
+
+const a : Record<string, string>  = data[ln]??en
+
+return a[key]??en[key]??msg??key
+}
 
 type Props = HTMLAttributes<HTMLSelectElement>
 export const LanguageSelect = component$((props: Props) => {
+    const loc = useLocation()
     const nav = useNavigate()
-    const ln = useLanguage()
-    useVisibleTask$(()=>{
-        console.log('ln', ln)
-    })
     return (<div class='flex  text-black dark:text-white rounded-md items-center '>
         <label class='block mx-2' for='ln'><Icon svg={language()}/></label>
         <select
@@ -40,14 +55,14 @@ export const LanguageSelect = component$((props: Props) => {
             class='flex-1  rounded-md dark:bg-neutral-900 text-black dark:text-white '
             onInput$={(e, target) => {
                 const newlang = target.value
-                nav(newlang)
+                nav("/"+newlang)
             }}
             {...props}
         >
            
                 {wtf.map((lnx) => {
                     const lnd = languages[lnx]
-                    return <option selected={lnx==ln.ln} key={lnx} value={lnx}>{lnd.name}</option>
+                    return <option selected={lnx==loc.ln} key={lnx} value={lnx}>{lnd.name}</option>
                 })}
         </select>
     </div>

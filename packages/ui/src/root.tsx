@@ -1,6 +1,6 @@
 
 
-import { LanguageProvider, ThemeBootstrap, ThemeProvider } from "./provider";
+import { ThemeBootstrap, ThemeProvider } from "./provider";
 import { Router, RouterOutlet, RoutingConfigItem } from "./provider/router";
 
 import "./global.css";
@@ -14,12 +14,10 @@ export default component$(() => {
       <ThemeBootstrap/>
     </head>
     <body lang="en" class='prose dark:prose-invert dark:bg-black dark:text-white'>
-      <Router>
-        <LanguageProvider avail='en es iw' default='en'>
+      <Router avail='en es iw' default='en'>
           <ThemeProvider>
             <App />
           </ThemeProvider>
-        </LanguageProvider>
       </Router>
     </body>
   </>
