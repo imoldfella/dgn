@@ -6,7 +6,7 @@ export function classNames(...classes: (string | boolean | undefined)[]): string
 }
 
 // creates a Blue link that respects the router and the language
-type LinkProps = HTMLAttributes<HTMLAnchorElement>
+export type LinkProps = HTMLAttributes<HTMLAnchorElement> & {href: string}
 export const Ab = component$((props: LinkProps) => {
     return <Link {...props} class={`no-underline dark:text-blue-400 text-blue-700 hover:text-blue-500 hover:underline ${props.class}`}>
         <Slot/>

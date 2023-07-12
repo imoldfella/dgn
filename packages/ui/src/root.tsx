@@ -7,21 +7,7 @@ import "./global.css";
 import { component$ } from "@builder.io/qwik";
 import { Onboard, Signin } from "./onboard";
 
-
-
 export default () => {
-  Object.defineProperty($localize, "TRANSLATIONS", {
-    get: () => {
-      return {
-        "": {
-          "Select language": "Select language",
-          "English": "English",
-          "Español": "Español",
-          "עברית": "עברית"
-        }
-      }
-    }
-  })
   return <>
     <head >
       <meta charSet="utf-8" />
