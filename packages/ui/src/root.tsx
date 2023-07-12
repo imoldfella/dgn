@@ -1,14 +1,27 @@
 
 
-import { LanguageProvider, LoginProvider, ThemeBootstrap, ThemeProvider, useLanguage, useLogin, useTheme } from "./provider";
-import { Router, RouterOutlet, RoutingConfigItem, useLocation } from "./provider/router";
+import { LanguageProvider, LoginProvider, ThemeBootstrap, ThemeProvider } from "./provider";
+import { Router, RouterOutlet, RoutingConfigItem } from "./provider/router";
 
 import "./global.css";
 import { component$ } from "@builder.io/qwik";
 import { Onboard, Signin } from "./onboard";
 
 
+
 export default () => {
+  Object.defineProperty($localize, "TRANSLATIONS", {
+    get: () => {
+      return {
+        "": {
+          "Select language": "Select language",
+          "English": "English",
+          "Español": "Español",
+          "עברית": "עברית"
+        }
+      }
+    }
+  })
   return <>
     <head >
       <meta charSet="utf-8" />
@@ -19,6 +32,7 @@ export default () => {
         <LanguageProvider avail='en es iw' default='en'>
           <LoginProvider  >
           <ThemeProvider>
+            {$localize``}
             <App />
           </ThemeProvider>
           </LoginProvider>
@@ -28,18 +42,6 @@ export default () => {
   </>
 }
 
-export const Info = component$(() => {
-    const rt = useLocation()
-  const ln = useLanguage()
-  const lg = useLogin()
-  const th = useTheme()
-  return <>
-    <div>Router: {JSON.stringify(rt)}</div>
-    <div>Language: {JSON.stringify(ln)}</div>
-    <div>Login: {JSON.stringify(lg)}</div>
-    <div>Theme: {JSON.stringify(th)}</div>
-    </>
-})
 
 type RoutingConfig = RoutingConfigItem[];
 const routingConfig: RoutingConfig = [
