@@ -1,4 +1,4 @@
 
 export * from './login'
-export * from './theme'
+export * from './router'
 

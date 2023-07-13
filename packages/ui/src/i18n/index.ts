@@ -1,5 +1,4 @@
 export * from './heroicon'
-export * from './language_select'
 
 declare global {
     function $localize (strings: TemplateStringsArray, ...expressions: readonly any[]) :string
