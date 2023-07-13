@@ -1,7 +1,9 @@
-import { $, useOnWindow,  createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData, useTask$, useVisibleTask$ } from "@builder.io/qwik";
+import { $, useOnWindow,  createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData, useVisibleTask$ } from "@builder.io/qwik";
 import { isServer } from '@builder.io/qwik/build';
 import {  translations} from "../locale";
-
+import _ from "../i18n"
+import { Icon } from "../headless";
+import { language } from "../i18n";
 
 const rtl = ["iw","ar"]
 // declare global {  
@@ -16,6 +18,7 @@ export interface Location {
   avail: string[]
   tr: Record<string, string>
 }
+
 function setLocation(loc: Location, path: string) {
   loc.ln = path.split('/')[1]
   loc.dir = rtl.includes(loc.ln)?"rtl":"ltr"
@@ -45,16 +48,7 @@ export const Router = component$<Props>((props) => {
     avail: props.avail.split(','),
     tr: translations[ln]
   });
-  
-
-  if (isServer) {
-    global.$localize = (keys: TemplateStringsArray, ...args: readonly any[]) => {
-        const [key, msg] = keys[0].split(':')
-            ; (args)
-        const a: Record<string, string> = translations[routingState.ln] ?? translations[props.default]
-        return a[key] ?? translations[props.default][key] ?? msg ?? key
-    }
-  } 
+  console.log("routingState",routingState)
 
   useOnWindow('popstate', $((e: Event) => {
     const o = e as PopStateEvent
@@ -94,22 +88,8 @@ export interface RouteLocation {
 export const useLocation = (): Location => {
   return useContext(RouterContext)
 }
-export const useLanguage2 = () : (x:string) => string => {
-  const ctx = useContext(RouterContext)
-  return (x: string) => {
-    return ctx.tr[x] ?? x
-  }
-}
 
-export const useLanguage = () : (x: TemplateStringsArray, ...args: readonly any[]) => string => {
-  const ctx = useContext(RouterContext)
-  return (keys: TemplateStringsArray, ...args: readonly any[]) => {
-    (args);
-    const [key, msg] = keys[0].split(':')
-    const a: Record<string, string> = ctx.tr
-    return a[key] ?? ctx.tr[key] ?? msg ?? key
-  }
-}
+
 export function getWindow(): Window | undefined {
   if (!isServer) {
     return typeof window === 'object' ? window : undefined
@@ -140,10 +120,6 @@ export const RouterOutlet = component$<{config: RoutingConfigItem[]}>((props) =>
   }
 
   const loc = useLocation();
-  useTask$(()=>{
-    loc.ln
-    loc.url
-  })
   const segments = new URL(loc.url).pathname.split('/');
   segments.splice(0, 2); // remove empty segment and language
   if (segments.length === 0) {
@@ -152,7 +128,6 @@ export const RouterOutlet = component$<{config: RoutingConfigItem[]}>((props) =>
   return getMatchingConfig(segments, props.config)?.component
 })
  
-
 export interface Theme {
     dark: boolean;
 }
@@ -184,18 +159,11 @@ export const useTheme = () => useContext(ThemeContext);
 
 // this could fetch languages on demand, then we could trigger a re-render of the page?
 
-function localize(keys: TemplateStringsArray, ...args: readonly any[]) : string {
-  (args);
-  const [key, msg] = keys[0].split(':')
-  const o =  (window.$localize as any).TRANSLATIONS[key] ?? msg ?? key
-  console.log('localize', keys, o)
-  return o
-}
+
 
 // we need to bootstrap whatever translation is the entry url, otherwise recalcs will go awry.
 
 export const ThemeBootstrap = component$(( ) => {
-  const svr = useLocation()
   // how do we tell development mode?
   const code = `if(localStorage.theme==="dark"){
     document.documentElement.classList.add("dark");}
@@ -203,31 +171,12 @@ export const ThemeBootstrap = component$(( ) => {
     if(window.matchMedia("(prefers-color-scheme: dark)").matches){
       document.documentElement.classList.add("dark");}
       localStorage.theme="dark";
-    }
-    window.$localize = ${localize.toString()}
-    window.$localize.TRANSLATIONS = ${JSON.stringify(translations[svr.ln] ?? translations.en)}
-    `
-
+    }`
   return <script dangerouslySetInnerHTML={code} />
 })
 
-/*
-if (!isServer) {
-    const w = window as any
-    w.__ln = 'en'
-    w.$localize = (ln: string, keys: TemplateStringsArray, ...args: any[]) =>{
-        console.log('translate', ln, keys, args)
-        const [key, msg] = keys[0].split(':')
-            ; (args)
-        const a: Record<string, string> = data[ln] ?? en
-        return a[key] ?? en[key] ?? msg ?? key
-    }
-}
-    */
 
 
-import { Icon } from "../headless";
-import { language } from "../i18n";
 
 type LanguageMap = {
     [key: string]: { name: string, dir: 'ltr' | 'rtl' | 'auto' }
@@ -259,11 +208,10 @@ export const LanguageSelect = component$((props: SelectProps) => {
         <label class='block mx-2' for='ln'><Icon svg={language()} /></label>
         <select
             id='ln'
-            aria-label={$localize`Select language`}
+            aria-label={_`Select language`}
             class='flex-1  rounded-md dark:bg-neutral-900 text-black dark:text-white '
             onInput$={async (e, target) => {
                 const newlang = target.value;
-                (window.$localize as any).TRANSLATIONS = translations[newlang]
                 const rest = new URL(loc.url).pathname.split('/').slice(2).join('/')
                 nav("/" + newlang + "/" + rest)
             }}

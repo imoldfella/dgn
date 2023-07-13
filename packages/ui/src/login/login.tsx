@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // interface LoginProps2 extends LoginProps {
 //     finishLogin: (i: LoginInfo) => void
@@ -12,6 +13,7 @@ import { LoginInfo } from "./api"
 import { LoginWith } from "./login_with"
 import { DefaultButton, TextDivider } from "../theme/form"
 import { useNavigate } from "../provider/router"
+import $localize from "../i18n"
 
 // abort controllers are not serializable :(
 // we can 

@@ -1,15 +1,22 @@
-import { component$, useSignal, useVisibleTask$, $ } from "@builder.io/qwik"
-import { JSX } from "@builder.io/qwik/jsx-runtime"
+import { component$, useSignal, $ } from "@builder.io/qwik"
+import type{  QwikIntrinsicElements } from "@builder.io/qwik"
+import $localize from "../i18n"
 
-type LabelProps = JSX.IntrinsicElements['label']
+export type LabelProps =  QwikIntrinsicElements['label'] & { for: string }
 export const InputLabel = (props: LabelProps) => {
     return <div><label {...props} class="dark:text-neutral-400 text-neutral-600 block text-sm font-medium leading-6">{props.children}</label></div>
 }
 
 
-type InputProps = JSX.IntrinsicElements['input']
+export function OcticonAlertFill12(props: QwikIntrinsicElements['svg'], key: string) {
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 12 12" {...props} key={key}><path fill="#888888" d="M4.855.708c.5-.896 1.79-.896 2.29 0l4.675 8.351a1.312 1.312 0 0 1-1.146 1.954H1.33A1.313 1.313 0 0 1 .183 9.058ZM7 7V3H5v4Zm-1 3a1 1 0 1 0 0-2a1 1 0 0 0 0 2Z"></path></svg>
+    )
+  }
 
-export const Input = component$((props: InputProps & { error?: () => JSX.Element }) => {
+export type InputProps =  QwikIntrinsicElements['input'] & { error?: string, onInput$?: (e: Event, target: HTMLInputElement) => void }    
+
+export function Input(props: InputProps)  {
     return <><div><input
         {...props}
         value={props.value}
@@ -18,7 +25,7 @@ export const Input = component$((props: InputProps & { error?: () => JSX.Element
 
         {props.error && <div class='mt-2'>{props.error}</div>}
     </>
-})
+}
 
 
 export const Username = component$((props: InputProps) => {

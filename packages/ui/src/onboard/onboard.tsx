@@ -1,16 +1,15 @@
 import { component$ } from "@builder.io/qwik"
 import { SimplePage } from "../login"
 import { Ab } from "../theme"
-import { useLanguage, useLanguage2, useLocation,  } from "../provider/router"
+import _ from "../i18n"
+import { useLanguage } from "../i18n"
+
 //const PaperClipIcon = (props: {class:string})=><Icon class={props.class} path={paperClip}/>
 
 export const Onboard = component$(() => {
-    const loc = useLocation()
-    const ln = useLanguage2()
-    const tr = (s: string) => loc.tr[s] || s
+    useLanguage()
     return <SimplePage>
-            <div  q:slot="top-left"><Ab href='/signin'>WTF{ln('Sign in')}</Ab></div>
-            <div>{JSON.stringify(loc.tr)}</div>
+            <div  q:slot="top-left"><Ab href='/signin'>{_`Sign in`}</Ab></div>
             <h1 class='w-full text-center mt-16 mb-8'>Datagrove</h1>
             <form action="#" class="relative">
                 <div class="overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
