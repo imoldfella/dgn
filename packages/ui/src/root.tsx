@@ -12,7 +12,6 @@ export default component$(() => {
    <Router avail='en es iw' default='en'>
     <head >
       <meta charSet="utf-8" />
-      <script src='./root2' />
       <ThemeBootstrap/>
     </head>
     <body lang="en" class='prose dark:prose-invert dark:bg-black dark:text-white'> 

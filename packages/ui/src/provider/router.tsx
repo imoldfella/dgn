@@ -1,30 +1,29 @@
 import { $, useOnWindow,  createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData, useVisibleTask$ } from "@builder.io/qwik";
 import { isServer } from '@builder.io/qwik/build';
-import {  translations} from "../locale";
 import _ from "../i18n"
 import { Icon } from "../headless";
 import { language } from "../i18n";
+import { translations } from "../locale";
 
 const rtl = ["iw","ar"]
 // declare global {  
 //   let global: any
 // }
  
-export interface Location {
+export interface RouterLocation {
   url: string;
   ln: string
-  lc: string
   dir: 'ltr'|'rtl'|'auto'
   avail: string[]
-  tr: Record<string, string>
+  tr: Record<string,Record<string,string>>
 }
 
-function setLocation(loc: Location, path: string) {
+function setLocation(loc: RouterLocation, path: string) {
   loc.ln = path.split('/')[1]
   loc.dir = rtl.includes(loc.ln)?"rtl":"ltr"
-  loc.tr = translations[loc.ln]
+  console.log("setLocation",loc)
 }
-export const RouterContext = createContextId<Location>(
+export const RouterContext = createContextId<RouterLocation>(
   'docs.router-context'
 );
 
@@ -40,13 +39,12 @@ export const Router = component$<Props>((props) => {
   }
   const svr = useServerData<string|null>('url') 
   const ln = svr?urlLang(svr):props.default
-  const routingState = useStore<Location>({
+  const routingState = useStore<RouterLocation>({
     url: svr??"",
     ln: ln,
-    lc: props.defaultlc??'en',
     dir: rtl.includes(props.default)?"rtl":"ltr",
     avail: props.avail.split(','),
-    tr: translations[ln]
+    tr: translations
   });
   console.log("routingState",routingState)
 
@@ -64,6 +62,7 @@ export const Router = component$<Props>((props) => {
 export const useNavigate = () => {
   const ctx = useContext(RouterContext)
   return $((loc: string) => {
+    console.log("navigate",loc)
     const to =  new URL(loc, ctx.url).href
     history.pushState({}, loc, to) // does not cause a popstate.
     setLocation(ctx,loc)
@@ -85,7 +84,7 @@ export interface RouteLocation {
   readonly url: URL;
   readonly isNavigating: boolean;
 }
-export const useLocation = (): Location => {
+export const useLocation = (): RouterLocation => {
   return useContext(RouterContext)
 }
 
@@ -211,8 +210,10 @@ export const LanguageSelect = component$((props: SelectProps) => {
             aria-label={_`Select language`}
             class='flex-1  rounded-md dark:bg-neutral-900 text-black dark:text-white '
             onInput$={async (e, target) => {
+                
                 const newlang = target.value;
                 const rest = new URL(loc.url).pathname.split('/').slice(2).join('/')
+                console.log("onInput", newlang, rest)
                 nav("/" + newlang + "/" + rest)
             }}
             {...props}
@@ -227,22 +228,3 @@ export const LanguageSelect = component$((props: SelectProps) => {
     )
 
 })
-
-
-
-
-/*
-    const nav = useNavigate()
-    const ln = useLn()
-
-    // change the language has to change the route. It doesn't change the store
-    const update = (e: string) => {
-        const p = window.location.pathname.split('/')
-        p[1] = e
-        nav(p.join('/'))
-    }
-
-    return (<Select entries={allLn} value={ln().ln} onChange={update}>
-        <Icon class='h-6 w-6' path={language} /></Select>)
-
-        */
