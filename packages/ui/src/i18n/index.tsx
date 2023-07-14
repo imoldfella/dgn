@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {   useContext, useTask$,component$, Slot, HTMLAttributes, useServerData } from '@builder.io/qwik'
+import {   useContext, useTask$,component$, Slot, HTMLAttributes, useServerData, useSignal } from '@builder.io/qwik'
 import { RouterContext, useLocation, useNavigate } from '../provider'
 import { isServer } from '@builder.io/qwik/build'
 import localeInfo from '../locale'
 import { Icon } from '../headless'
 import { language } from './heroicon'
-import { get } from 'http'
+import { JSX } from '@builder.io/qwik/jsx-runtime'
+
 
 export * from './heroicon'
 
@@ -76,14 +77,8 @@ const fmt = (keys: ReadonlyArray<string>, ...args: any[]) => {
     return s
 }
 
-// interface LocaleContext {
-//     ln: string
-//     tr: Record<string,Record<string,string>>
-// }
-// export const LocaleContext = createContextId<LocaleContext>(
-//     'LOCALE'
-//   );
-// on the client we need to assume that things are not loaded, and we may need to set up tracking
+
+
 export const useLanguage = () =>  { 
     const trx = useContext(RouterContext)
     useTask$(({track}) => {
@@ -95,12 +90,10 @@ export const useLanguage = () =>  {
         })
     })
 }
-  
-// somehow on the client this needs to return a string proxy that will let us change the value in the dom directly. then when the language changes we can update the dom
 
-function serverFormat(keys: TemplateStringsArray, ...args: any[]) :  string{
+
+function serverFormat(key: string|number, ...args: any[]) :  string{
     const lc = getLocale()
-    const key = keys.join('∞')
     const [ln,bln]  = lc.split('-')
     const o = localeInfo
     if (o.locale[ln] && o.locale[ln][key]) {
@@ -110,23 +103,25 @@ function serverFormat(keys: TemplateStringsArray, ...args: any[]) :  string{
     } else if (o.locale[o.default] && o.locale[o.default][key]) {
         return fmt(o.locale[o.default][key],...args)
     } else {
-        return fmt(keys)
+        return key.toString()
     }
 }
 // async version of _ can we overload this or is it better to use a different symbol?
 // how can we get a locale context here, we aren't in the tree? we need to look at the route directly, that may not be possible either?
 export const __ = async (keys: TemplateStringsArray, ...args: any[]) : Promise<string> => {
+    const key = keys.join('∞')
     if (isServer) {
-        return serverFormat(keys,...args)
+        return serverFormat(key,...args)
     } else{
         return getClientStore().format(keys, ...args)
     }
 }
 
 const _ =  (keys: TemplateStringsArray, ...args: any[]) : string => {
+    const key = keys.join('∞')
     if (isServer) {
         // on server everything is loaded, so just look it up
-        return serverFormat(keys,...args)
+        return serverFormat(key,...args)
     } else{
         // on client we need to be able to await dynamically loading the translation
         // and potentially we need to partially load the translation.
@@ -144,8 +139,62 @@ const _ =  (keys: TemplateStringsArray, ...args: any[]) : string => {
 
 export  default _
 
+// export const I18n = component$<{id: string}>((props)=>{
+//     const s = useSignal("...")
+//     if (isServer) {
+//         // on server everything is loaded, so just look it up
+//         return <>{serverFormat(props.id)}</>
+//     } else{
+//         // on client we need to be able to await dynamically loading the translation
+//         // and potentially we need to partially load the translation.
+//         // we need to potentially load the translation (partially or completely) for the language, the backup language, and the default language
+//         // synchronously here we must hand back a reactive string that will update when the translation is loaded
 
+//         // looking up the key can be yes/no/unknown. If its unknown we need to hand back a reactive string will update when the translation is loaded.
+//         const o = getClientStore().formatMaybe( props.id)
+//         if (o!=undefined) {
+//             return <>{o}</>
+//         }
 
+//         return <>{s.value}</>
+//     }
+// })
+
+export const I18n = component$<{ id: number | string; params: any[] }>(
+    (props) : JSX.Element => {
+      const loc = useLocation()
+      // console.log(`render i18n ${id} ${lang}`);
+  
+      useTask$(({ track }) => {
+        track(() => props.id);
+        track(() => loc.tr);
+        if (!loc.tr[id]) {
+          console.log(`loading ${id} in ${lang}`);
+          // TODO handle string ids
+          if (isServer) {
+            // server has everything loaded
+            ts[id] = globalThis[`server_${lang}`]?.[id];
+          } else {
+            // client needs to load
+            ts[id] = `...loading ${id} for ${lang}`;
+            setTimeout(() => (ts[id] = `${id} in ${lang} but loaded`), 1000);
+          }
+        }
+      });
+      let tr = ts[id];
+      if (params?.length) {
+        if (tr && typeof tr === "object") {
+          let resolved = tr[params[0]] ?? (tr as any)._;
+          while (typeof resolved === "number") resolved = tr[resolved];
+          tr =
+            resolved ??
+            `no translation for id ${id} in lang ${lang} for value ${params[0]}`;
+        }
+        tr = tr.replace(/\$([\$0-9]+)/g, (_, i) => (i === "$" ? "$" : params[i]));
+      }
+      return <>{tr}</>;
+    }
+  );
 type LanguageMap = {
     [key: string]: { name: string, dir: 'ltr' | 'rtl' | 'auto' }
 }
@@ -164,7 +213,6 @@ const languages: LanguageMap = {
         dir: 'rtl',
     }
 }
-const wtf = ['en', 'es', 'iw']
 
 
 // in development we have to trigger a load translations.
@@ -188,7 +236,7 @@ export const LanguageSelect = component$((props: SelectProps) => {
             {...props}
         >
 
-            {wtf.map((lnx) => {
+            {Object.keys(localeInfo.locale).map((lnx) => {
                 const lnd = languages[lnx]
                 return <option selected={lnx == loc.ln} key={lnx} value={lnx}>{lnd.name}</option>
             })}
@@ -197,3 +245,4 @@ export const LanguageSelect = component$((props: SelectProps) => {
     )
 
 })
+

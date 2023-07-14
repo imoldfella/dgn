@@ -8,22 +8,31 @@ const rtl = ["iw","ar"]
 //   let global: any
 // }
  
+// with the new approach the top route only becomes the default language.
+// we could override it in a lower context.
 export interface RouterLocation {
   url: string;
   ln: string
   dir: 'ltr'|'rtl'|'auto'
   avail: string[]
   default: string
-}
-
-function setLocation(loc: RouterLocation, path: string) {
-  loc.ln = path.split('/')[1]
-  loc.dir = rtl.includes(loc.ln)?"rtl":"ltr"
-  console.log("setLocation",loc)
+  tr: Record<string, any>
+  nav: (loc: string) => void
 }
 export const RouterContext = createContextId<RouterLocation>(
-  'docs.router-context'
+  'router-context'
 );
+export const useLocation = (): RouterLocation => {
+  return useContext(RouterContext)
+}
+interface LocaleContext {
+  ln: string
+  tr: Record<string,Record<string,string>>
+}
+export const LocaleContext = createContextId<LocaleContext>(
+  'LOCALE'
+);
+
 
 export interface Props {
   avail: string
@@ -43,8 +52,15 @@ export const Router = component$<Props>((props) => {
     ln: ln,
     dir: rtl.includes(props.default)?"rtl":"ltr",
     avail: props.avail.split(','),
-    default: props.default
-  });
+    default: props.default,
+    tr: {},
+    
+    nav: (path: string) => {
+          loc.ln = path.split('/')[1]
+          loc.dir = rtl.includes(loc.ln)?"rtl":"ltr"
+          console.log("setLocation",loc)
+        }
+      })
   console.log("routingState",routingState)
 
   useOnWindow('popstate', $((e: Event) => {
@@ -85,9 +101,6 @@ export interface RouteLocation {
   readonly params: Record<string, string>;
   readonly url: URL;
   readonly isNavigating: boolean;
-}
-export const useLocation = (): RouterLocation => {
-  return useContext(RouterContext)
 }
 
 

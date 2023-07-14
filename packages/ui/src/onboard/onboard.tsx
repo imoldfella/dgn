@@ -1,19 +1,18 @@
-import { component$ } from "@builder.io/qwik"
+import {  component$ } from "@builder.io/qwik"
 import { SimplePage } from "../login"
 import { Ab } from "../theme"
-import _ from "../i18n"
-import { useLanguage as useLocale } from "../i18n"
+import I18n, { useLanguage as useLocale } from "../i18n"
 
 //const PaperClipIcon = (props: {class:string})=><Icon class={props.class} path={paperClip}/>
 
-const Signin = ()=><span>{_`Sign in`+""} </span>
+
 
 export const Onboard = component$(() => {
     const $ = useLocale();
     ($)
     // if we make this inline, then we force it to render at once.
     return <SimplePage>
-            <div  q:slot="top-left"><Ab href='/signin'><Signin/></Ab></div>
+            <div  q:slot="top-left"><Ab href='/signin'><I18n id='Sign in'/></Ab></div>
             <h1 class='w-full text-center mt-16 mb-8'>Datagrove</h1>
             <form action="#" class="relative">
                 <div class="overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
