@@ -11,11 +11,13 @@ const rtl = ["iw","ar"]
  
 // with the new approach the top route only becomes the default language.
 // we could override it in a lower context.
-
+interface RouterLocation {
+  url: string
+}
 export const RouterContext = createContextId<RouterLocation>(
   'router-context'
 );
-export const useLocation = (): string => {
+export const useLocation = (): RouterLocation => {
   return useContext(RouterContext)
 }
 interface LocaleContext {

@@ -6,29 +6,59 @@ import localeInfo from '../locale'
 import { Icon } from '../headless'
 import { language } from './heroicon'
 import { JSX } from '@builder.io/qwik/jsx-runtime'
+export * from './heroicon'
+
+
+// translations will be Translation[]
+// we are going to need the keys anyway? how can we just use indices? when multiple people are using the document, isn't that going to be a problem? Plus we  have ai's chipping in translations. 
+export type Translation = string | { [key: number]: string }
+
+export type LocaleInfo = { [key: string | number]: Translation }
+function fmt(tr: string, ...params: any[]): string {
+    if (params?.length) {
+        if (tr && typeof tr === "object") {
+            // here we look for the right numeric amount; _ is the default
+            let resolved = tr[params[0]] ?? (tr as any)._;
+            while (typeof resolved === "number")
+                 resolved = tr[resolved];
+            tr = resolved ?? `no translation for  for value ${params[0]}`;
+        }
+        tr = tr.replace(/\$([$0-9]+)/g, (_, i) => (i === "$" ? "$" : params[i]));
+        return tr
+    }
+    return tr
+}
 
 
 // for our purposes translations with integers is going to be painful since distributed mode is the rule. merging the numbers seems unnecessarily painful?
 // most transations would be key->translation   // translation has parameters like $0 $1
 // but some would be key-> {number: translation}
 
-export * from './heroicon'
 
 // should this be a stack? this seems fragile but we need a way outside the use* functions
-function getLocale(): string {
-    return (globalThis as any).__LOCALE ?? 'en'
+function getLocale(): string[] {
+    return ['en'] //(globalThis as any).__LOCALE ?? 'en'
 }
+
 
 // this is just held on global window, not a real provider 
 // not sure yet how to best do containers, this needs a map of containers to stores
 // I need to figure out what container I'm in though.
 export class LocaleStore {
-    async format(keys: TemplateStringsArray, ...args: any[]): Promise<string> {
+    async format(id: string|number, ...args: any[]): Promise<string> {
         const locale = getLocale()
-        console.log("format", locale, keys, args)
-        const o = localeInfo
-        const key = keys.join('∞')
-        const [ln, bln] = getLocale().split('-')
+        for (let i=0; i<locale.length; i++) {
+            const ln = locale[i]
+            const tr = localeInfo.locale[ln][id]
+            if (tr) {
+                return fmt(tr, ...args)
+            }
+        }
+
+
+
+
+
         if (o.locale[ln] && o.locale[ln][key]) {
             return fmt(o.locale[ln][key], ...args)
         } else if (o.locale[bln] && o.locale[bln][key]) {
@@ -68,11 +98,7 @@ function getClientStore() {
 
 // note that this should not be all or nothing, we eventually want to be able to load the translations incrementally
 
-// translations will be Translation[]
-// we are going to need the keys anyway? how can we just use indices? when multiple people are using the document, isn't that going to be a problem? Plus we  have ai's chipping in translations. 
-export type Translation = string | { [key: number]: string }
 
-export type LocaleInfo = { [key: string | number]: Translation }
 
 const fmt2 = (keys: ReadonlyArray<string>, ...args: any[]) => {
     let s = keys[0]
@@ -83,20 +109,6 @@ const fmt2 = (keys: ReadonlyArray<string>, ...args: any[]) => {
 }
 
 // 
-function fmt(tr: string, ...params: any[]): string {
-    if (params?.length) {
-        if (tr && typeof tr === "object") {
-            // here we look for the right numeric amount; _ is the default
-            let resolved = tr[params[0]] ?? (tr as any)._;
-            while (typeof resolved === "number")
-                 resolved = tr[resolved];
-            tr = resolved ?? `no translation for  for value ${params[0]}`;
-        }
-        tr = tr.replace(/\$([$0-9]+)/g, (_, i) => (i === "$" ? "$" : params[i]));
-        return tr
-    }
-    return tr
-}
 
 
 
