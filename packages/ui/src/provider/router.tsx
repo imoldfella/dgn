@@ -1,5 +1,6 @@
 import { $, useOnWindow,  createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData, useVisibleTask$, useTask$ } from "@builder.io/qwik";
 import { isServer } from '@builder.io/qwik/build';
+import localeInfo from "../locale";
 
 
 
@@ -10,19 +11,15 @@ const rtl = ["iw","ar"]
  
 // with the new approach the top route only becomes the default language.
 // we could override it in a lower context.
-export interface RouterLocation {
-  url: string;
-}
+
 export const RouterContext = createContextId<RouterLocation>(
   'router-context'
 );
-export const useLocation = (): RouterLocation => {
+export const useLocation = (): string => {
   return useContext(RouterContext)
 }
 interface LocaleContext {
-  dir: 'ltr'|'rtl'|'auto'
-  avail: string[]
-  default: string
+  dir: 'ltr'|'rtl'
   ln: string
   tr: Record<string,Record<string,string>>
 }
@@ -30,8 +27,37 @@ export const LocaleContext = createContextId<LocaleContext>(
   'LOCALE'
 );
 
-// designed to be under a router.
-export const LocaleProvider = component$<{children:any}>(() => {
+// designed to be under a router?
+export const LocaleProvider = component$<{lang?: string, children:any}>((props) => {    
+  const loc = useLocation()
+  const lc = useStore<LocaleContext>({
+    dir: 'ltr',
+    ln: 'en',
+    tr: {},
+  })
+  useTask$(({track})=>{
+    track(()=>loc)
+    track(()=>props.lang)
+
+    if (!props.lang) {
+      track(()=>loc)
+      const ln = loc.split('/')[1]
+      if (ln) {
+        lc.dir = rtl.includes(ln)?"rtl":"ltr"
+        lc.tr = localeInfo.locale[ln]
+      }
+    }
+  })
+  useContextProvider(LocaleContext, lc);
+  return <Slot />
+})
+
+  let ln = props.lang
+  if (!ln) {
+
+    const url
+    
+  }
   useTask$(({track}) => {
     track(() => trx.url)
 
