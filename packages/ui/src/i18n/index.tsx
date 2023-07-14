@@ -79,17 +79,7 @@ const fmt = (keys: ReadonlyArray<string>, ...args: any[]) => {
 
 
 
-export const useLanguage = () =>  { 
-    const trx = useContext(RouterContext)
-    useTask$(({track}) => {
-        track(() => {
-            if (!isServer)
-              (window as any).__LOCALE = trx.ln
-      
-            console.log("i18n",JSON.stringify(trx))            
-        })
-    })
-}
+
 
 
 function serverFormat(key: string|number, ...args: any[]) :  string{

@@ -12,12 +12,6 @@ const rtl = ["iw","ar"]
 // we could override it in a lower context.
 export interface RouterLocation {
   url: string;
-  ln: string
-  dir: 'ltr'|'rtl'|'auto'
-  avail: string[]
-  default: string
-  tr: Record<string, any>
-  nav: (loc: string) => void
 }
 export const RouterContext = createContextId<RouterLocation>(
   'router-context'
@@ -26,12 +20,43 @@ export const useLocation = (): RouterLocation => {
   return useContext(RouterContext)
 }
 interface LocaleContext {
+  dir: 'ltr'|'rtl'|'auto'
+  avail: string[]
+  default: string
   ln: string
   tr: Record<string,Record<string,string>>
 }
 export const LocaleContext = createContextId<LocaleContext>(
   'LOCALE'
 );
+
+// designed to be under a router.
+export const LocaleProvider = component$<{children:any}>(() => {
+  useTask$(({track}) => {
+    track(() => trx.url)
+
+        if (!isServer)
+          (window as any).__LOCALE = trx.tr
+  
+        console.log("i18n",JSON.stringify(trx))            
+    
+})
+
+  const loc = useStore<LocaleContext>({
+    dir: 'ltr',
+    avail: [],
+    default: 'en',
+    ln: 'en',
+    tr: {},
+  })
+  useContextProvider(LocaleContext, loc);
+  return <Slot />
+})
+
+export const useLocale = () =>  { 
+  return useContext(LocaleContext)
+
+}
 
 
 export interface Props {
