@@ -1,9 +1,7 @@
-import { $, useOnWindow,  createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData, useVisibleTask$ } from "@builder.io/qwik";
+import { $, useOnWindow,  createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData, useVisibleTask$, useTask$ } from "@builder.io/qwik";
 import { isServer } from '@builder.io/qwik/build';
-import _ from "../i18n"
-import { Icon } from "../headless";
-import { language } from "../i18n";
-import { translations } from "../locale";
+
+
 
 const rtl = ["iw","ar"]
 // declare global {  
@@ -15,7 +13,7 @@ export interface RouterLocation {
   ln: string
   dir: 'ltr'|'rtl'|'auto'
   avail: string[]
-  tr: Record<string,Record<string,string>>
+  default: string
 }
 
 function setLocation(loc: RouterLocation, path: string) {
@@ -30,21 +28,22 @@ export const RouterContext = createContextId<RouterLocation>(
 export interface Props {
   avail: string
   default: string
-  defaultlc?: string
 }
 export const Router = component$<Props>((props) => {
-  const urlLang = (url: string) => {
-    const path = new URL(url).pathname
-    return path.split('/')[1]
-  }
+  let ln = props.default??"en"
   const svr = useServerData<string|null>('url') 
-  const ln = svr?urlLang(svr):props.default
+  if (svr) {
+    const path = new URL(svr).pathname.split('/')
+    if (path[1]) {
+      ln = path[1]
+    }
+  }
   const routingState = useStore<RouterLocation>({
     url: svr??"",
     ln: ln,
     dir: rtl.includes(props.default)?"rtl":"ltr",
     avail: props.avail.split(','),
-    tr: translations
+    default: props.default
   });
   console.log("routingState",routingState)
 
@@ -54,6 +53,9 @@ export const Router = component$<Props>((props) => {
       setLocation(routingState, o.state.page as string)
     }))
   useContextProvider(RouterContext, routingState);
+  useTask$(()=>{
+    (globalThis as any).__LOCALE = ln
+  })
   return <Slot />
 })
 
@@ -175,56 +177,3 @@ export const ThemeBootstrap = component$(( ) => {
 })
 
 
-
-
-type LanguageMap = {
-    [key: string]: { name: string, dir: 'ltr' | 'rtl' | 'auto' }
-}
-// this data needs to be kept even when translations are inlined.
-const languages: LanguageMap = {
-    en: {
-        name: 'English',
-        dir: 'ltr',
-    },
-    es: {
-        name: 'Español',
-        dir: 'ltr',
-    },
-    iw: {
-        name: 'עברית',
-        dir: 'rtl',
-    }
-}
-const wtf = ['en', 'es', 'iw']
-
-
-// in development we have to trigger a load translations.
-export type SelectProps = HTMLAttributes<HTMLSelectElement>
-export const LanguageSelect = component$((props: SelectProps) => {
-    const loc = useLocation()
-    const nav = useNavigate()
-    return (<div class='flex  text-black dark:text-white rounded-md items-center '>
-        <label class='block mx-2' for='ln'><Icon svg={language()} /></label>
-        <select
-            id='ln'
-            aria-label={_`Select language`}
-            class='flex-1  rounded-md dark:bg-neutral-900 text-black dark:text-white '
-            onInput$={async (e, target) => {
-                
-                const newlang = target.value;
-                const rest = new URL(loc.url).pathname.split('/').slice(2).join('/')
-                console.log("onInput", newlang, rest)
-                nav("/" + newlang + "/" + rest)
-            }}
-            {...props}
-        >
-
-            {wtf.map((lnx) => {
-                const lnd = languages[lnx]
-                return <option selected={lnx == loc.ln} key={lnx} value={lnx}>{lnd.name}</option>
-            })}
-        </select>
-    </div>
-    )
-
-})

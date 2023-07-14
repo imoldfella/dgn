@@ -6,11 +6,14 @@ import { useLanguage as useLocale } from "../i18n"
 
 //const PaperClipIcon = (props: {class:string})=><Icon class={props.class} path={paperClip}/>
 
+const Signin = ()=><span>{_`Sign in`+""} </span>
+
 export const Onboard = component$(() => {
     const $ = useLocale();
     ($)
+    // if we make this inline, then we force it to render at once.
     return <SimplePage>
-            <div  q:slot="top-left"><Ab href='/signin'>{_`Sign in`}</Ab></div>
+            <div  q:slot="top-left"><Ab href='/signin'><Signin/></Ab></div>
             <h1 class='w-full text-center mt-16 mb-8'>Datagrove</h1>
             <form action="#" class="relative">
                 <div class="overflow-hidden rounded-lg border border-gray-300 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">

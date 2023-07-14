@@ -1,6 +1,11 @@
 import en from './en.json'
 import es from './es.json'
 import iw from './iw.json'
+import { LocaleInfo } from '../i18n'
 
-export const translations: Record<string, Record<string, string>> = { en, es, iw }
+const localeInfo : LocaleInfo = {
+    default: 'en',
+    locale: { en, es, iw }
+}
 
+export default localeInfo
