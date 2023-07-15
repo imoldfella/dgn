@@ -1,37 +1,23 @@
 
 
-import { ThemeBootstrap, ThemeProvider } from "./provider";
+import { LoginProvider, ThemeBootstrap } from "./provider";
 import { Router, RouterOutlet, RoutingConfigItem } from "./provider/router";
 
 import "./global.css";
 import { component$, } from "@builder.io/qwik";
 import { Onboard, Signin } from "./onboard";
+import { LocaleProvider } from "./i18n";
 
-export default component$(() => {
-  return <>
-   <Router avail='en es iw' default='en'>
-    <head >
-      <meta charSet="utf-8" />
-      <ThemeBootstrap/>
-    </head>
-    <body lang="en" class='prose dark:prose-invert dark:bg-black dark:text-white'> 
-          <ThemeProvider>
-            <App />
-          </ThemeProvider>
-    </body>
-    </Router>
-  </>
-})
 
 type RoutingConfig = RoutingConfigItem[];
 const routingConfig: RoutingConfig = [
   {
     path: '',
-    component: <Onboard/>
+    component: <Onboard />
   },
   {
     path: 'signin',
-    component: <Signin/>
+    component: <Signin />
   },
   {
     path: 'home',
@@ -39,8 +25,37 @@ const routingConfig: RoutingConfig = [
   }
 ]
 
-const App = component$(() => {
+export default component$(() => {
   return <>
-    <RouterOutlet config={routingConfig} />
+    <Router>
+
+      <head >
+        <meta charSet="utf-8" />
+        <ThemeBootstrap />
+      </head>
+      <body lang="en" class='prose dark:prose-invert dark:bg-black dark:text-white'>
+        <LocaleProvider>
+          <LoginProvider>
+            <RouterOutlet config={routingConfig} />
+          </LoginProvider>
+        </LocaleProvider>
+      </body>
+
+    </Router>
   </>
 })
+
+// const Info = component$(() => {
+//   const loc = useLocation()
+//   const lc = useLocale()
+//   return <>
+//     <div> {loc.value} </div>
+//     <div> {lc.dir} </div>
+//     <div> {lc.ln} </div>
+//     <LanguageSelect />
+//   </>
+// })
+
+// <RouterOutlet config={routingConfig} />
+
+

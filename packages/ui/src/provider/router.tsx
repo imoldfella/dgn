@@ -1,169 +1,42 @@
-import { $, useOnWindow,  createContextId, component$, useStore, useContextProvider, Slot, useContext, HTMLAttributes, useServerData, useVisibleTask$, useTask$ } from "@builder.io/qwik";
-import { isServer } from '@builder.io/qwik/build';
-import localeInfo from "../locale";
+import { $, useOnWindow, createContextId, component$, useContextProvider, Slot, useContext, useServerData, useStore, useTask$, useSignal } from "@builder.io/qwik";
+import { Signin } from "../onboard";
+import { useLocale } from "../i18n";
 
-
-
-const rtl = ["iw","ar"]
-// declare global {  
-//   let global: any
-// }
- 
 // with the new approach the top route only becomes the default language.
 // we could override it in a lower context.
-interface RouterLocation {
+interface RoutingLocation {
   url: string
 }
-export const RouterContext = createContextId<RouterLocation>(
+export const RouterContext = createContextId<RoutingLocation>(
   'router-context'
 );
-export const useLocation = (): RouterLocation => {
+export const useLocation = () => {
   return useContext(RouterContext)
 }
-interface LocaleContext {
-  dir: 'ltr'|'rtl'
-  ln: string
-  tr: Record<string,Record<string,string>>
-}
-export const LocaleContext = createContextId<LocaleContext>(
-  'LOCALE'
-);
-
-// designed to be under a router?
-export const LocaleProvider = component$<{lang?: string, children:any}>((props) => {    
-  const loc = useLocation()
-  const lc = useStore<LocaleContext>({
-    dir: 'ltr',
-    ln: 'en',
-    tr: {},
-  })
-  useTask$(({track})=>{
-    track(()=>loc)
-    track(()=>props.lang)
-
-    if (!props.lang) {
-      track(()=>loc)
-      const ln = loc.split('/')[1]
-      if (ln) {
-        lc.dir = rtl.includes(ln)?"rtl":"ltr"
-        lc.tr = localeInfo.locale[ln]
-      }
-    }
-  })
-  useContextProvider(LocaleContext, lc);
-  return <Slot />
-})
-
-  let ln = props.lang
-  if (!ln) {
-
-    const url
-    
+export const Router = component$(() => {
+  const svr = useServerData<string | null>('url')
+  const a = {
+    url: svr ?? window.location.href
   }
-  useTask$(({track}) => {
-    track(() => trx.url)
-
-        if (!isServer)
-          (window as any).__LOCALE = trx.tr
-  
-        console.log("i18n",JSON.stringify(trx))            
-    
-})
-
-  const loc = useStore<LocaleContext>({
-    dir: 'ltr',
-    avail: [],
-    default: 'en',
-    ln: 'en',
-    tr: {},
-  })
-  useContextProvider(LocaleContext, loc);
-  return <Slot />
-})
-
-export const useLocale = () =>  { 
-  return useContext(LocaleContext)
-
-}
-
-
-export interface Props {
-  avail: string
-  default: string
-}
-export const Router = component$<Props>((props) => {
-  let ln = props.default??"en"
-  const svr = useServerData<string|null>('url') 
-  if (svr) {
-    const path = new URL(svr).pathname.split('/')
-    if (path[1]) {
-      ln = path[1]
-    }
-  }
-  const routingState = useStore<RouterLocation>({
-    url: svr??"",
-    ln: ln,
-    dir: rtl.includes(props.default)?"rtl":"ltr",
-    avail: props.avail.split(','),
-    default: props.default,
-    tr: {},
-    
-    nav: (path: string) => {
-          loc.ln = path.split('/')[1]
-          loc.dir = rtl.includes(loc.ln)?"rtl":"ltr"
-          console.log("setLocation",loc)
-        }
-      })
-  console.log("routingState",routingState)
-
+  const routingState = useStore<RoutingLocation>(a)
   useOnWindow('popstate', $((e: Event) => {
     const o = e as PopStateEvent
-      console.log('popstate',o.state.page)
-      setLocation(routingState, o.state.page as string)
-    }))
+    routingState.url = o.state.page as string
+  }))
   useContextProvider(RouterContext, routingState);
-  useTask$(()=>{
-    (globalThis as any).__LOCALE = ln
-  })
   return <Slot />
 })
 
-// logout is tricky, we can't get the context from an event handler can we?
-// log out of all tabs
 export const useNavigate = () => {
   const ctx = useContext(RouterContext)
   return $((loc: string) => {
-    console.log("navigate",loc)
-    const to =  new URL(loc, ctx.url).href
+    console.log("navigate", loc)
+    const to = new URL(loc, ctx.url).href
     history.pushState({}, loc, to) // does not cause a popstate.
-    setLocation(ctx,loc)
+    console.log("navigate", to)
+    ctx.url = to
   })
 }
-
-type AnchorProps = HTMLAttributes<HTMLAnchorElement>
-
-// link needs to respect the language.
-// the language selector needs to respect the rest of the path.
-export const Link = component$<AnchorProps&{href:string}>((props) => {
-  const loc = useLocation()
-  const href = new URL("/" + loc.ln+props.href, loc.url).href
-  return <a {...props} href={href} > <Slot /> </a>
-})
-
-export interface RouteLocation {
-  readonly params: Record<string, string>;
-  readonly url: URL;
-  readonly isNavigating: boolean;
-}
-
-
-export function getWindow(): Window | undefined {
-  if (!isServer) {
-    return typeof window === 'object' ? window : undefined
-  }
-  return undefined;
-}
-
 // export declare interface FunctionComponent<P = Record<string, any>> {
 //   (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 // }
@@ -171,66 +44,49 @@ export type RoutingConfigItem = {
   component: any;
   path: string;
 }
-export const RouterOutlet = component$<{config: RoutingConfigItem[]}>((props) => {
-  const getMatchingConfig = (segments: string[], config: RoutingConfigItem[]): RoutingConfigItem | null => {
-    const segmentsMatch = (pathSegments: string[], configItem: RoutingConfigItem): boolean => {
-      const configItemSegments = configItem.path.split('/');
-      if (configItemSegments.length !== pathSegments.length) {
-        return false;
-      }
-      const matches = pathSegments.filter((segment, index) => {
-        return segment === configItemSegments[index] || configItemSegments[index].indexOf(':') === 0
-      });
-      return matches.length === pathSegments.length;
-    }
-    return config.find(item => segmentsMatch(segments, item)) || null
+const segmentsMatch = (pathSegments: string[], configItem: RoutingConfigItem): boolean => {
+  const configItemSegments = configItem.path.split('/');
+  if (configItemSegments.length !== pathSegments.length) {
+    return false;
   }
-
-  const loc = useLocation();
-  const segments = new URL(loc.url).pathname.split('/');
-  segments.splice(0, 2); // remove empty segment and language
-  if (segments.length === 0) {
-    return props.config[0].component
+  for (let i = 0; i < configItemSegments.length; i++) {
+    if (configItemSegments[i].indexOf(':') !== 0 && pathSegments[i] != configItemSegments[i]) return false
   }
-  return getMatchingConfig(segments, props.config)?.component
-})
- 
-export interface Theme {
-    dark: boolean;
+  return true
 }
+export const RouterOutlet = component$<{ config: RoutingConfigItem[] }>((props) => {
+  const loc = useLocation()
+  const which = useSignal(0)
+  const key = useStore({
+    value: 0
+  })
+  const lc = useLocale()
 
-export const ThemeContext = createContextId<Theme>(
-  'docs.theme-context'
-);
+  useTask$(async ({ track }) => {
+    track(()=> loc.url)
+    console.log("RouterOutlet", loc.url)
+    key.value = key.value + 1
+    const pn = new URL(loc.url).pathname.split('/')
+    pn.shift()
+    pn.shift()
+    if (pn.length > 0 && pn[pn.length - 1] === '') pn.pop()
+    for (let i = 0; i < props.config.length; i++) {
+      const item = props.config[i]
+      if (segmentsMatch(pn, item)) {
+        console.log("RouterOutlet", item.path, i)
+        which.value = i
+        return
+      }
+    }
+  })
 
-
-// not sure what to do about theme provider if it needs to be global or not.
-// we probably do want to impact the body tag, but maybe we don't need to.
-// potentially use this as a store for things like listening to the size and deciding media query type things.
-// container queries are shipping in everything, so maybe we should avoid that.
-export const ThemeProvider =  component$(() => {
-    const theme = useStore<Theme>({
-        dark: true,
-    });
-    useContextProvider(ThemeContext, theme);
-    useVisibleTask$(() => {
-        theme.dark = document.documentElement.classList.contains("dark")
-    })
-    return <>
-    <Slot /> 
-    
-    </>
-    });
-
-export const useTheme = () => useContext(ThemeContext);
-
-// this could fetch languages on demand, then we could trigger a re-render of the page?
-
-
-
-// we need to bootstrap whatever translation is the entry url, otherwise recalcs will go awry.
-
-export const ThemeBootstrap = component$(( ) => {
+  return  <div>
+    <div>{key.value} {lc.ln} {lc.dir}</div>
+    <Signin />
+  </div>
+})
+// {props.config[which.value].component}
+export const ThemeBootstrap = component$(() => {
   // how do we tell development mode?
   const code = `if(localStorage.theme==="dark"){
     document.documentElement.classList.add("dark");}
@@ -243,3 +99,23 @@ export const ThemeBootstrap = component$(( ) => {
 })
 
 
+/*
+  useTask$(({ track }) => {
+    track(()=> loc.url)
+    track(() => {
+      console.log("RouterOutlet", loc)
+      key.value = key.value + 1
+      const pn = new URL(loc.url).pathname.split('/')
+      pn.shift()
+      pn.shift()
+      if (pn.length > 0 && pn[pn.length - 1] === '') pn.pop()
+      for (let i = 0; i < props.config.length; i++) {
+        const item = props.config[i]
+        if (segmentsMatch(pn, item)) {
+          console.log("RouterOutlet", item.path, i)
+          which.value = i
+          return
+        }
+      }
+    })
+  })*/

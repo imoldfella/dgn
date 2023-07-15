@@ -11,3 +11,20 @@ $t( )
 
 hard to find? $localize is easy to find.
 
+type AnchorProps = HTMLAttributes<HTMLAnchorElement>
+
+// link needs to respect the language.
+// the language selector needs to respect the rest of the path.
+export const Link = component$<AnchorProps&{href:string}>((props) => {
+  const loc = useLocation()
+  const href = new URL("/" + loc.value+props.href, loc.value).href
+  return <a {...props} href={href} > <Slot /> </a>
+})
+
+
+export function getWindow(): Window | undefined {
+  if (!isServer) {
+    return typeof window === 'object' ? window : undefined
+  }
+  return undefined;
+}

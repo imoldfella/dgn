@@ -1,17 +1,19 @@
 
 import { HTMLAttributes, Slot, component$} from '@builder.io/qwik';
-import { Link } from '../provider/router';
+import { useLocation } from '../provider';
+import { useLocale } from '../i18n';
 export function classNames(...classes: (string | boolean | undefined)[]): string {
   return classes.filter(Boolean).join(' ');
 }
-
-
+export type AnchorProps = HTMLAttributes<HTMLAnchorElement>
 export type LinkProps = HTMLAttributes<HTMLAnchorElement> & {href: string}
 export const Ab = component$((props: LinkProps) => {
-
-    return <Link {...props} class={`no-underline dark:text-blue-400 text-blue-700 hover:text-blue-500 hover:underline ${props.class}`}>
+  const loc = useLocation()
+  const ln =  useLocale()
+  const href = new URL( "/" + ln.ln + props.href,loc.url).href
+    return <a {...props} href={href} class={`no-underline dark:text-blue-400 text-blue-700 hover:text-blue-500 hover:underline ${props.class}`}>
         <Slot/>
-    </Link>
+    </a>
 })
 
 type DivProps = HTMLAttributes<HTMLDivElement>

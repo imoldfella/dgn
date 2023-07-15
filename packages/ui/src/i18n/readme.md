@@ -1,4 +1,14 @@
 
+woot's scheme is identical to dictionary encoding in a column store. how can we collaborate on this though?
+maybe we can version the set of strings. maybe we use use a string prefix to influence locality. (although this is a suffix per uniqueness? we don't necessarily want the string multiple times)
+
+dictionary encoding is an odd fit here! all the strings are unique. prefix encoding is potentially helpful if we can sort the keys usefully. note that keys like "x $0 y" are useful because the key is the default translation.
+
+
+
+would an lsm approach make sense? maybe use a few bits for level, and one level could be unsorted? are they all unsorted? 
+sorted + unsorted
+
 Use url locale like
 /en/whatever
 

@@ -172,3 +172,26 @@ function PictureName(props: { path: string }) {
 }
 
 */
+
+ 
+
+export const ThemeContext = createContextId<Signal<boolean>>(
+  'docs.theme-context'
+);
+
+
+// not sure what to do about theme provider if it needs to be global or not.
+// we probably do want to impact the body tag, but maybe we don't need to.
+// potentially use this as a store for things like listening to the size and deciding media query type things.
+// container queries are shipping in everything, so maybe we should avoid that.
+export const ThemeProvider =  component$(() => {
+    const theme = useSignal(true)
+    useContextProvider(ThemeContext, theme);
+    useVisibleTask$(() => {
+        theme.value = document.documentElement.classList.contains("dark")
+    })
+    return <>
+    <Slot /> 
+    
+    </>
+    });

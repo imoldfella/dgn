@@ -2,12 +2,13 @@
 
 // this needs to provide a way to connect to the go server with the login api
 
-import { component$, useVisibleTask$,  noSerialize } from "@builder.io/qwik"
+import { component$, useVisibleTask$,  noSerialize, useSignal, useComputed$ } from "@builder.io/qwik"
 import { useLogin } from "../provider"
 import { LoginApi, ChallengeNotify, LoginInfo, SimplePage, SimpleLogin } from "../login"
 import { H2 } from "../theme"
-
+import { $localize, useLocale, L } from "../i18n"
 // import { Peer, WsChannel, apiCall } from "../abc"
+
 
 
 // export function loginApi(ch: Peer): LoginApi {
@@ -53,8 +54,9 @@ export const Signin = component$(()=>{
         //const wss = new Peer(new WsChannel("/ws"))
         //ch.api = loginApi(wss)
     })
+
     return <SimplePage>
-        <H2>Sign in</H2>
+        <H2><L id='Sign in'/></H2>
         <SimpleLogin/>
         </SimplePage>
 })

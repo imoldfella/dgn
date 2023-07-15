@@ -1,0 +1,119 @@
+
+export const I18n = component$<{ id: number | string; params: any[] }>(
+    (props): JSX.Element => {
+        const loc = useLocation()
+        // console.log(`render i18n ${id} ${lang}`);
+
+        useTask$(({ track }) => {
+            track(() => props.id);
+            track(() => loc.tr);
+            if (!loc.tr[id]) {
+                console.log(`loading ${id} in ${lang}`);
+                // TODO handle string ids
+                if (isServer) {
+                    // server has everything loaded
+                    ts[id] = globalThis[`server_${lang}`]?.[id];
+                } else {
+                    // client needs to load
+                    ts[id] = `...loading ${id} for ${lang}`;
+                    setTimeout(() => (ts[id] = `${id} in ${lang} but loaded`), 1000);
+                }
+            }
+        });
+        let tr = ts[id];
+        if (params?.length) {
+            if (tr && typeof tr === "object") {
+                let resolved = tr[params[0]] ?? (tr as any)._;
+                while (typeof resolved === "number") resolved = tr[resolved];
+                tr =
+                    resolved ??
+                    `no translation for id ${id} in lang ${lang} for value ${params[0]}`;
+            }
+            tr = tr.replace(/\$([\$0-9]+)/g, (_, i) => (i === "$" ? "$" : params[i]));
+        }
+        return <>{tr}</>;
+    }
+);
+/*
+  useTask$(()=>{
+    (globalThis as any).__LOCALE = ln
+  })
+  if (svr) {
+    const path = new URL(svr).pathname.split('/')
+    if (path[1]) {
+      ln = path[1]
+    }
+  }
+    url: svr??"",
+    ln: ln,
+    dir: rtl.includes(props.default)?"rtl":"ltr",
+    avail: props.avail.split(','),
+    default: props.default,
+    tr: {},
+    
+    nav: (path: string) => {
+          loc.ln = path.split('/')[1]
+          loc.dir = rtl.includes(loc.ln)?"rtl":"ltr"
+          console.log("setLocation",loc)
+        }
+      }
+  */
+
+  // export const I18n = component$<{id: string}>((props)=>{
+//     const s = useSignal("...")
+//     if (isServer) {
+//         // on server everything is loaded, so just look it up
+//         return <>{serverFormat(props.id)}</>
+//     } else{
+//         // on client we need to be able to await dynamically loading the translation
+//         // and potentially we need to partially load the translation.
+//         // we need to potentially load the translation (partially or completely) for the language, the backup language, and the default language
+//         // synchronously here we must hand back a reactive string that will update when the translation is loaded
+
+//         // looking up the key can be yes/no/unknown. If its unknown we need to hand back a reactive string will update when the translation is loaded.
+//         const o = getClientStore().formatMaybe( props.id)
+//         if (o!=undefined) {
+//             return <>{o}</>
+//         }
+
+//         return <>{s.value}</>
+//     }
+// })
+
+// this data needs to be kept even when translations are inlined.
+
+export class LocaleStore {
+
+    hot: Record<string, string> = {}
+
+
+}
+      async load(locale: string, id: (string|number)) : Promise<string|undefined>{
+        // we might have this in our database without fetching still.
+        return undefined
+    }
+    async format(id: string | number, ...args: any[]): Promise<string> {
+        const locale = getLocale()
+        const hotkey = locale[0] + id
+        const v = this.hot[hotkey]
+        if (!v) {
+            // this is slow for things we can't find, but that should be a rare case?
+            for (let i = 0; i < locale.length; i++) {
+               const s = await this.load(locale[i], id)
+               if (s) {
+                     this.hot[hotkey] = s
+                     return fmt(s, ...args)
+               }
+            } 
+            this.hot[hotkey] = id.toString()
+            return fmt(id.toString(), ...args)
+        }
+        return fmt(v, ...args)
+    }
+
+            // on client we need to be able to await dynamically loading the translation
+        // and potentially we need to partially load the translation.
+        // we need to potentially load the translation (partially or completely) for the language, the backup language, and the default language
+        // synchronously here we must hand back a reactive string that will update when the translation is loaded
+
+        // looking up the key can be yes/no/unknown. If its unknown we need to hand back a reactive string will update when the translation is loaded.

@@ -1,9 +1,8 @@
-import { Slot, component$, useSignal, useVisibleTask$ } from "@builder.io/qwik"
-import { JSX } from "@builder.io/qwik/jsx-runtime"
+import { HTMLAttributes, Slot, component$, useSignal, useVisibleTask$ } from "@builder.io/qwik"
 
 
 
-type TextDividerProps = JSX.IntrinsicElements['div'] 
+export type TextDividerProps = HTMLAttributes<HTMLDivElement>
 export const TextDivider = component$((props: TextDividerProps) => {
     return <div class={`${props.class} relative mt-4 w-full`}>
         <div class="absolute inset-0 flex items-center w-full">
@@ -17,7 +16,7 @@ export const TextDivider = component$((props: TextDividerProps) => {
     </div>
 })
 
-type ButtonProps = JSX.IntrinsicElements['button'] 
+export type ButtonProps = HTMLAttributes<HTMLButtonElement> & { disabled?: boolean }
 
 export const DefaultButton = component$((props: ButtonProps) => {
     const b = useSignal< HTMLButtonElement>()
