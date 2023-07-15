@@ -1,6 +1,5 @@
 import { $, useOnWindow, createContextId, component$, useContextProvider, Slot, useContext, useServerData, useStore, useTask$, useSignal } from "@builder.io/qwik";
-import { Signin } from "../onboard";
-import { useLocale } from "../i18n";
+
 
 // with the new approach the top route only becomes the default language.
 // we could override it in a lower context.
@@ -64,7 +63,6 @@ export const RouterOutlet = component$<{ config: RoutingConfigItem[] }>((props) 
   const key = useStore({
     value: 0
   })
-  const lc = useLocale()
 
   useTask$(async ({ track }) => {
     track(()=> loc.url)

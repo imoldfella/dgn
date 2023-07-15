@@ -7,6 +7,7 @@ import "./global.css";
 import { component$, } from "@builder.io/qwik";
 import { Onboard, Signin } from "./onboard";
 import { LocaleProvider } from "./i18n";
+import { Lexical } from "./lexical/lexical";
 
 
 type RoutingConfig = RoutingConfigItem[];
@@ -20,8 +21,8 @@ const routingConfig: RoutingConfig = [
     component: <Signin />
   },
   {
-    path: 'home',
-    component: <div>user</div>
+    path: 'lex',
+    component: <Lexical/>
   }
 ]
 
