@@ -39,12 +39,47 @@ export const PageTool = component$(()=>{
         { layout.width < 680 ? <DesktopTool/> : <MobileTool/>}
     </>
 })
+interface LocalData {
+    leftSplitter: number;
+    rightSplitter: number;
+    middleSplitter: number;
+}
+
 // the tool pane should have a an outer rail of tabs that can be configured. this might be optional for 
 export const DesktopTool = component$(()=>{
         const layout = useContext<Layout>(LayoutContext);
         const leftSplitter = useSignal(300);
         const rightSplitter = useSignal(600);
         const middleSplitter = useSignal(400);
+
+
+        // when mounted, load the percentage split from local storage
+        // 
+        useVisibleTask$(({cleanup})=>{
+            if (!window) return;
+            let layout : LocalData = {
+                leftSplitter: .33,
+                rightSplitter: .66,
+                middleSplitter: .5
+            }
+            const s = localStorage.getItem("layout")
+            if (s) {
+                layout = JSON.parse(s)
+            }
+            leftSplitter.value = layout.leftSplitter * window.innerWidth;
+            rightSplitter.value = layout.rightSplitter * window.innerWidth;
+            middleSplitter.value = layout.middleSplitter * window.innerHeight;
+            cleanup(()=>{
+                const r = {
+                    leftSplitter: leftSplitter.value / window.innerWidth,
+                    rightSplitter: rightSplitter.value / window.innerWidth,
+                    middleSplitter: middleSplitter.value / window.innerHeight
+                }
+                localStorage.setItem("layout", JSON.stringify(r));
+            })
+        })
+
+
 
         return <div class='flex h-screen w-screen fixed overflow-hidden'>
                 
