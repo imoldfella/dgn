@@ -40,7 +40,6 @@ export default component$(() => {
           </LoginProvider>
         </LocaleProvider>
       </body>
-
     </Router>
   </>
 })

@@ -29,11 +29,15 @@ export const Router = component$(() => {
 
 export const useNavigate = () => {
   const ctx = useContext(RouterContext)
-  return $((loc: string) => {
+  return $((loc: string, opt: {reload?: boolean}= {} ) => {
     console.log("navigate", loc)
     const to = new URL(loc, ctx.url).href
     history.pushState({}, loc, to) // does not cause a popstate.
+    if (opt.reload) {
+      window.location.reload()
+    }
     console.log("navigate", to)
+
     ctx.url = to
   })
 }
@@ -80,10 +84,7 @@ export const RouterOutlet = component$<{ config: RoutingConfigItem[] }>((props) 
     }
   })
 
-  return  <div>
-    <div>{key.value} {lc.ln} {lc.dir}</div>
-    <Signin />
-  </div>
+  return  props.config[which.value].component
 })
 // {props.config[which.value].component}
 export const ThemeBootstrap = component$(() => {
