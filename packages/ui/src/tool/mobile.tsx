@@ -1,10 +1,8 @@
 
 
-import {  NoSerialize, Signal, Slot, component$, createContextId, useContext, useContextProvider,useSignal,useStore, useTask$, useVisibleTask$ } from "@builder.io/qwik";
+import {  Signal, Slot, component$, createContextId, useContext, useContextProvider,useSignal,useStore } from "@builder.io/qwik";
 import { Icon } from "../headless";
-import { DesktopTool } from "./desktop";
-import { Cellify, load_struct, make_struct } from "./cell";
-import { isServer } from "@builder.io/qwik/build";
+import { Cellify } from "./cell";
 
 // splitters should not download on mobile, only lazy load on desktop
 
