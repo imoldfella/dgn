@@ -1,122 +1,172 @@
-import { Slot, component$, createContextId, useContext, useContextProvider, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik";
+import { Signal, Slot, component$, createContextId, useComputed$, useContext, useContextProvider, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik";
 import { HSplitterButton, VSplitterButton } from "./splitter";
-import { isServer } from "@builder.io/qwik/build";
 import { MobileTool } from "./mobile";
+import { Icon } from "../headless";
+import debounce from 'lodash/debounce';
+
+// Define the saveLayout function
+
+// Call the debouncedSaveLayout function instead of saveLayout
+
 
 // splitters should not download on mobile, only lazy load on desktop
 
 const Sitemap = component$(()=>{
     return <div>Sitemap</div>
 })
-const TopTools = component$(()=>{
-    return <div>TopTools</div>
-})
+
 const SiteFooter = component$(()=>{
     return <div>SiteFooter</div>
 })
 // we might have standard modal's in here
 // we will only have either left or right open at a time
 // if the screen is wide enough it will split, if not it will overlay
-interface Layout {
-    width: number;
+
+interface StoredData {
+    leftSplitter: number;
+    rightSplitter: number;
+    middleSplitter: number;
+
 }
-const LayoutContext = createContextId<Layout>("LAYOUT");
+interface Point {
+    x: number 
+    y: number
+}
+interface LayoutData {
+    leftSplitter: Signal<number>
+    rightSplitter: Signal<number>
+    middleSplitter: Signal<number>
+    showLeft: Signal<boolean>
+    showRight: Signal<boolean>
+    showBottom: Signal<Boolean>
+    size: Signal<Point>
+}
+
+const emptyStoredData : StoredData = {
+    leftSplitter: .3,
+    rightSplitter: .7,
+    middleSplitter: .5
+}
+export function storedData() : StoredData {
+    let l : StoredData = emptyStoredData
+    const s = localStorage.getItem("layout")
+    if (s) {
+        l = JSON.parse(s)
+    }
+    return l
+}
+function _saveLayout(l: LayoutData) {
+    localStorage.setItem('layout', JSON.stringify(l));
+  }
+  
+  // Debounce the saveLayout function
+  const saveLayout = debounce(_saveLayout, 1000);
+
+  // when the window is sized we recalculate all the panes based on percentage
+
+const LayoutContext = createContextId<LayoutData>("LAYOUT");
+
+const bars_3 = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+</svg>`
 
 
 export const PageTool = component$(()=>{
-    const layout = useStore<Layout>({
-        width: 0
-    });
+    const sz = useSignal({x:0,y:0})
+    const leftSplitter = useSignal(0)
+    const rightSplitter = useSignal(0)
+    const middleSplitter = useSignal(0)
+    const showLeft = useSignal(false)
+    const showRight = useSignal(false)
+    const showBottom = useSignal(false)
+
+    const layout : LayoutData = {
+        size: sz,
+        leftSplitter: leftSplitter,
+        rightSplitter: rightSplitter,
+        middleSplitter: middleSplitter,
+        showLeft,
+        showRight,
+        showBottom
+    }
 
     useContextProvider(LayoutContext, layout);
     useVisibleTask$(()=>{
         if (!window) return;
         window.addEventListener("resize", ()=>{
-            layout.width = window.innerWidth;
+            sz.value = {
+                x: window.innerWidth,
+                y: window.innerHeight
+            } 
         })
     })
     return <>
-        { layout.width < 680 ? <DesktopTool/> : <MobileTool/>}
+        <div class='hidden absolute bg-red-800'  style={{
+            "z-index": 10000,
+        }}>
+            {layout.size.value.x}
+            </div>
+        { layout.size.value.x > 680 ? <DesktopTool/> : <MobileTool/>}
     </>
 })
-interface LocalData {
-    leftSplitter: number;
-    rightSplitter: number;
-    middleSplitter: number;
-}
 
 // the tool pane should have a an outer rail of tabs that can be configured. this might be optional for 
 export const DesktopTool = component$(()=>{
-        const layout = useContext<Layout>(LayoutContext);
-        const leftSplitter = useSignal(300);
-        const rightSplitter = useSignal(600);
-        const middleSplitter = useSignal(400);
+        const layout = useContext<LayoutData>(LayoutContext);
 
+        const computedLeft = useComputed$(()=> { return layout.showLeft?layout.width*layout.st.leftSplitter: 0})
+        const computedRight = useComputed$(()=> { return layout.st.showRight?layout.width*layout.st.rightSplitter: layout.width})
+        const computedMiddle = useComputed$(()=> { return layout.st.showBottom?layout.height*layout.st.middleSplitter: 0})
 
-        // when mounted, load the percentage split from local storage
-        // 
-        useVisibleTask$(({cleanup})=>{
-            if (!window) return;
-            let layout : LocalData = {
-                leftSplitter: .33,
-                rightSplitter: .66,
-                middleSplitter: .5
-            }
-            const s = localStorage.getItem("layout")
-            if (s) {
-                layout = JSON.parse(s)
-            }
-            leftSplitter.value = layout.leftSplitter * window.innerWidth;
-            rightSplitter.value = layout.rightSplitter * window.innerWidth;
-            middleSplitter.value = layout.middleSplitter * window.innerHeight;
-            cleanup(()=>{
-                const r = {
-                    leftSplitter: leftSplitter.value / window.innerWidth,
-                    rightSplitter: rightSplitter.value / window.innerWidth,
-                    middleSplitter: middleSplitter.value / window.innerHeight
-                }
-                localStorage.setItem("layout", JSON.stringify(r));
-            })
+        useVisibleTask$(({track})=> {
+            // we need to track when 
+            track(()=>layout.width)
+            track(() => layout.height)
+            
+
         })
-
-
 
         return <div class='flex h-screen w-screen fixed overflow-hidden'>
                 
             <div class='bg-green-200' style={{
-                width: leftSplitter.value + "px"
+                width: layout.st.leftSplitter + "px"
             }}>
                 <Sitemap/>
             </div>
-            <HSplitterButton x={leftSplitter}/>
+            <HSplitterButton x={computedLeft.value} setX={
+                (x)=> {
+                    layout.st.leftSplitter = x/layout.width
+                }
+            }/>
             <div class='absolute' style={{
-                left: leftSplitter.value + "px",
-                right: (layout.width - rightSplitter.value) + "px"
+                left: computedLeft.value + "px",
+                right: (layout.width - computedRight.value) + "px"
             }}>
                 <div class='bg-slate-100 absolute w-full' style={{
                     top: "0px",
                     bottom: "48px",
                 }}>
-                <TopTools >
-                    Title here
-                </TopTools>
+                <div class='flex w-full' >
+                    <Icon svg={bars_3} onClick$={()=>{layout.st.showLeft = !layout.st.showLeft} } /><div class='flex-1'>Title here</div>
+                    <Icon svg={bars_3} onClick$={()=>{layout.st.showRight = !layout.st.showRight}} />
+                </div>
                 </div>
                 <div class='bg-slate-200 absolute w-full' style={{
                     top: "48px",
-                    bottom: -middleSplitter.value + "px",
+                    bottom: -layomiddleSplitter + "px",
                 }}>
                 <Slot name='main'/>
                 <SiteFooter/>
                 </div>
                 <div  class='bg-slate-400 absolute w-full' style={{
-                    top: middleSplitter.value + "px",
+                    top: layout.st.middleSplitter + "px",
                     bottom: "0px",
 
                 }}>
                     bottom
                 <Slot name='bottom'/>
                 </div>
-                <VSplitterButton y={middleSplitter}/>
+                <VSplitterButton y={computedMiddle}/>
                 <Slot name='console'/>
                 
             </div>
