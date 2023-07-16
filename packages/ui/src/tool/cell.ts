@@ -1,13 +1,14 @@
 
 // client-side only signals. Always noserialize to qwik
-
-import { NoSerialize, noSerialize } from "@builder.io/qwik"
+import { isServer } from "@builder.io/qwik/build";
 import { debounce } from "lodash"
+import { NoSerialize, noSerialize } from '@builder.io/qwik';
 // Define the saveLayout function
+
 
 // Call the debouncedSaveLayout function instead of saveLayout
 let currentListener : undefined|( ()=>void) = undefined;
-export class Cell<T> {
+export class Cell<T>  {
     __no_serialize__ = true
     listeners = new Set<()=>void>()
     _value: T
@@ -26,29 +27,31 @@ export class Cell<T> {
     }
 }
 
-
-
 export type Cellifyb<T> = {
-    [K in keyof T]: Cell<T[K]>;
-   
-  };
-export type Cellify<T> = Cellifyb<T> & {  __no_serialize__: true;}
+    [K in keyof T]: Cell<T[K]>; 
+}
+
+export type Cellify<T> = NoSerialize<Cellifyb<T>>
 
 export function  make_struct<T>(v: T) :Cellify<T> {
     const r : any = {}
-    r.__no_serialize__ = true
     for (const k in v) {
         r[k] = new Cell(v[k])
     }
-    return r
+    return noSerialize(r)
 }
 
-export function load_struct<A>(key: string, def: A) : NoSerialize<Cellify<A>> {
-    const s = localStorage.getItem(key)
-    if (s) {
-        def = JSON.parse(s)
+export function load_struct(key: string, def: any)  {
+    if (!isServer) {
+        const s = localStorage.getItem(key)
+        if (s) {
+            const ld = JSON.parse(s)
+            Object.keys(ld).forEach(k=>{
+                const o = def[k] as any
+                o.value =ld[k]
+            }) 
+        }
     }
-    return noSerialize(make_struct(def))
 }
 
 export const save_struct = debounce(

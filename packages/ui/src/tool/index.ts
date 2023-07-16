@@ -1,1 +1,2 @@
-export * from './tool';
+export * from './desktop';
+export * from './mobile'
