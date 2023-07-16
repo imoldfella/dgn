@@ -1,13 +1,23 @@
-import { Signal, Slot, component$, createContextId, useComputed$, useContext, useContextProvider, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik";
+import { Slot, component$, createContextId, useComputed$, useContext, useContextProvider, useVisibleTask$ } from "@builder.io/qwik";
 import { HSplitterButton, VSplitterButton } from "./splitter";
 import { MobileTool } from "./mobile";
 import { Icon } from "../headless";
-import debounce from 'lodash/debounce';
 
-// Define the saveLayout function
+import { Cell, Cellify, load_struct } from "./cell";
 
-// Call the debouncedSaveLayout function instead of saveLayout
 
+export type LayoutStruct = Cellify<{
+        leftSplitter: number
+        rightSplitter: number
+        middleSplitter: number
+        showLeft: boolean
+        showRight: boolean
+        showBottom: Boolean
+        size: Point
+    }>
+
+  
+      
 
 // splitters should not download on mobile, only lazy load on desktop
 
@@ -26,20 +36,20 @@ interface StoredData {
     leftSplitter: number;
     rightSplitter: number;
     middleSplitter: number;
-
 }
 interface Point {
     x: number 
     y: number
 }
+
 interface LayoutData {
-    leftSplitter: Signal<number>
-    rightSplitter: Signal<number>
-    middleSplitter: Signal<number>
-    showLeft: Signal<boolean>
-    showRight: Signal<boolean>
-    showBottom: Signal<Boolean>
-    size: Signal<Point>
+    leftSplitter: Cell<number>
+    rightSplitter: Cell<number>
+    middleSplitter: Cell<number>
+    showLeft: Cell<boolean>
+    showRight: Cell<boolean>
+    showBottom: Cell<Boolean>
+    size: Cell<Point>
 }
 
 const emptyStoredData : StoredData = {
@@ -55,14 +65,8 @@ export function storedData() : StoredData {
     }
     return l
 }
-function _saveLayout(l: LayoutData) {
-    localStorage.setItem('layout', JSON.stringify(l));
-  }
-  
-  // Debounce the saveLayout function
-  const saveLayout = debounce(_saveLayout, 1000);
 
-  // when the window is sized we recalculate all the panes based on percentage
+// when the window is sized we recalculate all the panes based on percentage
 
 const LayoutContext = createContextId<LayoutData>("LAYOUT");
 
@@ -72,29 +76,30 @@ const bars_3 = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0
 
 
 export const PageTool = component$(()=>{
-    const sz = useSignal({x:0,y:0})
-    const leftSplitter = useSignal(0)
-    const rightSplitter = useSignal(0)
-    const middleSplitter = useSignal(0)
-    const showLeft = useSignal(false)
-    const showRight = useSignal(false)
-    const showBottom = useSignal(false)
+    // const sz = useSignal({x:0,y:0})
+    // const leftSplitter = useSignal(0)
+    // const rightSplitter = useSignal(0)
+    // const middleSplitter = useSignal(0)
+    // const showLeft = useSignal(false)
+    // const showRight = useSignal(false)
+    // const showBottom = useSignal(false)
 
-    const layout : LayoutData = {
-        size: sz,
-        leftSplitter: leftSplitter,
-        rightSplitter: rightSplitter,
-        middleSplitter: middleSplitter,
-        showLeft,
-        showRight,
-        showBottom
-    }
+    // note that on the server this will be undefined, so by using ! we committing to validate that ourselves
+    const layout  = load_struct<LayoutData>("layout", {
+        leftSplitter: undefined,
+        rightSplitter: undefined,
+        middleSplitter: undefined,
+        showLeft: undefined,
+        showRight: undefined,
+        showBottom: undefined,
+        size: undefined
+    })!
+    useContextProvider(LayoutContext, layout as object);
 
-    useContextProvider(LayoutContext, layout);
     useVisibleTask$(()=>{
         if (!window) return;
         window.addEventListener("resize", ()=>{
-            sz.value = {
+            layout.size.value = {
                 x: window.innerWidth,
                 y: window.innerHeight
             } 

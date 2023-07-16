@@ -1,6 +1,6 @@
 
 
-import { Slot, component$, useSignal,$ } from "@builder.io/qwik";
+import { Slot, component$, useSignal } from "@builder.io/qwik";
 
 
 // splitters should not download on mobile, only lazy load on desktop

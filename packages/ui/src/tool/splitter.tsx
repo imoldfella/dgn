@@ -1,23 +1,25 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Signal, $ } from "@builder.io/qwik"
+
+import { Cell } from "./cell"
+
 
 export interface VSplitterProps {
-    y: Signal<number>
+    y: Cell<number>
   }
 
 export const VSplitterButton = (props: VSplitterProps) => {
-
+    const y = props.y!
     return <div 
         class='w-full h-1.5 absolute hover:bg-blue-500 hover:opacity-100 bg-blue-700 opacity-0 cursor-ns-resize' 
         style={{
             "z-index": 10000,
-            top: props.y.value + "px"
+            top: props.y?._value + "px"
         }}
         preventdefault:mousedown
         onMouseDown$={(e)=>{
-            const start = e.clientY - props.y.value
+            const start = e.clientY - y.value
             const move = (e: MouseEvent) => {
-              props.y.value = (e.clientY - start)  // X if 
+              y.value = (e.clientY - start)  // X if 
             }
             const up = (e: MouseEvent) => {
               window.removeEventListener("mousemove", move)
@@ -32,26 +34,27 @@ export const VSplitterButton = (props: VSplitterProps) => {
   }
 
   export interface HSplitterProps {
-    x: Signal<number>
+    x: Cell<number>
     right?: boolean
   }
 
   export const HSplitterButton = (props: HSplitterProps) => {
+    const x = props.x!
     return <div 
         class={`h-full w-1.5 absolute hover:bg-blue-500 hover:opacity-100 bg-blue-700 opacity-0 cursor-ns-resize `}
         style={{
             "z-index": 10000,
-            left: props.right? undefined: props.x.value + "px",
-            right: props.right ? props.x.value+"px": undefined
+            left: props.right? undefined: x.value + "px",
+            right: props.right ? x.value+"px": undefined
         }}
       
         onMouseDown$={(e)=>{
-            const start = e.clientX - props.x.value
+            const start = e.clientX - x.value
             const move = (e: MouseEvent) => {
                 if (props.right) {
-                    props.x.value = (start - e.clientX)  // X if 
+                    x.value = (start - e.clientX)  // X if 
                 } else {
-                     props.x.value = (e.clientX - start) 
+                     x.value = (e.clientX - start) 
                  } // X if 
             }
             const up = (e: MouseEvent) => {
