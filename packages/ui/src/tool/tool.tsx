@@ -3,7 +3,7 @@ import { HSplitterButton, VSplitterButton } from "./splitter";
 import { MobileTool } from "./mobile";
 import { Icon } from "../headless";
 
-import { Cell, Cellify, load_struct } from "./cell";
+import { Cell, Cellify, computed, load_struct } from "./cell";
 
 
 export type LayoutStruct = Cellify<{
@@ -15,7 +15,6 @@ export type LayoutStruct = Cellify<{
         showBottom: Boolean
         size: Point
     }>
-
   
       
 
@@ -42,15 +41,7 @@ interface Point {
     y: number
 }
 
-interface LayoutData {
-    leftSplitter: Cell<number>
-    rightSplitter: Cell<number>
-    middleSplitter: Cell<number>
-    showLeft: Cell<boolean>
-    showRight: Cell<boolean>
-    showBottom: Cell<Boolean>
-    size: Cell<Point>
-}
+
 
 const emptyStoredData : StoredData = {
     leftSplitter: .3,
@@ -68,7 +59,7 @@ export function storedData() : StoredData {
 
 // when the window is sized we recalculate all the panes based on percentage
 
-const LayoutContext = createContextId<LayoutData>("LAYOUT");
+const LayoutContext = createContextId<LayoutStruct>("LAYOUT");
 
 const bars_3 = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -85,64 +76,52 @@ export const PageTool = component$(()=>{
     // const showBottom = useSignal(false)
 
     // note that on the server this will be undefined, so by using ! we committing to validate that ourselves
-    const layout  = load_struct<LayoutData>("layout", {
-        leftSplitter: undefined,
-        rightSplitter: undefined,
-        middleSplitter: undefined,
-        showLeft: undefined,
-        showRight: undefined,
-        showBottom: undefined,
-        size: undefined
+    const layout  = load_struct("layout", {
+        leftSplitter: 0,
+        rightSplitter: 0,
+        middleSplitter: 0,
+        showLeft: 0,
+        showRight: 0,
+        showBottom: 0,
+        width: 0,
+        height: 0,
     })!
     useContextProvider(LayoutContext, layout as object);
 
     useVisibleTask$(()=>{
         if (!window) return;
         window.addEventListener("resize", ()=>{
-            layout.size.value = {
-                x: window.innerWidth,
-                y: window.innerHeight
-            } 
+            layout.width.value = window.innerWidth
+            layout.height.value = window.innerHeight
         })
     })
     return <>
         <div class='hidden absolute bg-red-800'  style={{
             "z-index": 10000,
         }}>
-            {layout.size.value.x}
+            {layout.width.value}
             </div>
-        { layout.size.value.x > 680 ? <DesktopTool/> : <MobileTool/>}
+        { layout.width.value > 680 ? <DesktopTool/> : <MobileTool/>}
     </>
 })
 
 // the tool pane should have a an outer rail of tabs that can be configured. this might be optional for 
 export const DesktopTool = component$(()=>{
-        const layout = useContext<LayoutData>(LayoutContext);
+        const layout = useContext<LayoutStruct>(LayoutContext);
 
-        const computedLeft = useComputed$(()=> { return layout.showLeft?layout.width*layout.st.leftSplitter: 0})
-        const computedRight = useComputed$(()=> { return layout.st.showRight?layout.width*layout.st.rightSplitter: layout.width})
-        const computedMiddle = useComputed$(()=> { return layout.st.showBottom?layout.height*layout.st.middleSplitter: 0})
-
-        useVisibleTask$(({track})=> {
-            // we need to track when 
-            track(()=>layout.width)
-            track(() => layout.height)
-            
-
-        })
+        // computations run when any cell changes
+        const computedLeft = computed(()=> { return layout.showLeft.value?layout.size.value.x*layout.leftSplitter.value: 0})
+        const computedRight = computed(()=> { return layout.showRight.value?layout.size.value.x*layout.rightSplitter.value: layout.size.value.x})
+        const computedMiddle = computed(()=> { return layout.showBottom.value?layout.size.value.y*layout.middleSplitter.value: 0})
 
         return <div class='flex h-screen w-screen fixed overflow-hidden'>
                 
             <div class='bg-green-200' style={{
-                width: layout.st.leftSplitter + "px"
+                width: computedLeft.value + "px"
             }}>
                 <Sitemap/>
             </div>
-            <HSplitterButton x={computedLeft.value} setX={
-                (x)=> {
-                    layout.st.leftSplitter = x/layout.width
-                }
-            }/>
+            <HSplitterButton x={layout.leftSplitter} width={layout.size} />
             <div class='absolute' style={{
                 left: computedLeft.value + "px",
                 right: (layout.width - computedRight.value) + "px"
