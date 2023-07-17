@@ -1,8 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 
-import {  Signal, Slot, component$, createContextId, useContext, useContextProvider,useSignal,useStore } from "@builder.io/qwik";
+import {  Signal, Slot, component$, createContextId, useContext, useContextProvider,useSignal,useStore, useVisibleTask$, $ } from "@builder.io/qwik";
 import { Icon } from "../headless";
 import { Cellify } from "./cell";
+import { Editor } from "../lexical/lexical";
+import { Sitemap } from "./sitemap";
+
 
 // splitters should not download on mobile, only lazy load on desktop
 
@@ -39,9 +43,6 @@ export interface AppStore {
 
 const AppContext = createContextId<AppStore>("LAYOUT");
 export function useApp() { return  useContext<AppStore>(AppContext); } 
-export const Sitemap = component$(()=>{
-    return <div>Sitemap</div>
-})
 
 export const SiteFooter = component$(()=>{
     return <div>SiteFooter</div>
@@ -81,7 +82,7 @@ export const menuv = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBo
 // can share with desktop?
 const TopTools = component$(() => {
     const app = useApp()
-    return <div class='bg-black text-md absolute w-full items-center flex px-1' style={{
+    return <div class='bg-black text-md absolute w-full items-center flex px-1 bg-neutral-900' style={{
         top: "0px",
         height: "32px",
     }}>
@@ -100,26 +101,71 @@ const TopTools = component$(() => {
 // custom modals will need to pick
 // so then they aren't quite modals? will tapping in the content area dismiss them?
 // not necessarily
+
+// we should only load lexical when user clicks on the editor.
+export const CommandEditor = component$(()=>{
+    return <Editor/>
+    
+})
+
+export const TextBlock = component$(()=>{
+    return <div>TextBlock</div>
+})
+
+// the block list may not be fully editable; in a chat you can't always edit someone elses message. You might be able to if you are on the same team though or admin redacting something.
+export const BlockList = component$(()=>{
+    return <div>BlockList</div>
+})
+
+// bottom showing should be an overlap, both active.
+// mobile overlay should be simple with server rendered code only.
 export const MobileTool = component$(() => {
     const app = useApp()
+    const y = useSignal(0)
+    const state = useSignal(0)
 
-    return <><div class='flex h-screen w-screen fixed overflow-hidden bg-slate-800'>  
-            <TopTools />     
-            <div class='bg-slate-200 hidden'>
-                <div class='min-h-96'>
-                    <Slot name='main' />
-                </div>
-                <SiteFooter />
-            </div>    
-        {app.showLeft.value && <div class='bg-green-200 h-96'>
-            <Sitemap />
-        </div>}
-        {app.showRight.value  && <RightTools /> }
-    
-        {app.showBottom.value && <div class='bg-blue-200 h-96'>
-            <Slot name='bottom-drawer' /> </div>}
+    const activate = $(()=>{
+        y.value = window.innerHeight / 2
+        console.log("y", y.value)
+    })
+
+    return <div class='flex h-screen w-screen fixed overflow-hidden'>  
+        <Editor/>                   
+        <div 
+        class='w-full absolute bg-neutral-900  rounded-t-lg bottom-0' 
+        style={{
+            "z-index": 10000,
+            height: (64+y.value) + "px",
+            bottom: 0
+        }}
+
+        onMouseDown$={(e)=>{
+            const start = e.clientY - y.value
+            const move = (e: MouseEvent) => {
+              y.value = Math.max(0,(start -e.clientY))  // X if 
+            }
+            const up = (e: MouseEvent) => {
+              window.removeEventListener("mousemove", move)
+              window.removeEventListener("mouseup", up)
+            }
+            window.addEventListener("mousemove", move)
+            window.addEventListener("mouseup", up)
+            }
+        }>
+        <div class='h-4 flex justify-center'>
+            <button class='bg-neutral-800 rounded-full w-16 h-2 my-1'/></div>            
+    <div class='text-md  w-full items-center flex px-1' >
+        <Icon svg={bars_3} onClick$={()=>{app.showLeft.value = !app.showLeft.value} } /><div class='flex-1 text-md ml-2 '>
+
+        { state.value== 0 && <button class='w-full' onClick$={()=>state.value=1 }><input disabled class='bg-neutral-800 rounded-lg px-2 w-full' placeholder='Search'/></button> } 
+        
+        { state.value== 1 && <CommandEditor/>}
+        
+        </div> 
+        <Icon svg={menuv} onClick$={()=>{app.showRight.value = !app.showRight.value}} />
+    </div></div>
     </div>
-    </>
+   
 })
 
 // the modal is going to be a bit different on desktop. 

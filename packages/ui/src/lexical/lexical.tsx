@@ -1,13 +1,33 @@
-import { component$ } from "@builder.io/qwik"
-import { PageTool } from "../tool"
+import {  component$, noSerialize, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik"
 
-export const Lexical = component$(() => {
-    return <PageTool>
-        <div q:slot='right-drawer'>
-            <div>Right Drawer</div>
-            </div>
-        <div q:slot='main'>
-            <div>Lexical</div>
+import {createEditor} from 'lexical';
+
+const config = {
+  namespace: 'MyEditor',
+  theme: {
+  },
+  onError: console.error
+};
+
+
+export const Editor = component$(() => {
+    const editorRef = useSignal<HTMLElement>();
+    const store = useStore<{ 
+        doc: any
+    }>({
+        doc: undefined,
+    });
+ 
+    useVisibleTask$(() => {
+        const editor = createEditor(config)
+        store.doc = noSerialize(editor)
+
+    })
+    return <div 
+    style={{
+        outline: 'none'
+    }}
+    ref={editorRef} contentEditable='true' >
+        Edit me 
         </div>
-        </PageTool>
 })
