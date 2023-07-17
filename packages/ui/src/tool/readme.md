@@ -1,4 +1,9 @@
 
+wings can be locked in - how?
+1) screen must be "wide enough" (desktop)
+2) click the wing button to switch.
+
+
 A page is a tuple in the database.
 We can register tables as page tables if they have a path attribute. They also generally have mime_type field, 
 

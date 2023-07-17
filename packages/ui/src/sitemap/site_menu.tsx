@@ -5,6 +5,11 @@ import { Show, For } from "solid-js";
 import { MenuEntry } from "../../ui-solid/src";
 import { useLocation } from "@solidjs/router";
 
+export function ChatPanel() {
+  return <div class='w-full pb-16 pt-2 px-2'>
+      <SectionNav tabs={show} />
+  </div>
+}
 const opt = [
   "Learn",
   "Create",

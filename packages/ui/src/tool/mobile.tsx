@@ -5,7 +5,6 @@ import {  Signal, Slot, component$, createContextId, useContext, useContextProvi
 import { Icon } from "../headless";
 import { Cellify } from "./cell";
 import { Editor } from "../lexical/lexical";
-import { Sitemap } from "./sitemap";
 
 
 // splitters should not download on mobile, only lazy load on desktop
@@ -35,10 +34,11 @@ export type LayoutStruct = Cellify<LayoutData>
 export interface AppStore {
     //layout: LayoutStruct
     // these things should be part of the server
-    showLeft: Signal<boolean>,
-    showRight: Signal<boolean>,
+    showSearch: Signal<boolean>,
+    showTools: Signal<boolean>,
     showBottom: Signal<boolean>,
     desktop: Signal<boolean>,
+    y: Signal<number>
 }
 
 const AppContext = createContextId<AppStore>("LAYOUT");
@@ -48,28 +48,6 @@ export const SiteFooter = component$(()=>{
     return <div>SiteFooter</div>
 })
 
-// splitters should not download on mobile, only lazy load on desktop
-export const PageTool = component$(()=>{
-    // when this runs on the server, the entire layout is undefined.
-    // it doesn't run again on the client, so we get nothing.
-    // useVisibleTask runs after mounting, so that's too late
-    const showLeft = useSignal(false)
-    const showRight = useSignal(false)
-    const showBottom = useSignal(false)
-    const desktop = useSignal(false)
-    const appStore = useStore<AppStore>({
-        showLeft,
-        showRight,
-        showBottom,
-        desktop
-            //layout: make_struct(ld)
-    })
-
-    useContextProvider(AppContext, appStore);
-    return <>
-        <MobileTool/>
-    </>
-})
 
 
 export const bars_3 = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
@@ -86,8 +64,8 @@ const TopTools = component$(() => {
         top: "0px",
         height: "32px",
     }}>
-        <Icon svg={bars_3} onClick$={()=>{app.showLeft.value = !app.showLeft.value} } /><div class='flex-1 text-md ml-2 '>Title here</div>
-        <Icon svg={menuv} onClick$={()=>{app.showRight.value = !app.showRight.value}} />
+        <Icon svg={bars_3} onClick$={()=>{app.showSearch.value = !app.showSearch.value} } /><div class='flex-1 text-md ml-2 '>Title here</div>
+        <Icon svg={menuv} onClick$={()=>{app.showTools.value = !app.showTools.value}} />
     </div>
 })
 
@@ -103,7 +81,7 @@ const TopTools = component$(() => {
 // not necessarily
 
 // we should only load lexical when user clicks on the editor.
-export const CommandEditor = component$(()=>{
+export const Search = component$(()=>{
     return <Editor/>
     
 })
@@ -117,11 +95,10 @@ export const BlockList = component$(()=>{
     return <div>BlockList</div>
 })
 
-// bottom showing should be an overlap, both active.
-// mobile overlay should be simple with server rendered code only.
-export const MobileTool = component$(() => {
-    const app = useApp()
-    const y = useSignal(0)
+// when loading statically we can assume 1 wide. We don't need to decide 1-2-3 wide until a menu is requested.
+// splitters should not download on mobile, only lazy load on desktop
+// we need to store locally for each tab?
+export const PageTool = component$(()=>{
     const state = useSignal(0)
 
     const activate = $(()=>{
@@ -129,8 +106,49 @@ export const MobileTool = component$(() => {
         console.log("y", y.value)
     })
 
-    return <div class='flex h-screen w-screen fixed overflow-hidden'>  
-        <Editor/>                   
+    // when this runs on the server, the entire layout is undefined.
+    // it doesn't run again on the client, so we get nothing.
+    // useVisibleTask runs after mounting, so that's too late
+    const showSearch = useSignal(false)
+    const showTools = useSignal(false)
+    const showBottom = useSignal(false)
+    const desktop = useSignal(false)
+    const y = useSignal(0)
+    const width = useSignal(0)
+    const w = useSignal(1)    // one column wide
+    const app = useStore<AppStore>({
+        showSearch: showSearch,
+        showTools: showTools,
+        showBottom,
+        desktop,
+        y
+            //layout: make_struct(ld)
+    })
+
+    // if the width drops low enough we need to revert to mobile. 
+    const listenWidth = $(()=>{
+        if (width.value==0) {
+            window.addEventListener('resize', ()=> {
+                width.value = window.innerWidth
+                w.value = Math.floor(width.value / 400)
+            })
+        }
+    })
+    const toggleTools = $(()=>{
+        app.showTools.value = !app.showTools.value; 
+        y.value = Math.max(y.value, 400)
+    })
+    const toggleSearch = $(()=>{
+        app.showSearch.value = !app.showSearch.value; 
+        y.value = Math.max(y.value, 400)
+    })
+    useContextProvider(AppContext, app);
+    return <>
+     <div class='flex h-screen w-screen fixed overflow-hidden'> 
+        <Search/>
+        <Slot name='main'/> 
+        <Tools/>               
+        </div>  
         <div 
         class='w-full absolute bg-neutral-900  rounded-t-lg bottom-0' 
         style={{
@@ -154,19 +172,48 @@ export const MobileTool = component$(() => {
         }>
         <div class='h-4 flex justify-center'>
             <button class='bg-neutral-800 rounded-full w-16 h-2 my-1'/></div>            
-    <div class='text-md  w-full items-center flex px-1' >
-        <Icon svg={bars_3} onClick$={()=>{app.showLeft.value = !app.showLeft.value} } /><div class='flex-1 text-md ml-2 '>
-
-        { state.value== 0 && <button class='w-full' onClick$={()=>state.value=1 }><input disabled class='bg-neutral-800 rounded-lg px-2 w-full' placeholder='Search'/></button> } 
-        
-        { state.value== 1 && <CommandEditor/>}
-        
-        </div> 
-        <Icon svg={menuv} onClick$={()=>{app.showRight.value = !app.showRight.value}} />
-    </div></div>
     </div>
-   
+    <div class='text-md  w-full items-center flex px-1' >
+    <Icon svg={bars_3} onClick$={()=>{toggleSearch} } /><div class='flex-1 text-md ml-2 '>
+
+    
+    { state.value== 0 && <button class='w-full' onClick$={toggleSearch }><input disabled class='bg-neutral-800 rounded-lg px-2 w-full' placeholder='Search'/></button> } 
+    
+    { state.value== 1 && <Search/>}
+    
+    </div> 
+    <Icon svg={menuv} onClick$={toggleTools} />
+    </div>
+
+    </>
+    
 })
+
+export const Tools = component$(()=>{
+    return <div>Tools</div>
+})
+
+export const EditorTool = component$(()=>{
+    const app = useApp()
+    const state = useSignal(0)
+
+    return <PageTool>
+        <Editor q:slot='main'/>
+        </PageTool>
+})
+
+// when do we show bottom? what do we show in bottom?
+const EditorBottom = component$<{y: Signal<number>}>((props)=>{
+    return <div>Editor tools</div>
+})
+const EditorTools = component$<{y: Signal<number>}>((props)=>{
+    return <div>Editor tools</div>
+})
+
+// the bottom state must allow that the search and 
+
+// the bottom tools can change depending on the page type. based on the tool.
+// the tool is static, so we can still pre-render.
 
 // the modal is going to be a bit different on desktop. 
 const RightTools = component$(() => {

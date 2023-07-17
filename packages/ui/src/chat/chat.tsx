@@ -3,6 +3,9 @@
 // if clicking a thread in column x, default to opening in column x+1?
 // probably use vscode way of explicit splittings
 
+import { component$ } from "@builder.io/qwik"
+import { useApp } from "../tool"
+
 
 //import { getUsage } from "../../db/range"
 // multiple messages close to each should be grouped
@@ -10,62 +13,16 @@
 // images are generall sent with a message.
 // what about grouping these in the query?
 
-// chat panels are mostly ordered, like a spreadsheet (but no blank rows, 1 column)
-// chat viewers are sorted by date, like a table
 
-// this should basically be edited as lexical document?
-// it could be displayed with threads dynamically added (and removed)
-// maybe "more" to solve disappearing threads? This could show the threads as a table.
-// maybe it should be compiled back and forth for optimization?
+// we can use components to represent the beginning and end, when they become visible we can invoke javascript 
+// but for chat, in general there is nothing to load? it starts empty, it's all loaded from the database.
+// we can render a welcome message. we could potentially pre-render the user's chat history. there seems little advantage to that though.
 
+export const  ChatViewer = component$(() =>{
+    const el: HTMLDivElement | null = null
+    const el2: HTMLDivElement | null = null   
 
-
-export function ChatPanel() {
-    return <div class='w-full pb-16 pt-2 px-2'>
-        <SectionNav tabs={show} />
-    </div>
-}
-
-// any message (message group?) can change at any time.
-// [chats, refresh] = createResource(path, getChats)
-// asking for a chat we don't have will trigger a refresh
-// what is a our data model for chat?
-// create table(gtime, message)
-// I want to subscribe to a range , the signal could give me just a version
-// or could it stream differences? or either?
-// we might have a last read from state in our user state
-
-// chat's can be deleted, but cannot be inserted.
-// should we take advantage of this though? scroller should suport insertions?
-// insertions can only be based on position, not really on key?
-// afterKey becomes hard if the key gets deleted? 
-// deletions mess up the count.
-// not all virtual scrollers necessarily have a count.
-// only create the scroller once, even if the data changes
-
-/*
-export class RangeView<T> {
-    data: T[] = []
-
-    apply(updates: TableUpdate[]) {
-
-    }
-}
-*/
-
-// what trick should we do to url to a database connection on a another server?
-// maybe ?server=xxx
-
-
-export function ChatViewer() {
-    let el: HTMLDivElement | null = null
-    let el2: HTMLDivElement | null = null   
-
-    const db = useDg()
-
-    let ed: Scroller
-
-    const sp = usePage()
+    const db = useApp()
 
     // const q : ScanQuery = {
     //     server: sp.server,
@@ -77,34 +34,7 @@ export function ChatViewer() {
 
     //const tr = new RangeView<Message>()
     
-    // maybe instead of a builder we should 
-    onMount(async () => {
-        const inode = 1; // await to get the index from the path.
-        const lastRead = 0
-
-
-        const cm = new Map<number, Column>()
-        // we don't really know how many rows we will have when we mount.
-        let opts: ScrollerProps = {
-            container: el!,
-            // we could cache and revoke the context.
-            // we could 
-            // builder could be async? cause a refresh?
-            builder: function (ctx: TableContext): void {
-                const o = ctx.old.value as Message
-                ctx.render(<MessageWithUser message={o} />)
-            }
-        }
-        ed = new Scroller(opts)
-        const diff = (x: ScanDiff) => {
-            ed.applyDiff(x)
-        }
-        //const q = createQuery(db, chatTable, { from: {id: 1, created: lastRead} } )
-        // ed.addListener((pos: number) => {
-        //     q.update(pos)
-        // })
-    })
-
+    // 
 
 
     // anything can change, we need to let the scroller know
@@ -126,7 +56,37 @@ export function ChatViewer() {
             <ChatEditor onSend={send}/>
         </div>
     </div>
-}
+})
+
+/*
+    // maybe instead of a builder we should 
+    onMount(async () => {
+        const inode = 1; // await to get the index from the path.
+        const lastRead = 0
+
+
+        const cm = new Map<number, Column>()
+        // we don't really know how many rows we will have when we mount.
+        const opts: ScrollerProps = {
+            container: el!,
+            // we could cache and revoke the context.
+            // we could 
+            // builder could be async? cause a refresh?
+            builder: function (ctx: TableContext): void {
+                const o = ctx.old.value as Message
+                ctx.render(<MessageWithUser message={o} />)
+            }
+        }
+        ed = new Scroller(opts)
+        const diff = (x: ScanDiff) => {
+            ed.applyDiff(x)
+        }
+        //const q = createQuery(db, chatTable, { from: {id: 1, created: lastRead} } )
+        // ed.addListener((pos: number) => {
+        //     q.update(pos)
+        // })
+    })
+*/
 
 //   type ImageProps = { src, sizes, unoptimized, priority, loading, lazyBoundary, class, quality, width, height, objectFit, objectPosition, onLoadingComplete, loader, placeholder, blurDataURL, ...all }:
 function Image(props: any) {
