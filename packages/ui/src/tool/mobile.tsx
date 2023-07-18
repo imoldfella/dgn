@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 
-import {  Signal, Slot, component$, createContextId, useContext, useContextProvider,useSignal,useStore, useVisibleTask$, $ } from "@builder.io/qwik";
+import {  Signal, Slot, component$, createContextId, useContext, useContextProvider,useSignal,useStore, useVisibleTask$, $, QwikMouseEvent, useComputed$ } from "@builder.io/qwik";
 import { Icon } from "../headless";
 import { Cellify } from "./cell";
 import { Editor } from "../lexical/lexical";
 import { HSplitterButton } from "./splitter";
+import { list } from "postcss";
 
 
 // splitters should not download on mobile, only lazy load on desktop
@@ -83,7 +84,7 @@ const TopTools = component$(() => {
 
 // we should only load lexical when user clicks on the editor.
 export const Search = component$(()=>{
-    return <Editor/>
+    return <div>Search</div>
     
 })
 
@@ -111,7 +112,7 @@ export const PageTool = component$(()=>{
     // it doesn't run again on the client, so we get nothing.
     // useVisibleTask runs after mounting, so that's too late
     const leftSplitter = useSignal(.3)
-    const rightSplitter =useSignal(.7)
+    const rightSplitter =useSignal(.3)
     const showSearch = useSignal(false)
     const showTools = useSignal(false)
     const showBottom = useSignal(false)
@@ -139,6 +140,19 @@ export const PageTool = component$(()=>{
             })
         }
     })
+    useVisibleTask$(()=> listenWidth())
+    const mousedown = $((e: QwikMouseEvent<HTMLDivElement, MouseEvent>)=>{
+            const start = e.clientY - y.value
+            const move = (e: MouseEvent) => {
+              y.value = Math.max(0,(start -e.clientY))  // X if 
+            }
+            const up = (e: MouseEvent) => {
+              window.removeEventListener("mousemove", move)
+              window.removeEventListener("mouseup", up)
+            }
+            window.addEventListener("mousemove", move)
+            window.addEventListener("mouseup", up)
+            })
     const toggleTools = $(()=>{
         listenWidth()
         app.showTools.value = !app.showTools.value; 
@@ -157,12 +171,25 @@ export const PageTool = component$(()=>{
            y.value = Math.max(y.value, 400)
     })
     useContextProvider(AppContext, app);
-    return <>
-     <div class='flex h-screen w-screen fixed overflow-hidden'> 
-        { w.value > 1 && app.showSearch && <><Search /><HSplitterButton x={leftSplitter} width={width.value} /></>}
+    const showLeft = useComputed$(()=> width.value*leftSplitter.value) // || (w.value > 1 && app.showSearch))
+    const showRight = useComputed$(()=> width.value*rightSplitter.value) // || (w.value > 1 && app.showTools))
+    return <div class='flex h-screen w-screen fixed overflow-hidden'> 
+        <div class='bg-slate-500' style={{width: showLeft.value+"px"}}>{ 
+            showLeft.value && <><Search /><HSplitterButton x={leftSplitter} width={width.value} /></>
+            }</div>
+        <div class='w-full'> center </div>
+        <div  class='bg-slate-500' style={{width: showRight.value+"px"}}>{
+             showRight.value && <>
+                <HSplitterButton right={true} x={rightSplitter} width={width.value} />
+                <Tools/></>  
+        } </div> 
+    </div>
+    
+})
+
+/*
+       <div class='w-full'>
         <Slot name='main'/> 
-        { w.value> 1 && app.showTools && <><HSplitterButton x={rightSplitter} width={width.value} /><Tools/></>  }           
-        </div>  
         <div 
         class='w-full absolute bg-neutral-900  rounded-t-lg bottom-0' 
         style={{
@@ -170,23 +197,10 @@ export const PageTool = component$(()=>{
             height: (64+y.value) + "px",
             bottom: 0
         }}
-
-        onMouseDown$={(e)=>{
-            const start = e.clientY - y.value
-            const move = (e: MouseEvent) => {
-              y.value = Math.max(0,(start -e.clientY))  // X if 
-            }
-            const up = (e: MouseEvent) => {
-              window.removeEventListener("mousemove", move)
-              window.removeEventListener("mouseup", up)
-            }
-            window.addEventListener("mousemove", move)
-            window.addEventListener("mouseup", up)
-            }
-        }>
+        onMouseDown$={mousedown}>
         <div class='h-4 flex justify-center'>
             <button class='bg-neutral-800 rounded-full w-16 h-2 my-1'/></div>            
-    </div>
+    
     <div class='text-md  w-full items-center flex px-1' >
     <Icon svg={bars_3} onClick$={()=>{toggleSearch} } /><div class='flex-1 text-md ml-2 '>
 
@@ -198,10 +212,8 @@ export const PageTool = component$(()=>{
     </div> 
     <Icon svg={menuv} onClick$={toggleTools} />
     </div>
-
-    </>
-    
-})
+    </div>
+        </div>*/
 
 export const Tools = component$(()=>{
     return <div>Tools</div>
@@ -235,6 +247,10 @@ const RightTools = component$(() => {
         Right tools
     </div>
 })
+
+function computed$(arg0: () => boolean) {
+    throw new Error("Function not implemented.");
+}
 // query tools are generally split top and bottom, a different top/bottom split is useful for chat tools
 // we need some template for this, and a mobile strategy.
 

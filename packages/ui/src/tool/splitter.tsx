@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import { Signal } from "@builder.io/qwik"
 import { Cell } from "./cell"
 
 
@@ -35,7 +36,7 @@ export const VSplitterButton = (props: VSplitterProps) => {
 
   // x is a percentage of width. a raw value would be easier, but the problem is adjusting as the window width changes.
   export interface HSplitterProps {
-    x: Cell<number>
+    x: Signal<number>
     width: number
     right?: boolean
   }
@@ -43,7 +44,7 @@ export const VSplitterButton = (props: VSplitterProps) => {
   export const HSplitterButton = (props: HSplitterProps) => {
     const x = props.x!
     return <div 
-        class={`h-full w-1.5 absolute hover:bg-blue-500 hover:opacity-100 bg-blue-700 opacity-0 cursor-ns-resize `}
+        class={`h-full w-1.5 absolute hover:bg-blue-500 hover:opacity-100 bg-blue-700 cursor-ns-resize `}
         style={{
             "z-index": 10000,
             left: props.right? undefined: x.value + "px",
