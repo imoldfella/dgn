@@ -3,8 +3,12 @@
 
 import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, useVisibleTask$, $, QwikMouseEvent, useComputed$, Signal } from "@builder.io/qwik";
 import { Icon } from "../headless";
-import { bars_3, bubble, pencil, search } from "./icon";
+import { bars_3, bubble, cart, pencil, search } from "./icon";
 import { Edit, Message, Search } from "./search";
+import { $localize } from "../i18n";
+
+// what if we take edit off the menu and make it a fab? problem is how do you switch back?
+
 
 
 // splitters should not download on mobile, only lazy load on desktop
@@ -20,28 +24,52 @@ export const SiteFooter = component$(() => {
     return <div>SiteFooter</div>
 })
 
+// how do we reference $ things here?
+const toolData = [
+    { name: "search", desc: $localize`Search`, svg: search },
+    { name: "edit", desc: $localize`Edit`, svg: pencil },
+    { name: "chat", desc: $localize`Chat`, svg: bubble },
+    { name: "cart", desc: $localize`Cart`, svg: cart },
+]
+
+// switching to a tool can cause the content page to switch as well:
+// message changes to most recent message
+// search does not change immediately, but shows current file in context
+// edit does not change
+// cart has its own screen. 
+const ToolDialog = component$(() => {
+    const app = useApp()
+    switch(app.tab.value) {
+        case 1: return <Search/>
+        case 2: return <Message/>
+        case 3: return <Edit/>
+        case 4: return <div>Cart</div>
+    }
+    return <div/>
+})
+
+const ToolMain = component$(() => {
+    return <div> Main</div>
+})
 
 
 // custom tools = javascript or cache personal html
 const HRail = component$(() => {
     return <div>
         <div class='w-full flex items-center'>
-            <Icon svg={search} class='w-6 h-6  flex-1 block' />
-            <Icon svg={pencil} class='w-6 h-6 flex-1 block' />
-            <Icon svg={bubble} class='w-6 h-6 flex-1 block' />
+            { toolData.map(x => <Icon key={x.name} svg={x.svg} class='w-6 h-6  flex-1 block' />)}
         </div>
         <div class='w-full flex text-xs items-center'>
-            <div class='flex-1 text-center'>Search</div>
-            <div class='flex-1 text-center'>Edit</div>
-            <div class='flex-1 text-center'>Chat</div>
+            { toolData.map(x => <div key={x.name} class='flex-1 text-center'>{x.desc}</div>)}
             </div>
         </div>
 })
 
 const VRailIcon = (props: {selected: boolean, svg: string, onClick$: ()=>void})=> {
-    return <div onClick$={props.onClick$} class='my-1 mb-2 w-full text-neutral-500 hover:text-white  border-blue-500 flex'
+    return <div onClick$={props.onClick$} class='my-1 mb-4 w-full text-neutral-500 hover:text-white  border-blue-500 flex'
     style={{
-        "border-left-width": props.selected? "2px": "0px",
+        "border-left-width": props.selected? "2px": "2px",
+        "border-left-color": props.selected? "white": undefined,
         "color": props.selected? "white": undefined
     }}
         >
@@ -91,11 +119,9 @@ export const PageTool = component$(() => {
         }
     })
     const VRail = component$(() => {
-        return <>
-        <VRailIcon selected={app.tab.value==1} svg={search} onClick$={()=>toggle(1)} />
-        <VRailIcon selected={app.tab.value==2} svg={pencil} onClick$={()=>toggle(2)}/>
-        <VRailIcon selected={app.tab.value==3} svg={bubble} onClick$={()=>toggle(3)}/>
-   </>
+        return<div class=' w-12 flex flex-col items-center h-full  border-r-2 border-neutral-800 mr-1'>
+            {toolData.map((x,i) => <VRailIcon key={x.name} selected={app.tab.value==i+1} svg={x.svg} onClick$={()=>toggle(i+1)} />)}
+   </div>
     })
 
     const bottomSplit = $((e: QwikMouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -135,35 +161,30 @@ export const PageTool = component$(() => {
         })
     })
 
-    const Tool = component$(() => {
-        return <>
-        { app.tab.value == 1 && <Search/>}
-        { app.tab.value == 2 && <Message/>}
-        { app.tab.value == 3 && <Edit/>}
-        </>
-    })
+
     return <div class='flex h-screen w-screen fixed overflow-hidden'>
 
-         <div class='bg-neutral-900 hidden w-64  sm:flex'
+         { tab.value==0 && <VRail/>}
+         { tab.value!=0 && <><div class='bg-neutral-900 hidden w-64  sm:flex'
             style={{
-                width: x.value + "px"
+                width:  x.value + "px"
             }}>
-            <div class=' w-12 flex flex-col items-center '>
+            
                 <VRail/>
-            </div>
-            <div class='flex-1 border-l-2 border-neutral-800'>
-                <Tool/>
+         
+            <div class='flex-1 '>
+                <ToolDialog/>
             </div>
             <div
                 onMouseDown$={leftSplit}
                 class='h-full   cursor-ew-resize flex flex-col justify-center bg-neutral-900' >
                 <button class='bg-neutral-800 rounded-full h-16 w-2 mr-1' />
-            </div>
-        </div>
+            </div> 
+        </div></>}
 
         <div class='flex-1 h-screen'>
             <div class='flex flex-col h-screen'>
-                <div class='flex-1'>main</div>
+                <div class='flex-1'><ToolMain/></div>
 
                
                     <div class='sm:hidden w-full  bg-neutral-900  rounded-t-lg bottom-0' onMouseDown$={bottomSplit}
