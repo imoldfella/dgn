@@ -4,6 +4,7 @@
 import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, useVisibleTask$, $, QwikMouseEvent, useComputed$, Signal } from "@builder.io/qwik";
 import { Icon } from "../headless";
 import { bars_3, bubble, pencil, search } from "./icon";
+import { Edit, Message, Search } from "./search";
 
 
 // splitters should not download on mobile, only lazy load on desktop
@@ -19,9 +20,7 @@ export const SiteFooter = component$(() => {
     return <div>SiteFooter</div>
 })
 
-export const Search = component$(() => {
-    return <div>Search</div>
-})
+
 
 // custom tools = javascript or cache personal html
 const HRail = component$(() => {
@@ -40,27 +39,14 @@ const HRail = component$(() => {
 })
 
 const VRailIcon = (props: {selected: boolean, svg: string, onClick$: ()=>void})=> {
-    return <div onClick$={props.onClick$} class='my-1 w-full  border-blue-500 flex'
+    return <div onClick$={props.onClick$} class='my-1 mb-2 w-full text-neutral-500 hover:text-white  border-blue-500 flex'
     style={{
         "border-left-width": props.selected? "2px": "0px",
-        "color": props.selected? "white": "#eee"
+        "color": props.selected? "white": undefined
     }}
         >
-    <Icon svg={props.svg} class='w-8 h-8 mb-2 flex-1'   /></div>
+    <Icon svg={props.svg} class='w-8 h-8  flex-1'   /></div>
 }
-const VRail = component$(() => {
-    const app = useApp()
-
-    const toggle = $((x: number) => {
-
-    })
-    return <>
-             <VRailIcon selected={app.tab.value==1} svg={search} onClick$={()=>toggle(0)} />
-             <VRailIcon selected={app.tab.value==2} svg={pencil} onClick$={()=>toggle(1)}/>
-             <VRailIcon selected={app.tab.value==3} svg={bubble} onClick$={()=>toggle(1)}/>
-        </>
-
-})
 
 // we should be able to use media query to layout the buttons initially and only use javascript if a button is clicked.s
 // when loading statically we can assume 1 wide. We don't need to decide 1-2-3 wide until a menu is requested.
@@ -69,8 +55,6 @@ const VRail = component$(() => {
 export const PageTool = component$(() => {
     const isListen = useSignal(false)
     const x = useSignal(300) // width of left column
-
-    const toolSet = useSignal(0)
 
     const y = useSignal(64)
     const width = useSignal(0)
@@ -97,6 +81,23 @@ export const PageTool = component$(() => {
         })
     })
 
+    const toggle = $((x: number) => {
+        console.log("toggle", x, tab.value)
+        if (x == tab.value)
+            tab.value = 0
+        else {
+            tab.value = x
+            y.value = Math.max(y.value, 400)
+        }
+    })
+    const VRail = component$(() => {
+        return <>
+        <VRailIcon selected={app.tab.value==1} svg={search} onClick$={()=>toggle(1)} />
+        <VRailIcon selected={app.tab.value==2} svg={pencil} onClick$={()=>toggle(2)}/>
+        <VRailIcon selected={app.tab.value==3} svg={bubble} onClick$={()=>toggle(3)}/>
+   </>
+    })
+
     const bottomSplit = $((e: QwikMouseEvent<HTMLDivElement, MouseEvent>) => {
         const start = e.clientY
         const starty = y.value
@@ -111,15 +112,9 @@ export const PageTool = component$(() => {
         window.addEventListener("mousemove", move)
         window.addEventListener("mouseup", up)
     })
-    const toggleTools = $((x: number) => {
-        if (x == toolSet.value)
-            toolSet.value = 0
-        else {
-            toolSet.value = x
-            y.value = Math.max(y.value, 400)
-        }
-    })
+
     const leftSplit = $((e: QwikMouseEvent<HTMLDivElement, MouseEvent>) => {
+        listenSize()
         const start = e.clientX - x.value
         const move = (e: MouseEvent) => {
             x.value = (e.clientX - start)
@@ -140,6 +135,13 @@ export const PageTool = component$(() => {
         })
     })
 
+    const Tool = component$(() => {
+        return <>
+        { app.tab.value == 1 && <Search/>}
+        { app.tab.value == 2 && <Message/>}
+        { app.tab.value == 3 && <Edit/>}
+        </>
+    })
     return <div class='flex h-screen w-screen fixed overflow-hidden'>
 
          <div class='bg-neutral-900 hidden w-64  sm:flex'
@@ -149,7 +151,9 @@ export const PageTool = component$(() => {
             <div class=' w-12 flex flex-col items-center '>
                 <VRail/>
             </div>
-            <div class='flex-1 border-l-2 border-neutral-800'><Search /></div>
+            <div class='flex-1 border-l-2 border-neutral-800'>
+                <Tool/>
+            </div>
             <div
                 onMouseDown$={leftSplit}
                 class='h-full   cursor-ew-resize flex flex-col justify-center bg-neutral-900' >
