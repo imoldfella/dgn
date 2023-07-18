@@ -107,6 +107,10 @@ export const PageTool = component$(() => {
             style={{
                 width: x.value + "px"
             }}>
+            <div class=' w-16'>
+                <Icon svg={search} class='w-6 h-6  flex-1 block' />
+                <div class='flex-1'/>
+                </div>
             <div class='flex-1'><Search /></div>
             <div
                 onMouseDown$={leftSplit}
@@ -117,9 +121,8 @@ export const PageTool = component$(() => {
 
         <div class='flex-1 h-screen'>
             <div class='flex flex-col h-screen'>
-                <Slot name='main'/>
+                <div>main</div>
 
-                <MessageEditor/>
                 {!desktop.value && 
                     <div class='w-full  bg-neutral-900  rounded-t-lg bottom-0' onMouseDown$={bottomSplit}
                     style={{
