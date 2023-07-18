@@ -7,6 +7,7 @@ import { Cellify } from "./cell";
 import { Editor } from "../lexical/lexical";
 import { HSplitterButton } from "./splitter";
 import { list } from "postcss";
+import { bars_3, pencil, search } from "./icon";
 
 
 // splitters should not download on mobile, only lazy load on desktop
@@ -26,7 +27,7 @@ export const Search = component$(() => {
     return <div>Search</div>
 })
 
-
+// we should be able to use media query to layout the buttons initially and only use javascript if a button is clicked.s
 // when loading statically we can assume 1 wide. We don't need to decide 1-2-3 wide until a menu is requested.
 // splitters should not download on mobile, only lazy load on desktop
 // we need to store locally for each tab?
@@ -37,7 +38,7 @@ export const PageTool = component$(() => {
 
     const toolSet = useSignal(0)
 
-    const y = useSignal(48)
+    const y = useSignal(64)
     const width = useSignal(0)
     const height = useSignal(0)
 
@@ -61,7 +62,7 @@ export const PageTool = component$(() => {
         const starty = y.value
         const move = (e: MouseEvent) => {
             //y.value = Math.max(0,(e.clientY-start))  // X if 
-            y.value = Math.max(48, starty + (start - e.clientY))
+            y.value = Math.max(64, starty + (start - e.clientY))
         }
         const up = (e: MouseEvent) => {
             window.removeEventListener("mousemove", move)
@@ -107,34 +108,51 @@ export const PageTool = component$(() => {
                 width: x.value + "px"
             }}>
             <div class='flex-1'><Search /></div>
-            <div 
-                onMouseDown$={leftSplit} 
+            <div
+                onMouseDown$={leftSplit}
                 class='h-full   cursor-ew-resize flex flex-col justify-center bg-neutral-900' >
                 <button class='bg-neutral-800 rounded-full h-16 w-2 mr-1' />
             </div>
         </div>}
 
-        <div class='flex-1 p-16'>
-            welp!
+        <div class='flex-1 h-screen'>
+            <div class='flex flex-col h-screen'>
+                <Slot name='main'/>
+
+                <MessageEditor/>
+                {!desktop.value && 
+                    <div class='w-full  bg-neutral-900  rounded-t-lg bottom-0' onMouseDown$={bottomSplit}
+                    style={{
+                        height: (y.value) + "px",
+                    }}>
+                        <div class='h-4 flex justify-center'>
+                            <button class='bg-neutral-800 rounded-full w-16 h-2 my-1' /></div>
+                        <HButton/>
+                    </div>
+                }
+            </div>
         </div>
 
 
     </div>
 })
 
-/*
-<div class='flex-1'>
-<div class='flex flex-col'>
-<div id='main' class='flex-1'>{debug.value} </div>
+const HButton = component$(() => {
+    return <div>
+        <div class='w-full flex items-center'>
+            <Icon svg={search} class='w-6 h-6  flex-1 block' />
+            <Icon svg={pencil} class='w-6 h-6 flex-1 block' />
+        </div>
+        <div class='w-full flex text-xs items-center'>
+            <div class='flex-1 text-center'>Search</div>
+            <div class='flex-1 text-center'>Edit</div>
+            </div>
+        </div>
+})
 
-{!desktop.value && <div class='w-full  bg-neutral-900  rounded-t-lg bottom-0' onMouseDown$={bottomSplit}
-    style={{
-        height: (y.value) + "px",
-    }}>
-    <div class='h-4 flex justify-center'>
-        <button class='bg-neutral-800 rounded-full w-16 h-2 my-1' /></div>
-</div>
-}
-</div>
-</div>
-*/
+const MessageEditor = component$(() => {
+    return <div class='w-full'>
+           <Icon svg={bars_3} class='w-6 h-6 block' />
+           <div contentEditable="true" class='flex-1 rounded-lg border-1 border-blue-700'/>
+        </div>
+})
