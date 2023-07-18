@@ -1,0 +1,106 @@
+// can share with desktop?
+const TopTools = component$(() => {
+    const app = useApp()
+    return <div class='bg-black text-md absolute w-full items-center flex px-1 bg-neutral-900' style={{
+        top: "0px",
+        height: "32px",
+    }}>
+        <Icon svg={bars_3} onClick$={()=>{app.showSearch.value = !app.showSearch.value} } /><div class='flex-1 text-md ml-2 '>Title here</div>
+        <Icon svg={menuv} onClick$={()=>{app.showTools.value = !app.showTools.value}} />
+    </div>
+})
+
+/*
+       <div class='w-full'>
+        <Slot name='main'/> 
+        <div 
+        class='w-full absolute bg-neutral-900  rounded-t-lg bottom-0' 
+        style={{
+            "z-index": 10000,
+            height: (64+y.value) + "px",
+            bottom: 0
+        }}
+        onMouseDown$={mousedown}>
+        <div class='h-4 flex justify-center'>
+            <button class='bg-neutral-800 rounded-full w-16 h-2 my-1'/></div>            
+    
+    <div class='text-md  w-full items-center flex px-1' >
+    <Icon svg={bars_3} onClick$={()=>{toggleSearch} } /><div class='flex-1 text-md ml-2 '>
+
+    
+    { state.value== 0 && <button class='w-full' onClick$={toggleSearch }><input disabled class='bg-neutral-800 rounded-lg px-2 w-full' placeholder='Search'/></button> } 
+    
+    { state.value== 1 && <Search/>}
+    
+    </div> 
+    <Icon svg={menuv} onClick$={toggleTools} />
+    </div>
+    </div>
+        </div>*/
+
+// the bottom state must allow that the search and 
+
+// the bottom tools can change depending on the page type. based on the tool.
+// the tool is static, so we can still pre-render.
+
+// the modal is going to be a bit different on desktop. 
+
+// query tools are generally split top and bottom, a different top/bottom split is useful for chat tools
+// we need some template for this, and a mobile strategy.
+
+// export const VerticalSplitTool = component$(()=>{
+//     return <PageTool>
+
+//         </PageTool>
+// })
+
+// export const ChatTool = component$(()=>{
+//     return <PageTool>
+
+//         </PageTool>
+// })
+
+// there might be special kind of tool for things like map that are open 2d scrollable?
+    // we might only need this on desktop. but how do we tell if its desktop?
+    // we can run the server as if it was mobile, but then use an async useTask to change it?
+    // useTask$(()=>{
+        
+    //     window.addEventListener("resize", ()=>{
+    //         l.width.value = window.innerWidth
+    //         l.height.value = window.innerHeight
+    //     })
+    //     console.log("layout", l)
+    // })
+
+    
+
+const ld =  {
+    leftSplitter: 0,
+    rightSplitter: 0,
+    middleSplitter: 0,
+    width: 0,
+    height: 0,
+}
+type LayoutData = typeof ld
+
+export type LayoutStruct = Cellify<LayoutData>
+
+
+// we might have standard modal's in here
+// we will only have either left or right open at a time
+// if the screen is wide enough it will split, if not it will overlay
+
+// the tool pane should have a an outer rail of tabs that can be configured. this might be optional for 
+
+// it makes sense to show the panes half way up, draggable
+// custom modals will need to pick
+// so then they aren't quite modals? will tapping in the content area dismiss them?
+// not necessarily
+
+// we should only load lexical when user clicks on the editor.
+
+
+// the block list may not be fully editable; in a chat you can't always edit someone elses message. You might be able to if you are on the same team though or admin redacting something.
+export const BlockList = component$(()=>{
+    return <div>BlockList</div>
+})
