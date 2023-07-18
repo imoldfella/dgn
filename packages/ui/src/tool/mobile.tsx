@@ -5,6 +5,7 @@ import {  Signal, Slot, component$, createContextId, useContext, useContextProvi
 import { Icon } from "../headless";
 import { Cellify } from "./cell";
 import { Editor } from "../lexical/lexical";
+import { HSplitterButton } from "./splitter";
 
 
 // splitters should not download on mobile, only lazy load on desktop
@@ -109,6 +110,8 @@ export const PageTool = component$(()=>{
     // when this runs on the server, the entire layout is undefined.
     // it doesn't run again on the client, so we get nothing.
     // useVisibleTask runs after mounting, so that's too late
+    const leftSplitter = useSignal(.3)
+    const rightSplitter =useSignal(.7)
     const showSearch = useSignal(false)
     const showTools = useSignal(false)
     const showBottom = useSignal(false)
@@ -128,26 +131,37 @@ export const PageTool = component$(()=>{
     // if the width drops low enough we need to revert to mobile. 
     const listenWidth = $(()=>{
         if (width.value==0) {
+            width.value = window.innerWidth
+            w.value = Math.max(1, Math.floor(width.value / 400))
             window.addEventListener('resize', ()=> {
                 width.value = window.innerWidth
-                w.value = Math.floor(width.value / 400)
+                w.value = Math.max(1, Math.floor(width.value / 400))
             })
         }
     })
     const toggleTools = $(()=>{
+        listenWidth()
         app.showTools.value = !app.showTools.value; 
         y.value = Math.max(y.value, 400)
+        if (w.value<3 && app.showTools.value)
+            app.showSearch.value = false
+        if (w.value < 2)
+            y.value = Math.max(y.value, 400)
     })
     const toggleSearch = $(()=>{
+        listenWidth()
         app.showSearch.value = !app.showSearch.value; 
-        y.value = Math.max(y.value, 400)
+        if (w.value<3 && app.showSearch.value)
+            app.showTools.value = false
+        if (w.value < 2)
+           y.value = Math.max(y.value, 400)
     })
     useContextProvider(AppContext, app);
     return <>
      <div class='flex h-screen w-screen fixed overflow-hidden'> 
-        <Search/>
+        { w.value > 1 && app.showSearch && <><Search /><HSplitterButton x={leftSplitter} width={width.value} /></>}
         <Slot name='main'/> 
-        <Tools/>               
+        { w.value> 1 && app.showTools && <><HSplitterButton x={rightSplitter} width={width.value} /><Tools/></>  }           
         </div>  
         <div 
         class='w-full absolute bg-neutral-900  rounded-t-lg bottom-0' 

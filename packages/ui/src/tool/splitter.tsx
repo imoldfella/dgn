@@ -36,7 +36,7 @@ export const VSplitterButton = (props: VSplitterProps) => {
   // x is a percentage of width. a raw value would be easier, but the problem is adjusting as the window width changes.
   export interface HSplitterProps {
     x: Cell<number>
-    width: Cell<number>
+    width: number
     right?: boolean
   }
 
