@@ -4,6 +4,7 @@
 
 import { component$, useSignal } from "@builder.io/qwik"
 import { $localize } from "../i18n"
+import { InputTo } from "../lexical/lexical";
 
 
 export function hasContacts() : boolean {
@@ -37,14 +38,7 @@ export const InputText = component$(() => {
     return <input></input>
 })
 
-export const InputTo = component$(() => {
-    
-    return <>
-        <label for='to'>{ $localize`To` }</label>
-        <input />
 
-        </>
-})
 export const RichMessage = component$(() => {
     return <input></input>
 })

@@ -11,10 +11,6 @@ import { Share } from "./share";
 
 // what if we take edit off the menu and make it a fab? problem is how do you switch back?
 
-
-
-
-
 export const View = component$(() => {
     // minimized tab bar, no search
     return <div>View</div>

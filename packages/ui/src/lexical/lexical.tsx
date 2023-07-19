@@ -1,6 +1,7 @@
 import {  component$, noSerialize, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik"
 
 import {createEditor} from 'lexical';
+import { $localize } from "../i18n";
 
 const config = {
   namespace: 'Lexical',
@@ -9,6 +10,15 @@ const config = {
   onError: console.error
 };
 
+// one line lexical editor with special syntax for contact links
+export const InputTo = component$(() => {
+    
+    return <>
+        <label for='to'>{ $localize`To` }</label>
+        <input />
+
+        </>
+})
 
 export const RichEditor = component$(() => {
     const editorRef = useSignal<HTMLElement>();
