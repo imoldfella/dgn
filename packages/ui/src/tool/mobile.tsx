@@ -3,13 +3,27 @@
 
 import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, useVisibleTask$, $, QwikMouseEvent, useComputed$, Signal } from "@builder.io/qwik";
 import { Icon } from "../headless";
-import { bars_3, bubble, cart, pencil, search } from "./icon";
-import { Edit, Message, Search } from "./search";
+import { bars_3, bubble, cart, pencil, search, tablet } from "./icon";
+import { Search } from "./search";
 import { $localize } from "../i18n";
+import { Cart } from "./cart";
 
 // what if we take edit off the menu and make it a fab? problem is how do you switch back?
 
 
+
+
+
+export const View = component$(() => {
+    // minimized tab bar, no search
+    return <div>View</div>
+})
+
+
+export const Edit = component$(() => {
+    // half height dialog
+    return <div>Edit</div>
+})
 
 // splitters should not download on mobile, only lazy load on desktop
 
@@ -27,8 +41,8 @@ export const SiteFooter = component$(() => {
 // how do we reference $ things here?
 const toolData = [
     { name: "search", desc: $localize`Search`, svg: search },
-    { name: "edit", desc: $localize`Edit`, svg: pencil },
-    { name: "chat", desc: $localize`Chat`, svg: bubble },
+    { name: "edit", desc: $localize`Edit`, svg: tablet },
+    { name: "chat", desc: $localize`Share`, svg: bubble },
     { name: "cart", desc: $localize`Cart`, svg: cart },
 ]
 
@@ -41,9 +55,9 @@ const ToolDialog = component$(() => {
     const app = useApp()
     switch(app.tab.value) {
         case 1: return <Search/>
-        case 2: return <Message/>
+        case 2: return <Share/>
         case 3: return <Edit/>
-        case 4: return <div>Cart</div>
+        case 4: return <Cart/>
     }
     return <div/>
 })
@@ -54,19 +68,10 @@ const ToolMain = component$(() => {
 
 
 // custom tools = javascript or cache personal html
-const HRail = component$(() => {
-    return <div>
-        <div class='w-full flex items-center'>
-            { toolData.map(x => <Icon key={x.name} svg={x.svg} class='w-6 h-6  flex-1 block' />)}
-        </div>
-        <div class='w-full flex text-xs items-center'>
-            { toolData.map(x => <div key={x.name} class='flex-1 text-center'>{x.desc}</div>)}
-            </div>
-        </div>
-})
+
 
 const VRailIcon = (props: {selected: boolean, svg: string, onClick$: ()=>void})=> {
-    return <div onClick$={props.onClick$} class='my-1 mb-4 w-full text-neutral-500 hover:text-white  border-neutral-900 flex'
+    return <div onClick$={props.onClick$} class='my-1 mb-4 w-full text-neutral-500 hover:text-white  border-blue-500 flex'
     style={{
         "border-left-width": props.selected? "2px": "2px",
         "border-left-color": props.selected? "white": undefined,
@@ -84,7 +89,7 @@ export const PageTool = component$(() => {
     const isListen = useSignal(false)
     const x = useSignal(300) // width of left column
 
-    const y = useSignal(64)
+    const y = useSignal(300)
     const width = useSignal(0)
     const height = useSignal(0)
 
@@ -119,9 +124,32 @@ export const PageTool = component$(() => {
         }
     })
     const VRail = component$(() => {
+        const VRailIcon = (props: {selected: boolean, svg: string, onClick$: ()=>void})=> {
+            return <div onClick$={props.onClick$} class='my-1 mb-4 w-full text-neutral-500 hover:text-white  border-blue-500 flex'
+            style={{
+                "border-left-width": props.selected? "2px": "2px",
+                "border-left-color": props.selected? "white": undefined,
+                "color": props.selected? "white": undefined
+            }}>
+            <Icon svg={props.svg} class='w-8 h-8  flex-1'   /></div>
+        }        
         return<div class=' w-12 flex flex-col items-center h-full  border-r-2 border-neutral-800 mr-1'>
             {toolData.map((x,i) => <VRailIcon key={x.name} selected={app.tab.value==i+1} svg={x.svg} onClick$={()=>toggle(i+1)} />)}
-   </div>
+        </div>
+    })
+    const HRail = component$(() => {
+        return <div>
+            <div class='w-full flex items-center'>
+                { toolData.map((x,i) => 
+                 <div key={x.name}  class='flex flex-1 flex-col text-neutral-500 hover:text-blue-700 items-center ' style={{
+                    "color": app.tab.value==i+1? "white": undefined
+                 }}
+                 onClick$={()=>toggle(i+1)}
+                 >
+                    <Icon svg={x.svg} class= 'w-6 h-6  flex-1 block' />
+                    <div key={x.name} class='flex-1 text-center text-xs'>{x.desc}</div>
+                 </div>)}
+            </div></div>
     })
 
     const bottomSplit = $((e: QwikMouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -194,6 +222,7 @@ export const PageTool = component$(() => {
                         <div class='h-4 flex justify-center'>
                             <button class='bg-neutral-800 rounded-full w-16 h-2 my-1' /></div>
                         <HRail/>
+                        <ToolDialog/>
                     </div>
                 
             </div>

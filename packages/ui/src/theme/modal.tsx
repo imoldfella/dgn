@@ -1,4 +1,6 @@
 import { component$, Slot } from '@builder.io/qwik';
+import { Icon } from '../headless';
+import { xCircle } from '../i18n';
 
 // why not a signal here?
 export interface ModalStore {
@@ -9,7 +11,9 @@ export interface ModalProps {
   title: string;
   store: ModalStore;
 }
-
+export function CloseButton() {
+  return <Icon svg={xCircle} class='flex-none w-5 h-5 text-blue-700 hover-text-blue-500' />
+}
 export const Modal = component$(({ title, store }: ModalProps) => {
   if (store.isOpen)
     return (

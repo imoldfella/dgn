@@ -3,14 +3,14 @@ import {  component$, noSerialize, useSignal, useStore, useVisibleTask$ } from "
 import {createEditor} from 'lexical';
 
 const config = {
-  namespace: 'MyEditor',
+  namespace: 'Lexical',
   theme: {
   },
   onError: console.error
 };
 
 
-export const Editor = component$(() => {
+export const RichEditor = component$(() => {
     const editorRef = useSignal<HTMLElement>();
     const store = useStore<{ 
         doc: any
@@ -30,4 +30,11 @@ export const Editor = component$(() => {
     ref={editorRef} contentEditable='true' >
         Edit me 
         </div>
+})
+
+export const SiteMapEditor = component$(() => {
+
+    return <div>
+        
+    </div>
 })

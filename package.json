@@ -16,6 +16,12 @@
     "cbor-x": "^1.5.3",
     "lexical": "^0.11.2",
     "lodash": "^4.17.21",
+    "rehype-parse": "^8.0.4",
+    "rehype-remark": "^9.1.2",
+    "rehype-sanitize": "^5.0.1",
+    "rehype-slug": "^5.1.0",
+    "rehype-stringify": "^9.0.3",
+    "remark-stringify": "^10.0.3",
     "tailwind-merge": "^1.13.2"
   },
   "devDependencies": {

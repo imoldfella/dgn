@@ -58,7 +58,7 @@ export const  ChatViewer = component$(() =>{
     </div>
 })
 
-/*
+
     // maybe instead of a builder we should 
     onMount(async () => {
         const inode = 1; // await to get the index from the path.
@@ -86,7 +86,7 @@ export const  ChatViewer = component$(() =>{
         //     q.update(pos)
         // })
     })
-*/
+
 
 //   type ImageProps = { src, sizes, unoptimized, priority, loading, lazyBoundary, class, quality, width, height, objectFit, objectPosition, onLoadingComplete, loader, placeholder, blurDataURL, ...all }:
 function Image(props: any) {
