@@ -49,7 +49,7 @@ export const RichMessage = component$(() => {
     return <input></input>
 })
 
-export const Message = component$(() => {
+export const Share = component$(() => {
     const showMore = useSignal(true)
 
     // this should work like share a message

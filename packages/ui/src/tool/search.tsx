@@ -1,5 +1,4 @@
-import { component$, useSignal, useVisibleTask$ } from "@builder.io/qwik"
-import { useApp } from "./mobile"
+import { component$ } from "@builder.io/qwik"
 import { search } from "./icon"
 import { Icon } from "../headless"
 
@@ -54,7 +53,6 @@ export interface SearchableView<T> {
 export interface SearchProps<T> extends FacetSelect {
     view: SearchableView<T>
     label: string // 
-    children: (item: T) => JSXElement
 }
 export type Searcher<T> = () => Promise<T[]>
 // selection lists will often have chip lists.

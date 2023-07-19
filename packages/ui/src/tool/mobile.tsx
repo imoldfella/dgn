@@ -7,6 +7,7 @@ import { bars_3, bubble, cart, pencil, search, tablet } from "./icon";
 import { Search } from "./search";
 import { $localize } from "../i18n";
 import { Cart } from "./cart";
+import { Share } from "./share";
 
 // what if we take edit off the menu and make it a fab? problem is how do you switch back?
 
@@ -42,7 +43,7 @@ export const SiteFooter = component$(() => {
 const toolData = [
     { name: "search", desc: $localize`Search`, svg: search },
     { name: "edit", desc: $localize`Edit`, svg: tablet },
-    { name: "chat", desc: $localize`Share`, svg: bubble },
+    { name: "share", desc: $localize`Share`, svg: bubble },
     { name: "cart", desc: $localize`Cart`, svg: cart },
 ]
 
@@ -55,8 +56,8 @@ const ToolDialog = component$(() => {
     const app = useApp()
     switch(app.tab.value) {
         case 1: return <Search/>
-        case 2: return <Share/>
-        case 3: return <Edit/>
+        case 2: return <Edit/>
+        case 3: return <Share/>
         case 4: return <Cart/>
     }
     return <div/>
