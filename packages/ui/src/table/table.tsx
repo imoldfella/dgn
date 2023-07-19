@@ -12,7 +12,7 @@ export function TableViewer() {
         c.push({ tag: i, width: 96, html: "col" + i  })
     }
 
-    onMount(() => {
+    const mount = () => {
         let tombstoneHeight_ = tombstone.offsetHeight
         tombstone.style.display = 'none'
 
@@ -39,7 +39,7 @@ export function TableViewer() {
             height: est,
         }
         const s = new Scroller(props)
-    })
+    }
 
 
     return <>

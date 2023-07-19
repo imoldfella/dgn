@@ -1,6 +1,4 @@
 
-import { createEffect, createSignal, Show } from "solid-js"
-import { chevronLeft, chevronRight } from "solid-heroicons/solid"
 import { Icon } from "solid-heroicons"
 import { buildToc, md2html } from "../md"
 import { showToc } from "../../../composer-solid/src/home/site_menu"
@@ -20,12 +18,12 @@ export function Mdx(props: {md: string}) {
     // if its a snapshot is also part of the route
     // this code could live in a service worker or even a ssr 
     // the data for the page will live in a database.
-   createEffect(() => {
+
         md2html(props.md).then((e) => {
             content()!.innerHTML = e
             buildToc(content()!, aside()!)
         })
-    })
+
     const isPrev = ()=>"Fubar 1"
     const isNext = ()=>"Snafu 2"
 
@@ -35,7 +33,7 @@ export function Mdx(props: {md: string}) {
             <div class='w-full pl-4 pt-4 pb-16 prose dark:prose-invert prose-neutral' >
                 <div class='' ref={setContent} />
                 <div class='flex pt-4'>
-                <Show when={isPrev()}>
+                {isPrev &&
                     <button class='mr-4 flex-1 flex p-2 items-center rounded-md border border-solid-darkitem hover:border-solid-lightitem'>
                    <Icon class='h-8 w-8' path={chevronLeft} />
                     <div class='flex-1 '>
