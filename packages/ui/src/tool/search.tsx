@@ -9,5 +9,5 @@ export const Message = component$(() => {
 })
 
 export const Edit = component$(() => {
-    return <div>Message</div>
+    return <div>Edit</div>
 })

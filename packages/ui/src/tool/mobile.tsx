@@ -66,7 +66,7 @@ const HRail = component$(() => {
 })
 
 const VRailIcon = (props: {selected: boolean, svg: string, onClick$: ()=>void})=> {
-    return <div onClick$={props.onClick$} class='my-1 mb-4 w-full text-neutral-500 hover:text-white  border-blue-500 flex'
+    return <div onClick$={props.onClick$} class='my-1 mb-4 w-full text-neutral-500 hover:text-white  border-neutral-900 flex'
     style={{
         "border-left-width": props.selected? "2px": "2px",
         "border-left-color": props.selected? "white": undefined,
