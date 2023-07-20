@@ -3,6 +3,12 @@ import { search } from "./icon"
 import { Icon } from "../headless"
 import { Close } from "./mobile"
 
+// search background is a filterable/user-unique page. Generally this should have a sticky link to the drive root.
+// it may have other sticky links as well
+
+// generating user-unique pages can be done with a service, or managed by the client service worker in a batch job.
+
+
 // we might want some kind of @ processing here, like gmail
 const SearchBox = component$(() => {
     return <div class='flex-1 m-2 flex items-center shadow  bg-neutral-800  rounded-lg px-1'
