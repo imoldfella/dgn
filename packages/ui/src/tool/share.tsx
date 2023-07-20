@@ -1,10 +1,5 @@
-
-
-
-
 import { component$, useSignal } from "@builder.io/qwik"
-import { $localize } from "../i18n"
-import { InputTo } from "../lexical/lexical";
+import { InputLine, InputTo, RichEditor } from "../lexical/lexical";
 
 
 export function hasContacts() : boolean {
@@ -34,35 +29,25 @@ const Hr = function() {
 // should message drafts be shared with other devices?
 // do we need some structure than for connecting these fields with databases?
 
-export const InputText = component$(() => {
-    return <input></input>
-})
 
 
-export const RichMessage = component$(() => {
-    return <input></input>
-})
+
 
 export const Share = component$(() => {
-    const showMore = useSignal(true)
+    const showSubject = useSignal(false)
 
     // this should work like share a message
     // share will probably change on devices to include local share options
     // on the web are limited, contact api for example is not widely supported.
     // using lexical for inputs is a good idea, because it allows inlining formatting.
-    return <form>
-        <div>
-           
-    
-            <InputTo/>
-            <InputText/>
-            { showMore && <div>
-                <Hr/>
-                <InputText/>
-                </div>}
-        </div>
+    return <form> 
+            <div> <InputTo/></div>
+            
             <Hr/>
-            <RichMessage/>
+             { showSubject && <div> <InputLine/></div>}
+        
+            <Hr/>
+            <RichEditor/>
             
         </form>
 })
