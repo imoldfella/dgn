@@ -1,7 +1,7 @@
 
-wings can be locked in - how?
-1) screen must be "wide enough" (desktop)
-2) click the wing button to switch.
+
+The server will render each page and wrap it with lazy loaded code. Once the client loads the service worker, it should no longer refresh the page, but instead should fetch html and json from the database. HTML for viewing, json for editing.
+
 
 
 A page is a tuple in the database.

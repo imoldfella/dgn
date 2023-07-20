@@ -26,6 +26,9 @@ const routingConfig: RoutingConfig = [
   }
 ]
 
+// thise needs to be executed for each page fetch/cache
+// we need to resolve the database fetch so to include the base html
+// that html can have QRLs in it. A challenge is to build it all together, as the QRL's may change. Publish implies an SSG step. A challenge is then to allow some changes incrementally patching the underlying site, perhaps these are only loaded from json? sanitizing the json is easier than sanitizing html, although clients that can write pages are trusted? How do we authorize roots for the various database slices?
 export default component$(() => {
   return <>
     <Router>
