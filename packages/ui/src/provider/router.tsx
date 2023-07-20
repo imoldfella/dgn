@@ -57,6 +57,8 @@ const segmentsMatch = (pathSegments: string[], configItem: RoutingConfigItem): b
   }
   return true
 }
+
+// should we render the document on the client or server? optional? stream? lazy load? say a document is prefix of primary key that maps to a range of keys. what would we do for seo? what would we do for a client? maybe as we become visible we should add an extra block?
 export const RouterOutlet = component$<{ config: RoutingConfigItem[] }>((props) => {
   const loc = useLocation()
   const which = useSignal(0)
