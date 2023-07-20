@@ -1,7 +1,7 @@
 import { component$ } from "@builder.io/qwik"
 import { search } from "./icon"
 import { Icon } from "../headless"
-
+import { Close } from "./mobile"
 
 // we might want some kind of @ processing here, like gmail
 const SearchBox = component$(() => {
@@ -20,10 +20,11 @@ export const Search = component$(() => {
     // segment control to switch page/site/all/world
 
 
-    return <div>
+    return <><div class='flex items-center mr-1'>
         <SearchBox />
-
+        <Close/>
     </div>
+    </>
 })
 
 export interface FilterSet {

@@ -5,7 +5,7 @@ import { component$, createContextId, useContext, useContextProvider, useSignal,
 import { Icon } from "../headless";
 import { bars_3, bubble, cart, pencil, search, tablet } from "./icon";
 import { Search } from "./search";
-import { $localize } from "../i18n";
+import { $localize, xCircle } from "../i18n";
 import { Cart } from "./cart";
 import { Share } from "./share";
 
@@ -26,6 +26,7 @@ export const Edit = component$(() => {
 
 export interface AppStore {
     tab: Signal<number>
+    y: Signal<number>
 }
 
 const AppContext = createContextId<AppStore>("LAYOUT");
@@ -86,15 +87,15 @@ export const PageTool = component$(() => {
     const isListen = useSignal(false)
     const x = useSignal(300) // width of left column
 
-    const y = useSignal(300)
+    const y = useSignal(64)
     const width = useSignal(0)
     const height = useSignal(0)
 
     // should this be part of the url?
-    const tab = useSignal(1)
-
+    const tab = useSignal(0)
     const app = useStore<AppStore>({
-        tab
+        tab,
+        y: y
     })
     useContextProvider(AppContext, app);
 
@@ -188,7 +189,7 @@ export const PageTool = component$(() => {
 
 
     return <div class='flex h-screen w-screen fixed overflow-hidden'>
-
+        <div class='flex-1 h-screen hidden sm:block'>
          { tab.value==0 && <VRail/>}
          { tab.value!=0 && <><div class='bg-neutral-900 hidden w-64  sm:flex'
             style={{
@@ -206,7 +207,7 @@ export const PageTool = component$(() => {
                 <button class='bg-neutral-800 rounded-full h-16 w-2 mr-1' />
             </div> 
         </div></>}
-
+        </div>
         <div class='flex-1 h-screen'>
             <div class='flex flex-col h-screen'>
                 <div class='flex-1'><ToolMain/></div>
@@ -218,14 +219,11 @@ export const PageTool = component$(() => {
                     }}>
                         <div class='h-4 flex justify-center'>
                             <button class='bg-neutral-800 rounded-full w-16 h-2 my-1' /></div>
-                        <HRail/>
+                        { tab.value==0 && <HRail/> }
                         <ToolDialog/>
-                    </div>
-                
+                    </div>               
             </div>
         </div>
-
-
     </div>
 })
 
@@ -236,4 +234,15 @@ const MessageEditor = component$(() => {
            <Icon svg={bars_3} class='w-6 h-6 block' />
            <div contentEditable="true" class='flex-1 rounded-lg border-1 border-blue-700'/>
         </div>
+})
+
+function close(app: AppStore) {
+    app.tab.value = 0
+    app.y.value = 64
+}
+    
+export const Close = component$(()=> {
+    const app = useApp()
+  
+   return <Icon svg={xCircle} class='h-8 w-8 text-blue-500 hover:text-blue-700'  onClick$={()=>close(app) }/>
 })
