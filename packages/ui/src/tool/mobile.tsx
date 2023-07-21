@@ -73,6 +73,9 @@ const ToolMain = component$( () => {
     useTask$(async ({track}) => {
         track(()=> loc.url)
         console.log("ToolMain", loc.url)
+
+        // should I use render here? I need to work like a playground
+        
         // we should fetch the precompiled html here? it might not be precompiled. SSR support suggests we might have to execute it to get the state. we can allow that to edit, we have the entire program offline. but we get here even if we are not editing. so in that case we want to use a cache and quickly get back to the user. if we inject the content from the top down does it give us faster access to rust?
 
         // can I use renderToStream here, together with innerHtml?
