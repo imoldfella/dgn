@@ -1,6 +1,5 @@
 import { $, useOnWindow, createContextId, component$, useContextProvider, Slot, useContext, useServerData, useStore, useTask$, useSignal } from "@builder.io/qwik";
 
-
 // with the new approach the top route only becomes the default language.
 // we could override it in a lower context.
 interface RoutingLocation {
@@ -58,7 +57,12 @@ const segmentsMatch = (pathSegments: string[], configItem: RoutingConfigItem): b
   return true
 }
 
-// should we render the document on the client or server? optional? stream? lazy load? say a document is prefix of primary key that maps to a range of keys. what would we do for seo? what would we do for a client? maybe as we become visible we should add an extra block?
+// should we render the document on the client or server? optional? stream? lazy load? say a document is prefix of primary key that maps to a range of keys. what would we do for seo? what would we do for a client? maybe as we become visible we should add an extra block? maybe first/last/cursor? we can't prerender cursor.
+// maybe we download just first, and then in the background we start downloading in various orders? service worker?
+// so maybe routeLoader is limit 100, and then a visible task starts loading more?
+// can we return a stream from the route loader?
+// route loader is part of qwik city though? is it ok to require it?
+
 export const RouterOutlet = component$<{ config: RoutingConfigItem[] }>((props) => {
   const loc = useLocation()
   const which = useSignal(0)

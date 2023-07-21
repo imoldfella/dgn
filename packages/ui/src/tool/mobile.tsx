@@ -60,7 +60,7 @@ const ToolDialog = component$(() => {
     return <div/>
 })
 
-const ToolMain = component$(() => {
+const ToolMain = component$(async () => {
     return <div> Main</div>
 })
 
