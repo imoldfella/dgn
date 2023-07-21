@@ -2,6 +2,8 @@ import { $, useOnWindow, createContextId, component$, useContextProvider, Slot, 
 
 // with the new approach the top route only becomes the default language.
 // we could override it in a lower context.
+// why not location as a simple string? what else could we put here?
+// qwik city uses an URL, but how since it doesn't serialize?
 interface RoutingLocation {
   url: string
 }

@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 
-import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, useVisibleTask$, $, QwikMouseEvent, useComputed$, Signal } from "@builder.io/qwik";
+import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, useVisibleTask$, $, QwikMouseEvent, useComputed$, Signal, useTask$ } from "@builder.io/qwik";
 import { Icon } from "../headless";
 import { bars_3, bubble, cart, pencil, search, tablet } from "./icon";
 import { Search } from "./search";
 import { $localize, xCircle } from "../i18n";
 import { Cart } from "./cart";
 import { Share } from "./share";
+import { useLocation } from "../provider";
+import { renderToStream, renderToString } from "@builder.io/qwik/server";
 
 // what if we take edit off the menu and make it a fab? problem is how do you switch back?
 
@@ -60,8 +62,33 @@ const ToolDialog = component$(() => {
     return <div/>
 })
 
-const ToolMain = component$(async () => {
-    return <div> Main</div>
+const Hello = component$(() => {
+    return <div>Hello</div>
+})
+
+const ToolMain = component$( () => {
+    const content = useSignal("<div>hello</div>")
+    // track the location? when the location changes we need to reload the page.
+    const loc = useLocation()
+    useTask$(async ({track}) => {
+        track(()=> loc.url)
+        console.log("ToolMain", loc.url)
+        // we should fetch the precompiled html here? it might not be precompiled. SSR support suggests we might have to execute it to get the state. we can allow that to edit, we have the entire program offline. but we get here even if we are not editing. so in that case we want to use a cache and quickly get back to the user. if we inject the content from the top down does it give us faster access to rust?
+
+        // can I use renderToStream here, together with innerHtml?
+        // const s = await renderToString(<Hello/>, {
+
+        // })
+        //content.value = s.html
+        //console.log("rendered", s)
+
+        // first fetch as viewable? but can it embed qrls? maybe it can only embed routes? why not embed components though? maybe this needs to be a container. A container with available source.
+        //content.value = await (await fetch("/assets/content.html")).text()
+        // build every page as its own qwik app? that sounds inefficient.
+        // do we need to compile the content page jit? I guess when we save it we can compile it, incrementally so that we don't have to compile the whole thing. potentially one page independently, then after a few pages recompile to get sharing? in any event what we get here is html. we might have to execute it on a "server" to get it though. It could be a fetch, or it could be a 
+
+    })
+    return <div dangerouslySetInnerHTML={content.value} />
 })
 
 
