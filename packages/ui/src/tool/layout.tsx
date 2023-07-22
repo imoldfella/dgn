@@ -79,7 +79,7 @@ const VRailIcon = (props: { selected: boolean, svg: string, onClick$: () => void
 // we need to store locally for each tab?
 export const PageTool = component$(() => {
     const isListen = useSignal(false)
-    const x = useSignal(300) // width of left column
+    const x = useSignal(280) // width of left column
 
     const y = useSignal(64)
     const width = useSignal(0)
@@ -166,14 +166,21 @@ export const PageTool = component$(() => {
                     }}>
                     <Icon svg={props.svg} class='w-8 h-8  flex-1' /></div>
             }
-            return <div class=' w-12 flex flex-col items-center h-full  border-r-2 border-neutral-800 mr-1'>
+            return <div class=' w-12 flex flex-col items-center h-full  '>
                 {toolData.map((x, i) => <VRailIcon key={x.name} selected={app.tab.value == i + 1} svg={x.svg} onClick$={() => toggle(i + 1)} />)}
             </div>
         })
 
-        return <div class='w-screen h-screen hidden sm:flex bg-red-200'>
-            <div class='w-64'>WTF</div>
-            <div class='flex-1'>
+        return <div class='w-screen h-screen hidden sm:flex bg-neutral-900'>
+            <VRail/>
+            {tab.value!=0 &&<><div style={{
+                width: x.value+"px"
+            }}><ToolDialog/></div><div
+                    onMouseDown$={leftSplit}
+                    class='h-full   cursor-ew-resize flex flex-col justify-center bg-neutral-900' >
+                    <button class='bg-neutral-800 cursor-ew-resize rounded-full h-16 w-2 mr-1' />
+                </div></>}
+            <div class='flex-1 bg-black px-2'>
             <ToolMain />
             </div>
         </div>
