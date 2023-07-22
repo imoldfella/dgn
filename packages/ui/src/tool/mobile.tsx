@@ -10,6 +10,8 @@ import { Cart } from "./cart";
 import { Share } from "./share";
 import { useLocation } from "../provider";
 import { renderToStream, renderToString } from "@builder.io/qwik/server";
+import { renderJson } from "./render";
+
 
 // what if we take edit off the menu and make it a fab? problem is how do you switch back?
 
@@ -68,14 +70,18 @@ const Hello = component$(() => {
 
 const ToolMain = component$( () => {
     const content = useSignal("<div>hello</div>")
-    // track the location? when the location changes we need to reload the page.
+    // track the location? when the location changes we need to reload the content.
+    // the server won't get the new request.
     const loc = useLocation()
     useTask$(async ({track}) => {
         track(()=> loc.url)
         console.log("ToolMain", loc.url)
+        content.value = await renderJson({})
 
         // should I use render here? I need to work like a playground
-        
+        // as a start we could load the lexical json here and render it.
+        // then each <link> page sould fetch only the lexical json and client side render it. this is smaller than even the editor, and maybe equivalent to html. It can be loaded from a btree. loading assets from a btree involves tradeoffs; we'd like them to be local, but then they can't be shared. how should we divide these cases? Seems like the bigger it is, the less likely it is to be reused?
+
         // we should fetch the precompiled html here? it might not be precompiled. SSR support suggests we might have to execute it to get the state. we can allow that to edit, we have the entire program offline. but we get here even if we are not editing. so in that case we want to use a cache and quickly get back to the user. if we inject the content from the top down does it give us faster access to rust?
 
         // can I use renderToStream here, together with innerHtml?
