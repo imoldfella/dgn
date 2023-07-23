@@ -40,15 +40,19 @@ export const TocTabbed = component$<{ toc: TocData[]  }>((props)=>{
     return <>
         <div>{pathx.url},{tabn.value[1]}</div>
         <Segmented values={values.value} selected={tabn.value[0]} onChange$={changeTab}/>
-        <Toc path={tabn.value[1]} toc={props.toc[tabn.value[0]]}/>
+        <Toc open={2} path={tabn.value[1]} toc={props.toc[tabn.value[0]]}/>
     </>
 })
 
-export const Toc = component$< {path: string, toc: TocData } >((props)=> {
-
+export const Toc = component$< {open?: number, path: string, toc: TocData, level?: number  } >((props)=> {
+    const cls = `ml-${2*(props.level??0)}`
+    const open = props.open === undefined? 0: props.open-1
     return <>
         { (props.toc.children??[]).map((item)=> {
-            return <div key={item.name}>{item.name}</div>
+            return <>
+                <div class={cls} key={item.name}>{item.name}</div>
+                { open > 0 && <Toc open={open} path={props.path + "/" + item.path} toc={item} level={(props.level??0)+1} /> }
+                </>
         })}
     </>
 })
