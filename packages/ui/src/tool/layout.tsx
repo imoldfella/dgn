@@ -3,7 +3,7 @@
 
 import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, useVisibleTask$, $, QwikMouseEvent, useComputed$, Signal, useTask$ } from "@builder.io/qwik";
 import { Icon } from "../headless";
-import { bars_3, bubble, cart, pencil, search, tablet } from "./icon";
+import { bars_3, bubble, cart, circleStack, folder, pencil, search, tablet } from "./icon";
 import { Search } from "./search";
 import { $localize, xCircle } from "../i18n";
 import { Cart } from "./cart";
@@ -12,7 +12,7 @@ import { useLocation } from "../provider";
 import { renderToStream, renderToString } from "@builder.io/qwik/server";
 import { renderJson } from "./render";
 import { Toc, TocTabbed } from "../toc";
-
+import { CodeEditor } from "../code_mirror"
 
 export interface AppStore {
     tab: Signal<number>
@@ -32,12 +32,15 @@ const toolData = [
     { name: "edit", desc: $localize`Edit`, svg: tablet },
     { name: "share", desc: $localize`Share`, svg: bubble },
     { name: "cart", desc: $localize`Cart`, svg: cart },
+    //{ name: "files", desc: $localize`Files`, svg: folder },
+    { name: "data", desc: $localize`Data`, svg: circleStack },
 ]
 
 // creates the view of a particular tool
 // maybe put in toolData, but then it has to be noserialize?
 
 import example from "../toc/test.en"
+
 const ToolDialog = component$(() => {
 
     const app = useApp()
@@ -47,6 +50,7 @@ const ToolDialog = component$(() => {
         case 3: return <div>Edit</div>
         case 4: return <Share />
         case 5: return <Cart />
+        case 6: return <CodeEditor language="sql"/>
     }
     return <div />
 })

@@ -25,7 +25,15 @@
     "rehype-slug": "^5.1.0",
     "rehype-stringify": "^9.0.3",
     "remark-stringify": "^10.0.3",
-    "tailwind-merge": "^1.13.2"
+    "tailwind-merge": "^1.13.2",
+    "@codemirror/autocomplete": "^6.4.2",
+    "@codemirror/commands": "^6.2.1",
+    "@codemirror/lang-json": "^6.0.1",
+    "@codemirror/lang-sql": "^6.5.0",
+    "@codemirror/lint": "^6.1.1",
+    "@codemirror/search": "^6.2.3",
+    "@codemirror/state": "^6.2.0",
+    "@codemirror/view": "^6.9.1"
   },
   "devDependencies": {
     "@angular/compiler-cli": "^16.1.4",
