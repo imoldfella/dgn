@@ -1,9 +1,12 @@
 
+import {TocData} from '.'
   // translating the urls is odd; maybe we need both en and locale?
   // can we use push state to localize the url?
-  export const siteStore =  [
+
+  const x : TocData[] =    [
       {
         name: 'Guides', // needs to be localized
+        path: '/guides',
         // we shouldn't have a path to sections, we just pick the first child
         children: 
         [
@@ -114,6 +117,7 @@
       },
       {
         name: 'Reference',
+        path: '/references',
         children:  [
           {
             name: "Concepts",
@@ -143,4 +147,4 @@
       }
     ]
   
-  
+  export default x

@@ -11,7 +11,7 @@ import { Share } from "./share";
 import { useLocation } from "../provider";
 import { renderToStream, renderToString } from "@builder.io/qwik/server";
 import { renderJson } from "./render";
-import { Toc } from "../toc";
+import { Toc, TocTabbed } from "../toc";
 
 
 export interface AppStore {
@@ -37,12 +37,12 @@ const toolData = [
 // creates the view of a particular tool
 // maybe put in toolData, but then it has to be noserialize?
 
-
+import example from "../toc/test.en"
 const ToolDialog = component$(() => {
 
     const app = useApp()
     switch (app.tab.value) {
-        case 1: return <Toc/>
+        case 1: return <TocTabbed toc={example} />
         case 2: return <Search />
         case 3: return <div>Edit</div>
         case 4: return <Share />
