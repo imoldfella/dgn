@@ -6,9 +6,10 @@
 // I think localization should be orthogonal, and then extract the toc for each language.
 // then it can fallback normally.
 
-import { component$, useComputed$, $ } from "@builder.io/qwik"
+import { component$, useComputed$, $, useStore } from "@builder.io/qwik"
 import { Segmented } from "../theme"
 import { useLocation, useNavigate } from "../provider"
+import { Icon } from "../headless"
 
 export interface TocData {
     name: string
@@ -22,7 +23,8 @@ export const TocTabbed = component$<{ toc: TocData[]  }>((props)=>{
     const nav = useNavigate()
 
     const changeTab = $((index: number) => {
-        nav("/" + index)
+        const base = pathx.url.split("/").slice(0,2).join("/")
+        nav( base + props.toc[index].path??"/")
     })
 
     const tabn = useComputed$<[number,string]>(()=> {
@@ -36,6 +38,7 @@ export const TocTabbed = component$<{ toc: TocData[]  }>((props)=>{
     const values = useComputed$(() => props.toc.map((e) => e.name))
 
 
+
     // this would be easier in solid? we need to navigate when the signal changes.
     return <>
         <div>{pathx.url},{tabn.value[1]}</div>
@@ -44,14 +47,31 @@ export const TocTabbed = component$<{ toc: TocData[]  }>((props)=>{
     </>
 })
 
+const right = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+</svg>`
+const down = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+</svg>
+`
 export const Toc = component$< {open?: number, path: string, toc: TocData, level?: number  } >((props)=> {
     const cls = `ml-${2*(props.level??0)}`
     const open = props.open === undefined? 0: props.open-1
+    const def : Record<number,boolean> = {}
+    for (let i=0; i<(props.toc.children?.length??0); i++) {
+        def[i] = open > 0
+    }
+    const state = useStore<{
+        expanded : Record<number,boolean>
+    }> ( { expanded: def } )
+
     return <>
-        { (props.toc.children??[]).map((item)=> {
+        { (props.toc.children??[]).map((item,index)=> {
             return <>
-                <div class={cls} key={item.name}>{item.name}</div>
-                { open > 0 && <Toc open={open} path={props.path + "/" + item.path} toc={item} level={(props.level??0)+1} /> }
+                <div class='flex items-center'>
+                    <div class={cls} key={item.name}>{item.name}</div>
+                    {item?.children?.length && <Icon onClick$={()=>{state.expanded[index]=!state.expanded[index]}}  svg={state.expanded[index]||open>0?down:right} class='ml-1 w-3 h-3 hover:text-blue-500'/>}</div>
+                { state.expanded[index]&& <Toc open={open} path={props.path + "/" + item.path} toc={item} level={(props.level??0)+1} /> }
                 </>
         })}
     </>
