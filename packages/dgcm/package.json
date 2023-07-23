@@ -1,0 +1,24 @@
+{
+  "name": "dgcm",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./dist/dgcm.umd.cjs",
+  "module": "./dist/dgcm.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/dgcm.js",
+      "require": "./dist/dgcm.umd.cjs"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.2",
+    "vite": "^4.4.5"
+  }
+}

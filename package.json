@@ -12,6 +12,14 @@
   },
   "author": "",
   "dependencies": {
+    "@codemirror/autocomplete": "^6.4.2",
+    "@codemirror/commands": "^6.2.1",
+    "@codemirror/lang-json": "^6.0.1",
+    "@codemirror/lang-sql": "^6.5.0",
+    "@codemirror/lint": "^6.1.1",
+    "@codemirror/search": "^6.2.3",
+    "@codemirror/state": "^6.2.0",
+    "@codemirror/view": "^6.9.1",
     "@github/webauthn-json": "^2.1.1",
     "@lexical/headless": "^0.11.3",
     "@lexical/html": "^0.11.3",
@@ -25,15 +33,7 @@
     "rehype-slug": "^5.1.0",
     "rehype-stringify": "^9.0.3",
     "remark-stringify": "^10.0.3",
-    "tailwind-merge": "^1.13.2",
-    "@codemirror/autocomplete": "^6.4.2",
-    "@codemirror/commands": "^6.2.1",
-    "@codemirror/lang-json": "^6.0.1",
-    "@codemirror/lang-sql": "^6.5.0",
-    "@codemirror/lint": "^6.1.1",
-    "@codemirror/search": "^6.2.3",
-    "@codemirror/state": "^6.2.0",
-    "@codemirror/view": "^6.9.1"
+    "tailwind-merge": "^1.13.2"
   },
   "devDependencies": {
     "@angular/compiler-cli": "^16.1.4",
@@ -41,6 +41,8 @@
     "@tailwindcss/typography": "^0.5.9",
     "@types/jsdom": "^21.1.1",
     "@types/lodash": "^4.14.195",
-    "eslint": "^8.44.0"
+    "@types/node": "^20.4.4",
+    "eslint": "^8.44.0",
+    "vite-plugin-dts": "^3.3.1"
   }
 }

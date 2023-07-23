@@ -1,0 +1,29 @@
+.cm-editor {
+    height: 100%;
+    width: 100%;
+    color: white;
+  }
+.cm-gutter {
+  color: white;
+  background-color: black;
+}
+.cm-linenumbers {
+  color: white;
+}
+.ͼ2 .cm-activeLineGutter {
+  background-color: #333;
+}
+.ͼ4 .cm-line {
+  caret-color: white !important;
+}
+
+
+body {
+  height: 100vh;
+  width: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: black;
+  color: white;
+  caret-color: white;
+}
