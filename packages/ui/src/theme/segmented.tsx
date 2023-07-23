@@ -1,6 +1,9 @@
 import { Signal } from "@builder.io/qwik"
 
-
+/*
+    <Segmented values={Segments} signal={tab} class='mx-2 mt-2 text-sm'/>
+    
+*/
 // like select
 export interface SegmentedProps {
     values: string[]

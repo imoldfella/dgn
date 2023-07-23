@@ -1,6 +1,6 @@
 import { component$, useSignal } from "@builder.io/qwik"
 import { $localize } from "../i18n"
-import { Segmented } from "./segmented"
+import { Segmented } from "../theme/segmented"
 
 
 const Segments = [

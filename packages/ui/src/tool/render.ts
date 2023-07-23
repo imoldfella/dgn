@@ -31,15 +31,6 @@ export async function renderJson(json: any): Promise<string> {
         return "error"
     }
     editor.update(() => {
-        // const value = `{"root":{"children":[{"children":[{
-        //     "detail": 0,
-        //     "format": 0,
-        //     "mode": "normal",
-        //     "style": "",
-        //     "text": "In case you were wondering what the black box at the bottom is – it's the debug view, showing the current state of the editor. You can disable it by pressing on the settings control in the bottom-left of your screen and toggling the debug view setting.",
-        //     "type": "text",
-        //     "version": 1
-        //   }],"direction":null,"format":"","indent":0,"type":"paragraph","version":1}],"direction":null,"format":"","indent":0,"type":"root","version":1}}`
          s = $generateHtmlFromNodes(editor,null);
     })
     return s

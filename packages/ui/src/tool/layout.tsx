@@ -11,6 +11,8 @@ import { Share } from "./share";
 import { useLocation } from "../provider";
 import { renderToStream, renderToString } from "@builder.io/qwik/server";
 import { renderJson } from "./render";
+import { Toc } from "../toc";
+
 
 export interface AppStore {
     tab: Signal<number>
@@ -24,6 +26,8 @@ export function useApp() { return useContext<AppStore>(AppContext); }
 
 // used to create the dialog
 const toolData = [
+    // the menu is sync'd to the current page.
+    { name: "menu", desc: $localize`Browse`, svg: bars_3 },
     { name: "search", desc: $localize`Search`, svg: search },
     { name: "edit", desc: $localize`Edit`, svg: tablet },
     { name: "share", desc: $localize`Share`, svg: bubble },
@@ -32,31 +36,35 @@ const toolData = [
 
 // creates the view of a particular tool
 // maybe put in toolData, but then it has to be noserialize?
+
+
 const ToolDialog = component$(() => {
+
     const app = useApp()
     switch (app.tab.value) {
-        case 1: return <Search />
-        case 2: return <div>Edit</div>
-        case 3: return <Share />
-        case 4: return <Cart />
+        case 1: return <Toc/>
+        case 2: return <Search />
+        case 3: return <div>Edit</div>
+        case 4: return <Share />
+        case 5: return <Cart />
     }
     return <div />
 })
 
 
-const ToolMain = component$(() => {
-    const content = useSignal("<div>hello</div>")
+const Render = component$(() => {
+    const content = useSignal("")
     // track the location? when the location changes we need to reload the content.
     // the server won't get the new request.
     const loc = useLocation()
     useTask$(async ({ track }) => {
         track(() => loc.url)
-        console.log("ToolMain", loc.url)
         content.value = await renderJson({})
 
     })
     return <div dangerouslySetInnerHTML={content.value} />
 })
+
 
 
 // custom tools = javascript or cache personal html
@@ -86,7 +94,7 @@ export const PageTool = component$(() => {
     const height = useSignal(0)
 
     // should this be part of the url?
-    const tab = useSignal(0)
+    const tab = useSignal(1)
     const app = useStore<AppStore>({
         tab,
         y: y
@@ -151,6 +159,7 @@ export const PageTool = component$(() => {
         return JSON.stringify({
             x: x.value,
             y: y.value,
+            tab: tab.value,
             width: width.value
         })
     })
@@ -158,17 +167,17 @@ export const PageTool = component$(() => {
     const Desktop = component$(() => {
         const VRail = component$(() => {
             const VRailIcon = (props: { selected: boolean, svg: string, onClick$: () => void }) => {
-                return <div onClick$={props.onClick$} class='my-1 mb-4 w-full text-neutral-500 hover:text-white  border-blue-500 flex'
-                    style={{
-                        "border-left-width": props.selected ? "2px" : "2px",
-                        "border-left-color": props.selected ? "white" : undefined,
-                        "color": props.selected ? "white" : undefined
-                    }}>
+                return <div onClick$={props.onClick$} class={`my-2 mb-4 w-full hover:text-white  flex border-l-2 ${props.selected ? "border-white text-white" : "text-neutral-500 border-neutral-900"}`}
+                    >
                     <Icon svg={props.svg} class='w-8 h-8  flex-1' /></div>
             }
             return <div class=' w-12 flex flex-col items-center h-full  '>
                 {toolData.map((x, i) => <VRailIcon key={x.name} selected={app.tab.value == i + 1} svg={x.svg} onClick$={() => toggle(i + 1)} />)}
             </div>
+        })
+
+        const Debug = component$(() => {
+            return <div>{debug.value}</div>
         })
 
         return <div class='w-screen h-screen hidden sm:flex bg-neutral-900'>
@@ -181,7 +190,8 @@ export const PageTool = component$(() => {
                     <button class='bg-neutral-800 cursor-ew-resize rounded-full h-16 w-2 mr-1' />
                 </div></>}
             <div class='flex-1 bg-black px-2'>
-            <ToolMain />
+                <Debug/>
+            <Render />
             </div>
         </div>
     })
@@ -203,7 +213,7 @@ export const PageTool = component$(() => {
         })
         return <div class='flex-1 h-screen'>
             <div class='flex flex-col h-screen'>
-                <div class='flex-1'><ToolMain /></div>
+                <div class='flex-1'><Render /></div>
 
 
                 <div class='sm:hidden w-full  bg-neutral-900  rounded-t-lg bottom-0' onMouseDown$={bottomSplit}
