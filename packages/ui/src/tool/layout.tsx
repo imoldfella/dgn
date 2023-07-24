@@ -33,7 +33,7 @@ const toolData = [
     { name: "share", desc: $localize`Share`, svg: bubble },
     { name: "cart", desc: $localize`Cart`, svg: cart },
     //{ name: "files", desc: $localize`Files`, svg: folder },
-    { name: "data", desc: $localize`Data`, svg: circleStack },
+    //{ name: "data", desc: $localize`Data`, svg: circleStack },
 ]
 
 // creates the view of a particular tool
@@ -50,7 +50,6 @@ const ToolDialog = component$(() => {
         case 3: return <div>Edit</div>
         case 4: return <Share />
         case 5: return <Cart />
-        case 6: return <CodeEditor language="sql"/>
     }
     return <div />
 })
