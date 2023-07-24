@@ -6,8 +6,8 @@
 // I think localization should be orthogonal, and then extract the toc for each language.
 // then it can fallback normally.
 
-import { component$, useComputed$, $, useStore } from "@builder.io/qwik"
-import { Segmented } from "../theme"
+import { component$, useComputed$, $, useStore, Slot } from "@builder.io/qwik"
+import { Segmented, chevronDown, chevronRight } from "../theme"
 import { useLocation, useNavigate } from "../provider"
 import { Icon } from "../headless"
 
@@ -17,62 +17,61 @@ export interface TocData {
     children?: TocData[]
 }
 
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const Dialog = ({ children: any }) => {
+    return <div class='p-1 border-l border-l-neutral-500 h-full'>
+        <Slot />
+    </div>
+}
+
 // we could generalize this to any number of nested tab sets.
-export const TocTabbed = component$<{ toc: TocData[]  }>((props)=>{
-    const pathx = useLocation()  
+export const TocTabbed = component$<{ toc: TocData[] }>((props) => {
+    const pathx = useLocation()
     const nav = useNavigate()
 
     const changeTab = $((index: number) => {
-        const base = pathx.url.split("/").slice(0,2).join("/")
-        nav( base + props.toc[index].path??"/")
+        const base = pathx.url.split("/").slice(0, 2).join("/")
+        nav(base + props.toc[index].path ?? "/")
     })
 
-    const tabn = useComputed$<[number,string]>(()=> {
+    const tabn = useComputed$<[number, string]>(() => {
         const path = pathx.url.split("/")
-        for (let i=0; i<props.toc.length; i++) {
+        for (let i = 0; i < props.toc.length; i++) {
             if (props.toc[i].path === path[2]) return [i, path.slice(1).join("/")]
         }
-        return [0,"/"]
+        return [0, "/"]
     })
     // the top could be a segment control
     const values = useComputed$(() => props.toc.map((e) => e.name))
 
-
-
     // this would be easier in solid? we need to navigate when the signal changes.
-    return <>
-        <div>{pathx.url},{tabn.value[1]}</div>
-        <Segmented values={values.value} selected={tabn.value[0]} onChange$={changeTab}/>
-        <Toc open={2} path={tabn.value[1]} toc={props.toc[tabn.value[0]]}/>
-    </>
+    return <Dialog>
+        <Segmented values={values.value} selected={tabn.value[0]} onChange$={changeTab} />
+        <Toc open={2} path={tabn.value[1]} toc={props.toc[tabn.value[0]]} />
+    </Dialog>
 })
 
-const right = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-</svg>`
-const down = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-</svg>
-`
-export const Toc = component$< {open?: number, path: string, toc: TocData, level?: number  } >((props)=> {
-    const cls = `ml-${2*(props.level??0)}`
-    const open = props.open === undefined? 0: props.open-1
-    const def : Record<number,boolean> = {}
-    for (let i=0; i<(props.toc.children?.length??0); i++) {
+
+export const Toc = component$<{ open?: number, path: string, toc: TocData, level?: number }>((props) => {
+    const cls = `ml-${2 * (props.level ?? 0)}`
+    const open = props.open === undefined ? 0 : props.open - 1
+    const def: Record<number, boolean> = {}
+    for (let i = 0; i < (props.toc.children?.length ?? 0); i++) {
         def[i] = open > 0
     }
     const state = useStore<{
-        expanded : Record<number,boolean>
-    }> ( { expanded: def } )
+        expanded: Record<number, boolean>
+    }>({ expanded: def })
 
     return <>
-        { (props.toc.children??[]).map((item,index)=> {
+        {(props.toc.children ?? []).map((item, index) => {
             return <>
                 <div class='flex items-center'>
                     <div class={cls} key={item.name}>{item.name}</div>
-                    {item?.children?.length && <Icon onClick$={()=>{state.expanded[index]=!state.expanded[index]}}  svg={state.expanded[index]||open>0?down:right} class='ml-1 w-3 h-3 hover:text-blue-500'/>}</div>
-                { state.expanded[index]&& <Toc open={open} path={props.path + "/" + item.path} toc={item} level={(props.level??0)+1} /> }
-                </>
+                    {item?.children?.length && <Icon onClick$={() => { state.expanded[index] = !state.expanded[index] }} svg={state.expanded[index] || open > 0 ? chevronDown : chevronRight} class='ml-1 w-3 h-3 hover:text-blue-500' />}</div>
+                {state.expanded[index] && <Toc open={open} path={props.path + "/" + item.path} toc={item} level={(props.level ?? 0) + 1} />}
+            </>
         })}
     </>
 })

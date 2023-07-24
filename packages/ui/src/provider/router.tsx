@@ -28,6 +28,8 @@ export const Router = component$(() => {
 })
 
 export const useNavigate = () => {
+  return $((loc: string, opt: {reload?: boolean}= {} ) => {
+  })
   const ctx = useContext(RouterContext)
   return $((loc: string, opt: {reload?: boolean}= {} ) => {
     console.log("navigate", loc)
