@@ -52,7 +52,6 @@ export const TocTabbed = component$<{ toc: TocData[] }>((props) => {
     </Dialog>
 })
 
-
 export const Toc = component$<{ open?: number, path: string, toc: TocData, level?: number }>((props) => {
     const cls = `ml-${2 * (props.level ?? 0)}`
     const open = props.open === undefined ? 0 : props.open - 1

@@ -38,7 +38,7 @@ const toolData = [
     { name: "search", desc: $localize`Search`, svg: search },
     { name: "share", desc: $localize`Share`, svg: bubble },
     { name: "cart", desc: $localize`Cart`, svg: cart },
-    { name: "proposals", desc: $localize`Propose`, svg: proposeIcon },
+    { name: "propose", desc: $localize`Propose`, svg: proposeIcon },
     { name: "account", desc: $localize`Account`, svg: personIcon },
     // behind "more" on mobile. we could also hide and require them to be in the menu
 
@@ -66,6 +66,7 @@ const proposeData = [
 
 import example from "../toc/test.en"
 import { FileBrowser } from "../filebrowser";
+import { Propose } from "../propose";
 
 export const Account = component$(() => {
     return <div>Account</div>
@@ -76,9 +77,7 @@ export const Review = component$(() => {
 export const Edit = component$(() => {
     return <div>Edit</div>
 })
-export const Propose = component$(() => {
-    return <div>Propose</div>
-})
+
 
 type TabKey = "menu" | "search" | "cart" | "share" | "edit" | "files" | "proposals" | "review" | "account"
 
