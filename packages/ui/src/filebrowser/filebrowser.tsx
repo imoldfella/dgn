@@ -1,4 +1,4 @@
-import { component$, $, useStore,  useVisibleTask$ } from "@builder.io/qwik";
+import { component$, $, useStore } from "@builder.io/qwik";
 import { useNavigate } from "../provider";
 import { documentIcon, elipsis } from "../theme";
 import { Icon } from "../headless";
@@ -18,7 +18,6 @@ const example : FileItem[] = [
         type: "html", 
         git: ""
     },
-
 ]
 
 export interface FileItem {

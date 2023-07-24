@@ -11,7 +11,7 @@ import { renderJson } from "./render";
 import { TocTabbed } from "../toc";
 
 export interface AppStore {
-    tab: Signal<number>
+    tab: Signal<string>
     y: Signal<number>
 }
 
@@ -29,21 +29,35 @@ const personIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox=
 <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
 </svg>`
 // used to create the dialog
+
+
+
 const toolData = [
     // the menu is sync'd to the current page.
     { name: "menu", desc: $localize`Browse`, svg: bars_3 },
     { name: "search", desc: $localize`Search`, svg: search },
     { name: "share", desc: $localize`Share`, svg: bubble },
     { name: "cart", desc: $localize`Cart`, svg: cart },
+    { name: "proposals", desc: $localize`Propose`, svg: proposeIcon },
+    { name: "account", desc: $localize`Account`, svg: personIcon },
+    // behind "more" on mobile. we could also hide and require them to be in the menu
+
+    //{ name: "data", desc: $localize`Data`, svg: circleStack },
+]
+const proposeData = [
+    // the menu is sync'd to the current page.
+    { name: "menu", desc: $localize`Browse`, svg: bars_3 },
+    { name: "search", desc: $localize`Search`, svg: search },
+    { name: "share", desc: $localize`Share`, svg: bubble },
 
     // behind "more" on mobile. we could also hide and require them to be in the menu
     { name: "edit", desc: $localize`Edit`, svg: tablet },
     { name: "files", desc: $localize`Files`, svg: folder },
     // how do I lock the main branch?
     // vote for adoption, publish
-    { name: "proposals", desc: $localize`Propose`, svg: proposeIcon },
+    { name: "propose", desc: $localize`Propose`, svg: proposeIcon },
     { name: "review", desc: $localize`Review`, svg: reviewIcon },
-    { name: "account", desc: $localize`Account`, svg: personIcon },
+    //{ name: "account", desc: $localize`Account`, svg: personIcon },
     //{ name: "data", desc: $localize`Data`, svg: circleStack },
 ]
 
@@ -66,19 +80,20 @@ export const Propose = component$(() => {
     return <div>Propose</div>
 })
 
+type TabKey = "menu" | "search" | "cart" | "share" | "edit" | "files" | "proposals" | "review" | "account"
 
 const ToolDialog = component$(() => {
     const app = useApp()
     switch (app.tab.value) {
-        case 1: return <TocTabbed toc={example} />
-        case 2: return <Search />
-        case 3: return <Share />
-        case 4: return <Cart />
-        case 5: return <Edit/>
-        case 6: return <FileBrowser />
-        case 7: return <Propose/>
-        case 8: return <Review/>
-        case 9: return <Account/>
+        case "menu": return <TocTabbed toc={example} />
+        case "search": return <Search />
+        case "share": return <Share />
+        case "cart": return <Cart />
+        case "edit": return <Edit/>
+        case "files": return <FileBrowser />
+        case "propose": return <Propose/>
+        case "review": return <Review/>
+        case "account": return <Account/>
     }
     return <div />
 })
@@ -114,7 +129,7 @@ export const PageTool = component$(() => {
     const height = useSignal(0)
 
     // should this be part of the url?
-    const tab = useSignal(1)
+    const tab = useSignal("menu")
     const app = useStore<AppStore>({
         tab,
         y: y
@@ -146,10 +161,10 @@ export const PageTool = component$(() => {
         })
     })
 
-    const toggle = $((x: number) => {
+    const toggle = $((x: string) => {
         console.log("toggle", x, tab.value)
         if (x == tab.value)
-            tab.value = 0
+            tab.value = ""
         else {
             tab.value = x
             y.value = Math.max(y.value, 400)
@@ -193,13 +208,13 @@ export const PageTool = component$(() => {
                     <Icon svg={props.svg} class='w-8 h-8  flex-1' /></div>
             }
             return <div class=' w-12 flex flex-col items-center h-full  '>
-                {toolData.map((x, i) => <VRailIcon key={x.name} selected={app.tab.value == i + 1} svg={x.svg} onClick$={() => toggle(i + 1)} />)}
+                {toolData.map((x, i) => <VRailIcon key={x.name} selected={app.tab.value == x.name} svg={x.svg} onClick$={() => toggle(x.name)} />)}
             </div>
         })
 
         return <div class='w-screen h-screen hidden sm:flex bg-neutral-900'>
             <VRail/>
-            {tab.value!=0 &&<><div style={{
+            {tab.value!="" &&<><div style={{
                 width: x.value+"px"
             }}><ToolDialog/></div><div
                     onMouseDown$={leftSplit}
@@ -219,9 +234,9 @@ export const PageTool = component$(() => {
                 <div class='w-full flex items-center'>
                     {toolData.map((x, i) =>
                         <div key={x.name} class='flex flex-1 flex-col text-neutral-500 hover:text-blue-700 items-center ' style={{
-                            "color": app.tab.value == i + 1 ? "white" : undefined
+                            "color": app.tab.value == x.name ? "white" : undefined
                         }}
-                            onClick$={() => toggle(i + 1)}
+                            onClick$={() => toggle(x.name)}
                         >
                             <Icon svg={x.svg} class='w-6 h-6  flex-1 block' />
                             <div key={x.name} class='flex-1 text-center text-xs'>{x.desc}</div>
@@ -237,7 +252,7 @@ export const PageTool = component$(() => {
                     }}>
                     <div class='h-4 flex justify-center'>
                         <button class='bg-neutral-800 rounded-full w-16 h-2 my-1' /></div>
-                    {tab.value == 0 && <HRail />}
+                    {tab.value == "" && <HRail />}
                     <ToolDialog />
                 </div>
             </div>
@@ -260,7 +275,7 @@ const MessageEditor = component$(() => {
 })
 
 function close(app: AppStore) {
-    app.tab.value = 0
+    app.tab.value = ""
     app.y.value = 64
 }
 
