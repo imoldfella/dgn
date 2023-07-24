@@ -7,13 +7,22 @@ export function classNames(...classes: (string | boolean | undefined)[]): string
 }
 export type AnchorProps = HTMLAttributes<HTMLAnchorElement>
 export type LinkProps = HTMLAttributes<HTMLAnchorElement> & {href: string}
+
+
 export const Ab = component$((props: LinkProps) => {
   const loc = useLocation()
   const ln =  useLocale()
-  const href = new URL( "/" + ln.ln + props.href,loc.url).href
-    return <a {...props} href={href} class={`no-underline dark:text-blue-400 text-blue-700 hover:text-blue-500 hover:underline ${props.class}`}>
-        <Slot/>
-    </a>
+  
+  const o = "/" + ln.ln + props.href
+  try {
+      const href = new URL(o ,loc.url).href
+      return <a {...props} href={href} class={`no-underline dark:text-blue-400 text-blue-700 hover:text-blue-500 hover:underline ${props.class}`}>
+      <Slot/>
+  </a>
+  } catch (e) {
+    console.log("bad href", o, loc.url)
+    return <span>{loc.url}</span>
+  }
 })
 
 type DivProps = HTMLAttributes<HTMLDivElement>

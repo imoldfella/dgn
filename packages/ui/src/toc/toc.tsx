@@ -19,11 +19,11 @@ export interface TocData {
 
 // @ts-ignore
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const Dialog = ({ children: any }) => {
+export const Dialog = component$(() => {
     return <div class='p-1 border-l border-l-neutral-500 h-full'>
         <Slot />
     </div>
-}
+})
 
 // we could generalize this to any number of nested tab sets.
 export const TocTabbed = component$<{ toc: TocData[] }>((props) => {

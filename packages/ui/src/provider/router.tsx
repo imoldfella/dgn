@@ -7,42 +7,36 @@ import { $, useOnWindow, createContextId, component$, useContextProvider, Slot, 
 interface RoutingLocation {
   url: string
 }
-export const RouterContext = createContextId<RoutingLocation>(
-  'router-context'
-);
-export const useLocation = () => {
-  return useContext(RouterContext)
+export const RouterContext = createContextId<RoutingLocation>('RoutingLocation')
+export const useLocation = () => useContext(RouterContext)
+export const useNavigate = () => {
+  const ctx = useContext(RouterContext)
+  return $((loc: string, opt: {reload?: boolean}= {} ) => {
+    const to = new URL(loc, ctx.url).href
+    history.pushState({}, loc, to) // does not cause a popstate.
+    if (opt.reload) {
+      window.location.reload()
+    }
+    ctx.url = to
+  })
 }
+
 export const Router = component$(() => {
   const svr = useServerData<string | null>('url')
   const a = {
     url: svr ?? window.location.href
   }
   const routingState = useStore<RoutingLocation>(a)
+  useContextProvider(RouterContext, routingState);
+
   useOnWindow('popstate', $((e: Event) => {
     const o = e as PopStateEvent
     routingState.url = o.state.page as string
   }))
-  useContextProvider(RouterContext, routingState);
   return <Slot />
 })
 
-export const useNavigate = () => {
-  return $((loc: string, opt: {reload?: boolean}= {} ) => {
-  })
-  const ctx = useContext(RouterContext)
-  return $((loc: string, opt: {reload?: boolean}= {} ) => {
-    console.log("navigate", loc)
-    const to = new URL(loc, ctx.url).href
-    history.pushState({}, loc, to) // does not cause a popstate.
-    if (opt.reload) {
-      window.location.reload()
-    }
-    console.log("navigate", to)
 
-    ctx.url = to
-  })
-}
 // export declare interface FunctionComponent<P = Record<string, any>> {
 //   (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 // }
@@ -79,8 +73,6 @@ export const RouterOutlet = component$<{ config: RoutingConfigItem[] }>((props) 
     console.log("RouterOutlet", loc.url)
     key.value = key.value + 1
     const pn = new URL(loc.url).pathname.split('/')
-    pn.shift()
-    pn.shift()
     if (pn.length > 0 && pn[pn.length - 1] === '') pn.pop()
     for (let i = 0; i < props.config.length; i++) {
       const item = props.config[i]
