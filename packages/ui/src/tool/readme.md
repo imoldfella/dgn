@@ -1,5 +1,7 @@
 
-What I want to build is a Qwik site editor; a playground with many pages.
+What I want to build is a Qwik site editor; a playground with many pages. pages from a database (sqlite to start? rust+opfs? leanstore? c++/emscripten)
+
+
 When I invoke the editor, it must then pull pages from the content app, first as html, then with a button, as source (maybe json source primarily).
 
 The useTask for the editor needs to request a page from the content app. To run offline, this means that the content server must run in a worker.
