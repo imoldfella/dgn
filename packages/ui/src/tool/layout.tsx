@@ -117,6 +117,7 @@ const Render = component$(() => {
 // custom tools = javascript or cache personal html
 
 
+
 // we should be able to use media query to layout the buttons initially and only use javascript if a button is clicked.s
 // when loading statically we can assume 1 wide. We don't need to decide 1-2-3 wide until a menu is requested.
 // splitters should not download on mobile, only lazy load on desktop

@@ -4,6 +4,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(() => {
   return {
+    server: {
+      port: 7083,
+      host: '0.0.0.0'
+    },
     build: {
       target: "es2020",
       lib: {
