@@ -15,8 +15,12 @@ export const Onboard = component$(() => {
     // transform to create a store with all the localized strings.
     // make sure server doesn't await anything.
     // if we make this inline, then we force it to render at once.
-    const create = $(() => {
-        console.log(title.value, description.value)
+    const create = $(async () => {
+        // here we need to create a local database, and register with webrtc so we  can access it from other computers.
+        // we can download an sqlite file, and run some macro expansion on it.
+        // use opfs to write. alternately we can treat it as ssr, and expand as we read it? or we can do a combination of both as qwik does.
+        const a= await fetch('/defaultdb.sqlite')
+
     })
     const upload = $(() => {
         file.value?.click()
