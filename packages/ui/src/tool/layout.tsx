@@ -10,6 +10,7 @@ import { useLocation } from "../provider";
 import { renderJson } from "./render";
 import { TocTabbed } from "../toc";
 
+const startApp = 'propose'
 export interface AppStore {
     tab: Signal<string>
     y: Signal<number>
@@ -128,7 +129,7 @@ export const PageTool = component$(() => {
     const height = useSignal(0)
 
     // should this be part of the url?
-    const tab = useSignal("menu")
+    const tab = useSignal(startApp)
     const app = useStore<AppStore>({
         tab,
         y: y
