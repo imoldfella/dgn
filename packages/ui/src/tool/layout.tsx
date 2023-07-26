@@ -9,8 +9,11 @@ import { Share } from "./share";
 import { useLocation } from "../provider";
 import { renderJson } from "./render";
 import { TocTabbed } from "../toc";
-
-const startApp = 'propose'
+import example from "../toc/test.en"
+import { FileBrowser } from "../filebrowser";
+import { Propose } from "../propose";
+import { Account } from "../account";
+const startApp = 'menu'
 export interface AppStore {
     tab: Signal<string>
     y: Signal<number>
@@ -65,13 +68,9 @@ const proposeData = [
 // creates the view of a particular tool
 // maybe put in toolData, but then it has to be noserialize?
 
-import example from "../toc/test.en"
-import { FileBrowser } from "../filebrowser";
-import { Propose } from "../propose";
 
-export const Account = component$(() => {
-    return <div>Account</div>
-})
+
+
 export const Review = component$(() => {
     return <div>Review</div>
 })

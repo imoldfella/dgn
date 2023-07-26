@@ -45,13 +45,13 @@ const Outlet = component$((props) => {
 
   })
 
+  // I need something to pop up as a welcome.
+  // we could default to the account page?
   const loc = useLocation()
   const isSignin = useComputed$(() => {
     return loc.url.endsWith("/signin")
   })
-  return <>{login.value ? 
-      <PageTool/>
-     : (isSignin.value?<Signin/>:<Onboard/>)}</>
+  return <PageTool/>
 })
 
 // thise needs to be executed for each page fetch/cache

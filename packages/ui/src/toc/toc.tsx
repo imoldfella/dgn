@@ -46,8 +46,11 @@ export const TocTabbed = component$<{ toc: TocData[] }>((props) => {
     const values = useComputed$(() => props.toc.map((e) => e.name))
 
     // this would be easier in solid? we need to navigate when the signal changes.
+    // a select dialog
     return <Dialog>
-        <Segmented values={values.value} selected={tabn.value[0]} onChange$={changeTab} />
+        <div>First Draft</div>
+        <Segmented values={['Contents', 'Files']} selected={0} onChange$={changeTab} />
+        <Segmented class='mt-2' values={values.value} selected={tabn.value[0]} onChange$={changeTab} />
         <Toc open={2} path={tabn.value[1]} toc={props.toc[tabn.value[0]]} />
     </Dialog>
 })

@@ -36,7 +36,9 @@ export const Router = component$(() => {
   return <Slot />
 })
 
-
+export const Link = component$<{ href: string }>((props) => {
+  return <a href={props.href}><Slot/></a>
+})
 // export declare interface FunctionComponent<P = Record<string, any>> {
 //   (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 // }
