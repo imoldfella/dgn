@@ -6,10 +6,11 @@
 // I think localization should be orthogonal, and then extract the toc for each language.
 // then it can fallback normally.
 
-import { component$, useComputed$, $, useStore, Slot } from "@builder.io/qwik"
-import { Segmented, chevronDown, chevronRight } from "../theme"
+import { component$, useComputed$, $, useStore, Slot, useSignal } from "@builder.io/qwik"
+import { Segmented, chevronDown, chevronRight,personIcon,proposeIcon } from "../theme"
 import { useLocation, useNavigate } from "../provider"
 import { Icon } from "../headless"
+import { useApp } from "../tool"
 
 export interface TocData {
     name: string
@@ -29,6 +30,7 @@ export const Dialog = component$(() => {
 export const TocTabbed = component$<{ toc: TocData[] }>((props) => {
     const pathx = useLocation()
     const nav = useNavigate()
+    const app = useApp()
 
     const changeTab = $((index: number) => {
         const base = pathx.url.split("/").slice(0, 2).join("/")
@@ -45,11 +47,18 @@ export const TocTabbed = component$<{ toc: TocData[] }>((props) => {
     // the top could be a segment control
     const values = useComputed$(() => props.toc.map((e) => e.name))
 
+    const setBranch = $(()=>{
+        // how to do modal here? can we await it?
+    })
     // this would be easier in solid? we need to navigate when the signal changes.
     // a select dialog
-    return <Dialog>
-        <div>First Draft</div>
-        <Segmented values={['Contents', 'Files']} selected={0} onChange$={changeTab} />
+    // most files are queries, maybe returning lenses
+    const files = useSignal(0)
+    const changeFiles = $((index: number) => {
+        files.value = index
+    })
+    return <Dialog>       
+        <Segmented values={['Contents', 'Files']} selected={files.value} onChange$={changeFiles} />
         <Segmented class='mt-2' values={values.value} selected={tabn.value[0]} onChange$={changeTab} />
         <Toc open={2} path={tabn.value[1]} toc={props.toc[tabn.value[0]]} />
     </Dialog>

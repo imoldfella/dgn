@@ -1,7 +1,8 @@
 import { component$ ,$} from "@builder.io/qwik"
 import { Dialog } from "../toc"
 import { useApp } from "../tool"
-import { blueButton } from "../theme"
+import { blueButton, chevronRight, personIcon, proposeIcon } from "../theme"
+import { Icon } from "../headless"
 
 export interface QuerySchema {
 }
@@ -19,14 +20,19 @@ export const Query = component$<{query: QuerySchema}>(() => {
 
 // create a new draft, change to an existing draft
 export const Propose = component$(() => {
+    const app = useApp()
     const newWebsite = $(() => {
     })
     const proposeChange = $(() => {
     })
     return <Dialog>
-        <div>Drafts</div>
-       <div> <button class={blueButton} onClick$={newWebsite}>New Website</button></div>
-       <div> <button class={blueButton} onClick$={proposeChange}>Propose edit</button></div>
+               <div class='mb-2 flex w-full  hover:underline'>
+            <Icon svg={personIcon} class='mr-1' /><div class='flex-1'>{app.branch.value}</div><Icon  svg={chevronRight} class='h-5 w-5 block' /></div>
+
+        <div class='mb-2 flex w-full  hover:underline'>
+            <Icon svg={proposeIcon} class='mr-1'/>
+            <div class='flex-1'>{app.branch.value}</div><Icon  svg={chevronRight} class='h-5 w-5 block' /></div>
+
 
        <div>Ready to publish<button>Publish</button></div>
 
