@@ -201,6 +201,11 @@ export const PageTool = component$(() => {
     })
 
     const Desktop = component$(() => {
+        // break to allow side by side annotations.
+
+        const VRailText = component$(() => {
+            return <div/>
+        })
         const VRail = component$(() => {
             const VRailIcon = (props: { selected: boolean, svg: string, onClick$: () => void }) => {
                 return <div onClick$={props.onClick$} class={`my-2 mb-4 w-full hover:text-white  flex border-l-2 ${props.selected ? "border-white text-white" : "text-neutral-500 border-neutral-900"}`}
