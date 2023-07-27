@@ -333,7 +333,7 @@ export const MessageStream = component$(() => {
    // const border = `border-l-[1px] border-r-[1px]  border-neutral-500`
    // class="flex flex-col pt-[3.3rem] w-[600px]"
     return <>
-        <div class='flex'><SearchBox /><LanguageSelect /><DarkButton /></div>
+        <div class='flex'><SearchBox /><LanguageSelect class='lg:hidden ' /><DarkButton class='lg:hidden ' /></div>
         <div class=" max-w-full flex-grow self-center ">
             <Header />
             <section >

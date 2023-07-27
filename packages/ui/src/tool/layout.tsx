@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, $, QwikMouseEvent, useComputed$, Signal, useTask$, Slot, useVisibleTask$ } from "@builder.io/qwik";
 import { Icon } from "../headless";
-import { bars_3, bubble, cart, folder, search, tablet } from "../theme";
+import { DarkButton, bars_3, bubble, cart, folder, search, tablet } from "../theme";
 import { Search } from "./search";
-import { $localize, xCircle } from "../i18n";
+import { $localize, LanguageSelect, xCircle } from "../i18n";
 import { Cart } from "./cart";
 import { Share } from "./share";
 import { useLocation } from "../provider";
@@ -14,6 +14,7 @@ import { FileBrowser } from "../filebrowser";
 import { Propose } from "../propose";
 import { Account } from "../account";
 import { personIcon, proposeIcon } from "../theme";
+import { SearchBox } from "../onboard";
 const startApp = ''
 export interface AppStore {
     tab: Signal<string>
@@ -83,11 +84,11 @@ const ToolDialog = component$(() => {
         case "search": return <Search />
         case "share": return <Share />
         case "cart": return <Cart />
-        case "edit": return <Edit/>
+        case "edit": return <Edit />
         case "files": return <FileBrowser />
-        case "propose": return <Propose/>
-        case "review": return <Review/>
-        case "account": return <Account/>
+        case "propose": return <Propose />
+        case "review": return <Review />
+        case "account": return <Account />
     }
     return <div />
 })
@@ -203,26 +204,29 @@ export const PageTool = component$(() => {
         const VRail = component$(() => {
             const VRailIcon = (props: { selected: boolean, svg: string, onClick$: () => void }) => {
                 return <div onClick$={props.onClick$} class={`my-2 mb-4 w-full hover:text-white  flex border-l-2 ${props.selected ? "border-white text-white" : "text-neutral-500 border-neutral-900"}`}
-                    >
+                >
                     <Icon svg={props.svg} class='w-8 h-8  flex-1' /></div>
             }
-            return <div class=' w-12 flex flex-col items-center h-full  '>
+            return <div class=' w-12 flex flex-col items-center h-full   '>
                 {toolData.map((x, i) => <VRailIcon key={x.name} selected={app.tab.value == x.name} svg={x.svg} onClick$={() => toggle(x.name)} />)}
             </div>
         })
 
         return <div class='w-screen h-screen hidden sm:flex bg-neutral-900'>
-            <VRail/>
-            {tab.value!="" &&<><div style={{
-                width: x.value+"px"
-            }}><ToolDialog/></div><div
-                    onMouseDown$={leftSplit}
-                    class='h-full   cursor-ew-resize flex flex-col justify-center bg-neutral-900' >
+            <VRail />
+            {tab.value != "" && <><div style={{
+                width: x.value + "px"
+            }}><ToolDialog /></div><div
+                onMouseDown$={leftSplit}
+                class='h-full   cursor-ew-resize flex flex-col justify-center bg-neutral-900' >
                     <button class='bg-neutral-800 cursor-ew-resize rounded-full h-16 w-2 mr-1' />
                 </div></>}
-            <div class='flex-1 bg-black px-2'>
-                
-            <Slot />
+            <div class='flex-1 bg-black px-2 overflow-auto'>
+                <div class='flex'>
+                    <div class='flex-1 max-w-lg '><Slot /></div>
+                    <div class='hidden lg:block border-l-[1px] border-neutral-500'>
+                        <div class='flex'><LanguageSelect /><DarkButton /></div>
+                    </div></div>
             </div>
         </div>
     })
@@ -244,7 +248,7 @@ export const PageTool = component$(() => {
         })
         return <div class='flex-1 h-screen'>
             <div class='flex flex-col h-screen'>
-                <div class='flex-1 overflow-auto'><Slot/></div>
+                <div class='flex-1 overflow-auto'><Slot /></div>
                 <div class='sm:hidden w-full  bg-neutral-900  rounded-t-lg bottom-0' onMouseDown$={bottomSplit}
                     style={{
                         height: (y.value) + "px",
@@ -259,8 +263,8 @@ export const PageTool = component$(() => {
     })
 
     return <div class='h-screen w-screen fixed overflow-hidden'>
-        { desktop.value && <Desktop ><Slot/></Desktop>  }
-        { !desktop.value && <Mobile ><Slot/></Mobile> }
+        {desktop.value && <Desktop ><Slot /></Desktop>}
+        {!desktop.value && <Mobile ><Slot /></Mobile>}
     </div>
 })
 

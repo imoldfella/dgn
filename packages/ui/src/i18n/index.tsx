@@ -174,7 +174,7 @@ export const LanguageSelect = component$((props: SelectProps) => {
     const ln = useLocale()
     const loc = useLocation()
     const nav = useNavigate()
-    return (<div class='flex  text-black dark:text-white rounded-md items-center '>
+    return (<div class={`flex  text-black dark:text-white rounded-md items-center ${props.class}`}>
         <label class='block mx-2' for='ln'><Icon svg={language} /></label>
         <select {...props}
             id='ln'

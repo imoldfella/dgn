@@ -2,8 +2,9 @@ import Icon from "../headless/icon";
 import { moon, sun } from "../i18n";
 import { $, useSignal, useVisibleTask$ } from "@builder.io/qwik";
 import { component$} from "@builder.io/qwik";
+import { DivProps } from "../tool/modal";
 
-export const DarkButton = component$(() => {
+export const DarkButton = component$<DivProps>((props) => {
   const dark = useSignal(false);
    useVisibleTask$(() => {
     dark.value =  document.documentElement.classList.contains("dark")
@@ -26,6 +27,7 @@ export const DarkButton = component$(() => {
         type="button"
         aria-label={`Use ${dark.value ? "light" : "dark"} mode`}
         onClick$={() => toggleDark()}
+        class={props.class}
       >
         {dark.value ? (
           <Icon class="w-8 h-8" svg={sun}/>
