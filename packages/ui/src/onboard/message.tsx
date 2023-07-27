@@ -1,4 +1,4 @@
-import { HTMLAttributes, Slot, component$ } from "@builder.io/qwik"
+import { HTMLAttributes, PropFunction, Slot, component$, useSignal, useVisibleTask$ } from "@builder.io/qwik"
 import { Icon } from "../headless"
 import { $localize, LanguageSelect, useLocale } from "../i18n"
 import { DarkButton, personIcon,search } from "../theme"
@@ -22,7 +22,11 @@ import { useNavigate } from "../provider"
 export const DatagroveHeader = component$(() => {
     return <div class='flex'><SearchBox/><LanguageSelect /><DarkButton/></div>
 })
-
+interface User {
+  username: string
+  displayName: string
+  image: string
+  }
 interface UserPost {
     id: string
     content: string
@@ -30,11 +34,7 @@ interface UserPost {
     likeCount: string
     replyCount: string
     userLiked: number
-    author: {
-        username: string
-        displayName: string
-        image: string
-    }
+    author: User
 }
 export const fakePosts = () : UserPost[] => {
     const userPosts : UserPost[] = []
@@ -56,15 +56,7 @@ export const fakePosts = () : UserPost[] => {
     return userPosts
 }
 
-export const MessageStream = component$(() => {
-    const userPosts : UserPost[] = fakePosts()
-    return <div class='p-2 dark:text-white'>
-       <DatagroveHeader/>
-       {userPosts.map((post) => (
-              <PostItem key={post.id} post={post} />
-            ))}
-        </div>
-})
+
 
 
 // Datagrove home. This will generally be like social media, get to standalone websites for shopping etc.
@@ -101,11 +93,7 @@ export const GuestPage = component$(() => {
     </>
 })
 
-interface User {
-    username: string
-    displayName: string
-    image: string
-    }
+
 
 export const PostHeader = component$<{
     user: User | null
@@ -158,14 +146,13 @@ export const PostItem =  component$(({ post, isInReplyTree }: any) => {
       } bg-white hover:bg-stone-50 dark:bg-black dark:hover:bg-blue-1000`}
     >
       <a href={`/${post.author?.username}`} class="absolute left-3 top-3 z-[2]">
-        <Image
+      <img
           src={post.author?.image ?? ''}
           alt="user avatar"
-          layout="constrained"
+  
           width={48}
           height={48}
-          class="z-0 rounded-full"
-        />
+          class="z-0 rounded-full"/>
       </a>
       {isInReplyTree && (
         <div class="absolute left-9 top-3 z-[1] h-full w-[2px] bg-stone-200 dark:bg-slate-600" />
@@ -189,10 +176,8 @@ export const PostItem =  component$(({ post, isInReplyTree }: any) => {
         href={`/${post.author?.username}/status/${post.id}`}
         class="flex w-full p-3 pb-[2.5rem]"
       >
-        {/* Placeholder for avatar */}
         <div class="min-h-[48px] min-w-[60px]" />
         <div class="flex w-[calc(100%-60px)] flex-col">
-          {/* Placeholder for name and username */}
           <div class="flex opacity-0">
             {post.author?.displayName && (
               <span class="mr-1 max-w-[38%] truncate break-words font-semibold hover:underline sm:max-w-[43%]">
@@ -317,4 +302,146 @@ interface ButtonProps extends HTMLAttributes<HTMLButtonElement> {
       </button>
     )
   })
-  
+    //  <div class='p-2 dark:text-white'>
+    //    <DatagroveHeader/>
+    //    {userPosts.map((post) => (
+    //           <PostItem key={post.id} post={post} />
+    //         ))}
+    //     </div> 
+  export const MessageStream = component$(() => {
+
+  // useVisibleTask$(({ cleanup }) => {
+  //   const nearBottom = async () => {
+  //     if (
+  //       window.innerHeight + window.scrollY >= document.body.offsetHeight - 500 &&
+  //       !loadingMore.value
+  //     ) {
+  //       loadingMore.value = true
+
+  //       const newPosts = await getMorePosts({ offset: posts.length })
+
+  //       if (newPosts.code !== 200 || !newPosts.data) {
+  //         loadingMore.value = false
+  //         return
+  //       }
+
+  //       if (newPosts?.data?.length === 0) {
+  //         window.removeEventListener('scroll', nearBottom)
+
+  //         loadingMore.value = false
+  //         return
+  //       }
+
+  //       posts.push(...newPosts.data)
+
+  //       // small timeout to prevent multiple requests
+  //       setTimeout(() => (loadingMore.value = false), 500)
+  //     }
+  //   }
+
+  //   window.addEventListener('scroll', nearBottom)
+
+  //   cleanup(() => window.removeEventListener('scroll', nearBottom))
+  // })
+  const loadingMore = useSignal(false)
+    const posts : UserPost[] = fakePosts()
+    return <>
+    <div class="w-[600px] max-w-full flex-grow self-center border-l-[1px] border-r-[1px]">
+      <Header />
+      <section class="flex flex-col pb-32 pt-[3.3rem]">
+        {session.value?.user && <PostForm posts={posts} user={session.value.user} />}
+        {postsSignal.value.code !== 200 ? (
+          <ErrorMessage message={postsSignal.value.message} />
+        ) : (
+          posts.map((post) => <PostItem key={post.id} post={post} />)
+        )}
+
+        {loadingMore.value ? (
+          <div class="mt-14">
+            <Spinner />
+          </div>
+        ) : (
+          <div class="mt-14 h-2 w-2 self-center rounded-full bg-stone-200 dark:bg-slate-600" />
+        )}
+      </section>
+    </div></>
+})
+export const Header =  component$(() => {
+  return (
+    <header class="fixed left-0 z-[10] flex w-full justify-center">
+      <div class="w-[600px] max-w-full border-x-[1px] border-b-[1px] bg-white bg-opacity-50 px-3 backdrop-blur-lg dark:bg-blue-1100 dark:bg-opacity-50">
+        <h1 class="py-3 text-xl font-semibold">Home</h1>
+      </div>
+    </header>
+  )
+})
+
+
+export const Spinner =  component$(() => {
+  return (
+    <div role="status">
+      <svg
+        class="ml-auto mr-auto h-6 w-6 animate-spin text-white"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="white"
+          stroke-width="3"
+        ></circle>
+        <path
+          class="opacity-75"
+          fill="white"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
+      </svg>
+      <span class="sr-only">Loading...</span>
+    </div>
+  )
+})
+
+import { LuRotateCcw } from '@qwikest/icons/lucide'
+export const ErrorMessage = component$<{
+  message?: string
+  retryHref?: string
+  retryAction?: PropFunction<() => void>
+}>(({ message, retryAction, retryHref }) => {
+  return (
+    <div class="mt-4 flex flex-col items-center self-center">
+      <h4 class="mb-2 text-xl font-semibold">Error</h4>
+      <p class="text-stone-500 dark:text-gray-400">
+        {message ?? 'Oops, something went wrong. Please try again later.'}
+      </p>
+
+      {retryAction ? (
+        <Button
+          class="mt-5 flex w-[8.5rem] items-center justify-center py-2"
+          aria-label="retry"
+          onClick$={retryAction}
+        >
+          <div class="text-xl text-white">
+            <LuRotateCcw />
+          </div>
+          <span class="ml-2 font-medium text-white">Try again</span>
+        </Button>
+      ) : (
+        <a href={retryHref ?? '/'}>
+          <Button
+            class="mt-5 flex w-[8.5rem] items-center justify-center py-2"
+            aria-label="retry"
+          >
+            <div class="text-xl text-white">
+              <LuRotateCcw />
+            </div>
+            <span class="ml-2 font-medium text-white">Try again</span>
+          </Button>
+        </a>
+      )}
+    </div>
+  )
+})

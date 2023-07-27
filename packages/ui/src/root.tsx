@@ -71,7 +71,7 @@ export default component$(() => {
         <meta charSet="utf-8" />
         <ThemeBootstrap />
       </head>
-      <body lang="en" class='prose dark:prose-invert dark:bg-black dark:text-white'>
+      <body lang="en" class=' dark:bg-black dark:text-white'>
        <Router>
         <LocaleProvider>
           <LoginProvider>
