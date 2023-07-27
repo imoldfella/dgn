@@ -14,7 +14,7 @@ import { FileBrowser } from "../filebrowser";
 import { Propose } from "../propose";
 import { Account } from "../account";
 import { proposeIcon } from "../theme";
-const startApp = 'menu'
+const startApp = 'propose'
 export interface AppStore {
     tab: Signal<string>
     y: Signal<number>

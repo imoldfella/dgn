@@ -1,13 +1,8 @@
 
 import { faker } from '@faker-js/faker'
-import { BuilderFn, Column, enableColumnResizing, EstimatorFn, Scroller, ScrollerProps, TableContext } from '../../editor/scroll'
-import { createEffect, JSXElement, onCleanup } from 'solid-js'
+import { BuilderFn, Column, enableColumnResizing, EstimatorFn, Scroller, ScrollerProps, TableContext } from './scroll'
+import { component$, useSignal, useVisibleTask$ } from '@builder.io/qwik'
 
-import { createSignal, onMount } from 'solid-js'
-
-
-import { TestDrag } from '../../editor/selectionbox'
-import { RichTextEditor } from '../../lexical'
 
 // one kind of 
 
@@ -22,9 +17,9 @@ const clearFrame = "border-solid border-0 border-opacity-0"
 // tables need a header
 // all pages need an info box.
 // we probably need terminal to work
-export function TableViewer() {
-    let el: HTMLDivElement
-    let tombstone: HTMLDivElement
+export const  TableViewer = component$(()=> {
+    const el = useSignal< HTMLDivElement>()
+    const  tombstone = useSignal< HTMLDivElement>()
   
     const N = 100
     const c : Column[] = []
@@ -32,9 +27,10 @@ export function TableViewer() {
         c.push({ tag: i, width: 96, html: "col" + i  })
     }
 
-    onMount(() => {
-        let tombstoneHeight_ = tombstone.offsetHeight
-        tombstone.style.display = 'none'
+    useVisibleTask$( () => {
+        if (!tombstone.value) return
+        const tombstoneHeight_ = tombstone.value.offsetHeight
+        tombstone.value.style.display = 'none'
 
         const est: EstimatorFn = (start: number, end: number) => {
             const r = (end - start) * 24
@@ -48,7 +44,7 @@ export function TableViewer() {
         }
 
         const props: ScrollerProps = {
-            container: el!,
+            container: el!.value!,
             row: {
                 count: N
             },
@@ -61,12 +57,11 @@ export function TableViewer() {
         const s = new Scroller(props)
     })
 
-
     return <>
         <div class={'h-full w-full absolute ' + clearFrame} ref={el!}></div>
         <p ref={tombstone!}>&nbsp;</p>
     </>
 
-}
+})
 
 
