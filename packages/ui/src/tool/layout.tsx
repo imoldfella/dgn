@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, $, QwikMouseEvent, useComputed$, Signal, useTask$ } from "@builder.io/qwik";
+import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, $, QwikMouseEvent, useComputed$, Signal, useTask$, Slot } from "@builder.io/qwik";
 import { Icon } from "../headless";
-import { bars_3, bubble, cart, folder, search, tablet } from "./icon";
+import { bars_3, bubble, cart, folder, search, tablet } from "../theme";
 import { Search } from "./search";
 import { $localize, xCircle } from "../i18n";
 import { Cart } from "./cart";
@@ -13,8 +13,8 @@ import example from "../toc/test.en"
 import { FileBrowser } from "../filebrowser";
 import { Propose } from "../propose";
 import { Account } from "../account";
-import { proposeIcon } from "../theme";
-const startApp = 'propose'
+import { personIcon, proposeIcon } from "../theme";
+const startApp = ''
 export interface AppStore {
     tab: Signal<string>
     y: Signal<number>
@@ -31,11 +31,13 @@ export function useApp() { return useContext<AppStore>(AppContext); }
 
 const toolData = [
     // the menu is sync'd to the current page.
-    { name: "menu", desc: $localize`Browse`, svg: bars_3 },
+    //{ name: "menu", desc: $localize`Browse`, svg: bars_3 },
     { name: "search", desc: $localize`Search`, svg: search },
-    { name: "share", desc: $localize`Share`, svg: bubble },
-    { name: "cart", desc: $localize`Cart`, svg: cart },
-    { name: "propose", desc: $localize`Propose`, svg: proposeIcon },
+    { name: "trending", desc: $localize`Trending`, svg: bubble },
+    { name: "login", desc: $localize`Sign in`, svg: personIcon },
+    // { name: "share", desc: $localize`Share`, svg: bubble },
+    //{ name: "cart", desc: $localize`Cart`, svg: cart },
+    //{ name: "propose", desc: $localize`Propose`, svg: proposeIcon },
     // { name: "account", desc: $localize`Account`, svg: personIcon },
     // behind "more" on mobile. we could also hide and require them to be in the menu
 
@@ -90,8 +92,9 @@ const ToolDialog = component$(() => {
     return <div />
 })
 
-
-const Render = component$(() => {
+// this is going to be a recent at top infinite scroll for 
+// we should make this a slot for page tool
+export const Render = component$(() => {
     const content = useSignal("")
     // track the location? when the location changes we need to reload the content.
     // the server won't get the new request.
@@ -117,7 +120,7 @@ const Render = component$(() => {
 export const PageTool = component$(() => {
     const isListen = useSignal(false)
     const x = useSignal(280) // width of left column
-    const y = useSignal(64)
+    const y = useSignal(46)
     const width = useSignal(0)
     const height = useSignal(0)
     const user = useSignal("anonymous")
@@ -220,7 +223,7 @@ export const PageTool = component$(() => {
                 </div></>}
             <div class='flex-1 bg-black px-2'>
                 
-            <Render />
+            <Slot />
             </div>
         </div>
     })
@@ -228,7 +231,7 @@ export const PageTool = component$(() => {
     const Mobile = component$(() => {
         const HRail = component$(() => {
             return <div>
-                <div class='w-full flex items-center'>
+                <div class='w-full flex items-center py-1'>
                     {toolData.map((x, i) =>
                         <div key={x.name} class='flex flex-1 flex-col text-neutral-500 hover:text-blue-700 items-center ' style={{
                             "color": app.tab.value == x.name ? "white" : undefined
@@ -242,12 +245,12 @@ export const PageTool = component$(() => {
         })
         return <div class='flex-1 h-screen'>
             <div class='flex flex-col h-screen'>
-                <div class='flex-1'><Render /></div>
+                <div class='flex-1'><Slot/></div>
                 <div class='sm:hidden w-full  bg-neutral-900  rounded-t-lg bottom-0' onMouseDown$={bottomSplit}
                     style={{
                         height: (y.value) + "px",
                     }}>
-                    <div class='h-4 flex justify-center'>
+                    <div class='hidden h-4 flex justify-center'>
                         <button class='bg-neutral-800 rounded-full w-16 h-2 my-1' /></div>
                     {tab.value == "" && <HRail />}
                     <ToolDialog />
@@ -257,8 +260,8 @@ export const PageTool = component$(() => {
     })
 
     return <div class='h-screen w-screen fixed overflow-hidden'>
-        <Desktop />
-        <Mobile />
+        { false && <Desktop ><Slot/></Desktop> }
+        <Mobile ><Slot/></Mobile>
     </div>
 })
 

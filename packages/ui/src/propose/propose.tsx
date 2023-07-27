@@ -22,9 +22,9 @@ export const PickDraft = component$(()=>{
 
 // one idea is to have growing store with a component that loads it with a fetch when the loading becomes visible
 // 
-export const Query = component$<{show: ()=>JSX.Element}>((props)=>{
+export const Query = component$((props)=>{
     return <>
-        {['a', 'b'].map((e)=>props.show())}
+        Query
     </>
     })
 
@@ -53,9 +53,6 @@ export const Propose = component$(() => {
             <Icon svg={proposeIcon} class='mr-1'/>
             <div class='flex-1'>Rollback</div><Icon  svg={chevronRight} class='h-5 w-5 block' /></div>
 
-        <Query show={()=><div class='mb-2 flex w-full  hover:underline'>
-            <Icon svg={proposeIcon} class='mr-1'/>
-            <div class='flex-1'>Rollback</div><Icon  svg={chevronRight} class='h-5 w-5 block' /></div>}/>
         
 
         </Dialog>

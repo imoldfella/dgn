@@ -5,9 +5,9 @@ import { Router, RouterOutlet, RoutingConfigItem, useLocation } from "./provider
 
 import "./global.css";
 import { component$, useComputed$, useSignal, useStore, useVisibleTask$, } from "@builder.io/qwik";
-import { Onboard, Signin } from "./onboard";
+import { Home, MessageStream, Onboard, Signin } from "./onboard";
 import { LocaleProvider } from "./i18n";
-import { PageTool } from "./tool";
+import { PageTool, Render } from "./tool";
 
 
 type RoutingConfig = RoutingConfigItem[];
@@ -51,7 +51,15 @@ const Outlet = component$((props) => {
   const isSignin = useComputed$(() => {
     return loc.url.endsWith("/signin")
   })
-  return <PageTool/>
+  
+  // maybe we should redirect a route? dns should matter?
+  // only get to this root from datagrove.com?
+  // in back of login we should see a list of linked sites? (each site then in a sandbox)
+  return <PageTool><MessageStream/></PageTool>
+  return <>
+    { login.value && <PageTool/> }
+    { !login.value &&  <Signin/> }
+    </>
 })
 
 // thise needs to be executed for each page fetch/cache
