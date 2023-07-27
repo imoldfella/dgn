@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, $, QwikMouseEvent, useComputed$, Signal, useTask$, Slot } from "@builder.io/qwik";
+import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, $, QwikMouseEvent, useComputed$, Signal, useTask$, Slot, useVisibleTask$ } from "@builder.io/qwik";
 import { Icon } from "../headless";
 import { bars_3, bubble, cart, folder, search, tablet } from "../theme";
 import { Search } from "./search";
@@ -33,7 +33,7 @@ const toolData = [
     // the menu is sync'd to the current page.
     //{ name: "menu", desc: $localize`Browse`, svg: bars_3 },
     { name: "search", desc: $localize`Search`, svg: search },
-    { name: "trending", desc: $localize`Trending`, svg: bubble },
+    //{ name: "trending", desc: $localize`Trending`, svg: bubble },
     { name: "login", desc: $localize`Sign in`, svg: personIcon },
     // { name: "share", desc: $localize`Share`, svg: bubble },
     //{ name: "cart", desc: $localize`Cart`, svg: cart },
@@ -125,7 +125,7 @@ export const PageTool = component$(() => {
     const height = useSignal(0)
     const user = useSignal("anonymous")
     const branch = useSignal("First draft")
-
+    const desktop = useSignal(true)
     // should this be part of the url?
     const tab = useSignal(startApp)
     const app = useStore<AppStore>({
@@ -147,18 +147,18 @@ export const PageTool = component$(() => {
         return <div>{debug.value}</div>
     })
 
-
-    const listenSize = $(() => {
+    useVisibleTask$(() => {
         if (isListen.value) return
         isListen.value = true
-        width.value = window.innerWidth
-        height.value = window.innerHeight
-        //if (width.value > 680) desktop.value = true
-        window.addEventListener('resize', () => {
+        const update = () => {
             width.value = window.innerWidth
             height.value = window.innerHeight
-            //desktop.value = width.value > 680
-        })
+            desktop.value = width.value > 680
+            console.log("update", width.value, height.value, desktop.value)
+        }
+        //if (width.value > 680) desktop.value = true
+        window.addEventListener('resize', update)
+        update()
     })
 
     const toggle = $((x: string) => {
@@ -187,7 +187,6 @@ export const PageTool = component$(() => {
     })
 
     const leftSplit = $((e: QwikMouseEvent<HTMLDivElement, MouseEvent>) => {
-        listenSize()
         const start = e.clientX - x.value
         const move = (e: MouseEvent) => {
             x.value = (e.clientX - start)
@@ -245,7 +244,7 @@ export const PageTool = component$(() => {
         })
         return <div class='flex-1 h-screen'>
             <div class='flex flex-col h-screen'>
-                <div class='flex-1'><Slot/></div>
+                <div class='flex-1 overflow-auto'><Slot/></div>
                 <div class='sm:hidden w-full  bg-neutral-900  rounded-t-lg bottom-0' onMouseDown$={bottomSplit}
                     style={{
                         height: (y.value) + "px",
@@ -260,8 +259,8 @@ export const PageTool = component$(() => {
     })
 
     return <div class='h-screen w-screen fixed overflow-hidden'>
-        { false && <Desktop ><Slot/></Desktop> }
-        <Mobile ><Slot/></Mobile>
+        { desktop.value && <Desktop ><Slot/></Desktop>  }
+        { !desktop.value && <Mobile ><Slot/></Mobile> }
     </div>
 })
 
