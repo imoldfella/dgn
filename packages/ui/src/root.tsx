@@ -5,7 +5,7 @@ import { Router, RouterOutlet, RoutingConfigItem, useLocation } from "./provider
 
 import "./global.css";
 import { component$, useComputed$, useSignal, useStore, useVisibleTask$, } from "@builder.io/qwik";
-import { Home, MessageStream, Onboard, Signin } from "./onboard";
+import {  MessageStream, Onboard, Signin } from "./onboard";
 import { LocaleProvider } from "./i18n";
 import { PageTool, Render } from "./tool";
 
