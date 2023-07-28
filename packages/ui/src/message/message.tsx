@@ -10,8 +10,9 @@ import {
     HiHeartSolid,
     HiChatBubbleOvalLeftOutline,
 } from '@qwikest/icons/heroicons'
-import { useNavigate } from "../provider"
+import { useNavigate, useSignin } from "../provider"
 import { Button, ErrorMessage, Spinner } from "./toast"
+import { Avatar } from "../share"
 
 
 export interface User {
@@ -307,6 +308,43 @@ export const Header = component$(() => {
 //         ))}
 //     </div> 
 export const MessageStream = component$(() => {
+    const me = useSignin()
+    const loadingMore = useSignal(false)
+    const posts: UserPost[] = fakePosts()
+    const postsSignal = useSignal({
+        code: 200,
+        message: '',
+    })
+
+   // const border = `border-l-[1px] border-r-[1px]  border-neutral-500`
+   // class="flex flex-col pt-[3.3rem] w-[600px]"
+    return <>
+        <div class='flex lg:hidden'>
+            <div class='p-1'><Avatar user={me} /></div>
+            <SearchBox /><LanguageSelect  /><DarkButton /></div>
+        <div class=" max-w-full flex-grow self-center ">
+            <Header />
+            <section >
+                {postsSignal.value.code !== 200 ? (
+                    <ErrorMessage message={postsSignal.value.message} />
+                ) : (
+                    posts.map((post) => <PostItem key={post.id} post={post} />)
+                )}
+
+                {loadingMore.value ? (
+                    <div class="mt-14">
+                        <Spinner />
+                    </div>
+                ) : (
+                    <div class="mt-14 h-2 w-2 self-center rounded-full bg-stone-200 dark:bg-slate-600" />
+                )}
+            </section>
+        </div></>
+})
+
+
+
+
 
     // useVisibleTask$(({ cleanup }) => {
     //   const nearBottom = async () => {
@@ -341,42 +379,3 @@ export const MessageStream = component$(() => {
 
     //   cleanup(() => window.removeEventListener('scroll', nearBottom))
     // })
-    const loadingMore = useSignal(false)
-    const posts: UserPost[] = fakePosts()
-    const u = {
-        user: {} as User
-    }
-    const session = useSignal(u)
-    const postsSignal = useSignal({
-        code: 200,
-        message: '',
-    })
-
-   // const border = `border-l-[1px] border-r-[1px]  border-neutral-500`
-   // class="flex flex-col pt-[3.3rem] w-[600px]"
-    return <>
-        <div class='flex lg:hidden'><SearchBox /><LanguageSelect  /><DarkButton /></div>
-        <div class=" max-w-full flex-grow self-center ">
-            <Header />
-            <section >
-                {postsSignal.value.code !== 200 ? (
-                    <ErrorMessage message={postsSignal.value.message} />
-                ) : (
-                    posts.map((post) => <PostItem key={post.id} post={post} />)
-                )}
-
-                {loadingMore.value ? (
-                    <div class="mt-14">
-                        <Spinner />
-                    </div>
-                ) : (
-                    <div class="mt-14 h-2 w-2 self-center rounded-full bg-stone-200 dark:bg-slate-600" />
-                )}
-            </section>
-        </div></>
-})
-
-
-
-
-

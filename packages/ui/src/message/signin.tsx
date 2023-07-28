@@ -3,7 +3,7 @@
 // this needs to provide a way to connect to the go server with the login api
 
 import { component$, useVisibleTask$,  noSerialize} from "@builder.io/qwik"
-import { useLogin } from "../provider"
+import { useSignin } from "../provider"
 import { LoginApi, ChallengeNotify, LoginInfo, SimplePage, SimpleLogin } from "../login"
 import { H2 } from "../theme"
 import { $localize, useLocale, L } from "../i18n"
@@ -16,7 +16,7 @@ import { $localize, useLocale, L } from "../i18n"
 // }
 // implement the login api for datagrove.
 export const Signin = component$(()=>{
-    const ch = useLogin()
+    const ch = useSignin()
     useVisibleTask$(({track, cleanup}) => {
         const api : LoginApi = {
             loginpassword: function (user: string, password: string): Promise<[ChallengeNotify, string]> {

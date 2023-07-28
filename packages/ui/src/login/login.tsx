@@ -5,7 +5,7 @@
 
 
 import { $, useComputed$ } from "@builder.io/qwik"
-import { useLogin } from "../provider"
+import { useSignin } from "../provider"
 import { component$, noSerialize, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik"
 import { Modal, ModalStore, Password, Username } from "../theme"
 import { ClientState } from "./passkey"
@@ -67,7 +67,7 @@ export default component$(() => {
 });
 
 export const SimpleLogin = component$<Props>(({ onLogin, oauth }) => {
-    const login = useLogin()
+    const login = useSignin()
     const user = useSignal<string>('')
     const password = useSignal<string>('')
     const error = useSignal('')

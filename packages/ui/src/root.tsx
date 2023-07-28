@@ -1,13 +1,14 @@
 
 
-import { LoginProvider, ThemeBootstrap } from "./provider";
+import { SigninProvider, ThemeBootstrap, useSignin } from "./provider";
 import { Router, RouterOutlet, RoutingConfigItem, useLocation } from "./provider/router";
 
 import "./global.css";
 import { component$, useComputed$, useSignal, useStore, useVisibleTask$, } from "@builder.io/qwik";
-import {  MessageStream, Onboard, Signin } from "./onboard";
+import {  MessageStream, Onboard, Signin } from "./message";
 import { LocaleProvider } from "./i18n";
 import { PageTool, Render } from "./tool";
+import { Share } from "./share";
 
 
 type RoutingConfig = RoutingConfigItem[];
@@ -32,21 +33,6 @@ interface Login {
 // 1. if subdomain is taken, then we should go to that page with whatever login we have
 // 2. if subdomain is not taken, then we should default that into the website name.
 const Outlet = component$((props) => {
-  const login = useSignal<Login|null>(null)
-
-  useVisibleTask$(() => {
-    const e  = JSON.parse(localStorage.getItem("login")??'null')
-    addEventListener('storage', (e) => {
-      if (e.key === "login") {
-        const o = JSON.parse(e.newValue??'null')
-        login.value = o
-      }
-    })
-
-  })
-
-  // I need something to pop up as a welcome.
-  // we could default to the account page?
   const loc = useLocation()
   const isSignin = useComputed$(() => {
     return loc.url.endsWith("/signin")
@@ -55,11 +41,8 @@ const Outlet = component$((props) => {
   // maybe we should redirect a route? dns should matter?
   // only get to this root from datagrove.com?
   // in back of login we should see a list of linked sites? (each site then in a sandbox)
+  if (isSignin.value) return <Signin/>
   return <PageTool><MessageStream/></PageTool>
-  return <>
-    { login.value && <PageTool/> }
-    { !login.value &&  <Signin/> }
-    </>
 })
 
 // thise needs to be executed for each page fetch/cache
@@ -74,12 +57,12 @@ export default component$(() => {
       <body lang="en" class=' dark:bg-black dark:text-white'>
        <Router>
         <LocaleProvider>
-          <LoginProvider>
+          <SigninProvider>
             <Outlet/>
-          </LoginProvider>
+          </SigninProvider>
         </LocaleProvider>
         </Router>
-        <script src="./node_modules/preline/dist/preline.js"></script>
+        <script src="/node_modules/preline/dist/preline.js"></script>
       </body>    
   </>
 })

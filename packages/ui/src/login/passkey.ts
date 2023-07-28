@@ -6,7 +6,7 @@ import {
     parseRequestOptionsFromJSON,
 } from "@github/webauthn-json/browser-ponyfill";
 
-import { Login } from "../provider"
+import { Signin } from "../provider"
 import { LoginApi, LoginInfo } from "./api"
 
 
@@ -15,7 +15,7 @@ export class ClientState {
     abort = new AbortController()
     error = ""
 
-    constructor(public login: Login, public onLogin: (x: LoginInfo)=>void, public onError: (x: string)=>void) {
+    constructor(public login: Signin, public onLogin: (x: LoginInfo)=>void, public onError: (x: string)=>void) {
     }
     destroy() {
         this.abort.abort()

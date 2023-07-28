@@ -3,7 +3,7 @@ import { ListTile, Modal, Text, ModalBody, ModalButton, ModalTitle, SelectionLis
 
 import { arrowUp } from "solid-heroicons/solid"
 import { FacetSelect, SiteRef } from "../../datagrove/src"
-import { IconPath } from "./search"
+import { IconPath } from "../search/search"
 import { useNavigate } from "@solidjs/router"
 import { Input } from "../../ui-solid/src"
 
