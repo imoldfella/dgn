@@ -56,7 +56,7 @@ export const Share = component$(() => {
     const nav = useNavigate()
     if (!me.value?.info) {
         nav('/signin')
-        
+        return null
     }
     const editorRef = useSignal<HTMLElement>();
     // this should work like share a message
@@ -66,9 +66,9 @@ export const Share = component$(() => {
     return <form class='p-2'>
         <div class='flex'>
             <Close/>
-            <div class='w-16'><Avatar user={me.value.info} /></div>
+            <div class='w-16'><Avatar user={me.value!.info} /></div>
             <div class='flex-1'>
-                <div class='w-full'>{me.value.info.name?me.value.info.name:"me"}</div>
+                <div class='w-full'>{me.value!.info!.name?me.value!.info!.name:"me"}</div>
                 <div id='to' class='w-full' ref={editorRef} contentEditable='true' >Share to location</div>
                 <div><Icon svg={paperClip} class='w-4 h-4' /></div>
             </div>
