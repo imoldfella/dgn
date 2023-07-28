@@ -212,27 +212,27 @@ export const PageTool = component$(() => {
                 >
                     <Icon svg={props.svg} class='w-8 h-8  flex-1' /></div>
             }
-            return <div class=' w-12 flex flex-col items-center h-full   '>
+            return <div class=' w-12 flex flex-col items-center h-full   bg-neutral-900'>
                 {toolData.map((x, i) => <VRailIcon key={x.name} selected={app.tab.value == x.name} svg={x.svg} onClick$={() => toggle(x.name)} />)}
             </div>
         })
 
-        return <div class='w-screen h-screen hidden sm:flex bg-neutral-900'>
+        return <div class='w-screen h-screen hidden sm:flex '>
             <VRail />
-            {tab.value != "" && <><div style={{
-                width: x.value + "px"
-            }}><ToolDialog /></div><div
+            {tab.value != "" && <>
+                <div class='bg-neutral-900 border-l-[1px] border-neutral-800' style={{
+                        width: x.value + "px"
+                    }}><ToolDialog /></div><div
                 onMouseDown$={leftSplit}
                 class='h-full   cursor-ew-resize flex flex-col justify-center bg-neutral-900' >
                     <button class='bg-neutral-800 cursor-ew-resize rounded-full h-16 w-2 mr-1' />
                 </div></>}
-            <div class='flex-1 bg-black px-2 overflow-auto'>
-                <div class='flex'>
-                    <div class='flex-1 max-w-lg '><Slot /></div>
-                    <div class='hidden lg:block border-l-[1px] border-neutral-500'>
-                        <div class='flex py-2'><LanguageSelect /><DarkButton /></div>
-                    </div></div>
+            <div class='flex-1 bg-black px-2 overflow-auto max-w-xl'>
+                <Slot />
             </div>
+            {/* <div class='flex-1 bg-red-500'>
+                bonus
+                </div> */}
         </div>
     })
 
