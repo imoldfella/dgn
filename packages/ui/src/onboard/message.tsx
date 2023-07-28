@@ -1,7 +1,7 @@
-import { HTMLAttributes, PropFunction, Signal, Slot, component$, useSignal, useVisibleTask$, $ } from "@builder.io/qwik"
+import { component$, useSignal, $ } from "@builder.io/qwik"
 import { Icon } from "../headless"
-import { $localize, LanguageSelect, useLocale } from "../i18n"
-import { DarkButton, blueButton, personIcon, search } from "../theme"
+import { $localize, LanguageSelect } from "../i18n"
+import { DarkButton, elipsis, search } from "../theme"
 import { cart } from "../theme"
 import { Image } from "@unpic/qwik"
 import { timeAgo } from './dates'
@@ -11,10 +11,7 @@ import {
     HiChatBubbleOvalLeftOutline,
 } from '@qwikest/icons/heroicons'
 import { useNavigate } from "../provider"
-import { LuX } from '@qwikest/icons/lucide'
-import { LuRotateCcw } from '@qwikest/icons/lucide'
-import { Stage, useCSSTransition } from "./transition"
-import { Button, CircularProgress, ErrorMessage, Spinner, Toast } from "./toast"
+import { Button, ErrorMessage, Spinner } from "./toast"
 
 
 export interface User {
@@ -26,8 +23,8 @@ interface UserPost {
     id: string
     content: string
     createdAt: string
-    likeCount: string
-    replyCount: string
+    likeCount: number
+    replyCount:  number
     userLiked: number
     author: User
 }
@@ -38,6 +35,31 @@ export const fakeUser = (): User => {
         image: 'https://avatars.githubusercontent.com/u/5510808?v=4',
     }
 }
+export const MoreButton = component$(() => {
+  const more = $(()=>{
+
+  })
+//   return <div preventdefault:mousedown class="hs-tooltip inline-block [--trigger:click] [--placement:bottom] absolute right-1 top-1">
+//   <a class="hs-tooltip-toggle block text-center" href="javascript:;">
+//     <span class="w-10 h-10 inline-flex justify-center items-center gap-2 rounded-md bg-gray-50 border border-gray-200 text-gray-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[.05] dark:hover:border-white/[.1] dark:hover:text-white">
+//     <Icon svg={elipsis} class='h-6 w-6'  />
+//     </span>
+//     <div class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-0 transition-opacity inline-block absolute invisible z-10 py-3 px-4 bg-white border text-sm text-gray-600 rounded-md shadow-md dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400" role="tooltip">
+//       Bottom popover
+//     </div>
+//   </a>
+// </div>
+
+  return <div class='absolute right-1 top-1 text-neutral-500 group z-50 hs-tooltip inline-block '>
+    <button class='p-1 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 group-hover:text-blue-700 hs-tooltip-toggle'>
+      <Icon svg={elipsis} class='h-6 w-6' onClick$={more} />
+    </button>
+        <div class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-100 transition-opacity inline-block absolute invisible z-10 py-3 px-4 bg-white border text-sm text-gray-600 rounded-md shadow-md dark:bg-gray-900 dark:border-gray-700 dark:text-gray-400" role="tooltip">
+      Bottom popover
+     </div>
+  </div>
+})
+
 export const fakePosts = (): UserPost[] => {
     const userPosts: UserPost[] = []
     for (let i = 0; i < 10; i++) {
@@ -45,9 +67,9 @@ export const fakePosts = (): UserPost[] => {
             id: i.toString(),
             content: 'This is a test post',
             createdAt: new Date().toISOString(),
-            likeCount: '0',
-            replyCount: '0',
-            userLiked: 0,
+            likeCount: 1,
+            replyCount: 2,
+            userLiked: 1,
             author: fakeUser()
         })
     }
@@ -135,8 +157,7 @@ export const PostItem = component$(({ post, isInReplyTree }: any) => {
     // border-b-[1px]
     return (
         <article
-            class={`relative flex ${!isInReplyTree && ''
-                } bg-white hover:bg-stone-50 dark:bg-black dark:hover:bg-blue-1000`}
+            class={`relative flex bg-white hover:bg-stone-50 dark:bg-black dark:hover:bg-neutral-900`}
         >
             <a href={`/${post.author?.username}`} class="absolute left-3 top-3 z-[2]">
                 <img
@@ -147,6 +168,7 @@ export const PostItem = component$(({ post, isInReplyTree }: any) => {
                     height={48}
                     class="z-0 rounded-full" />
             </a>
+            <MoreButton/>
             {isInReplyTree && (
                 <div class="absolute left-9 top-3 z-[1] h-full w-[2px] bg-stone-200 dark:bg-slate-600" />
             )}
@@ -248,12 +270,12 @@ export const PostItem = component$(({ post, isInReplyTree }: any) => {
                 <Button
                     variant="ghost"
                     aria-label="Like"
-                    class={`pointer-events-none h-8 w-8 items-center justify-center text-xl text-stone-500 group-hover:bg-blue-550 group-hover:bg-opacity-[0.15] group-hover:text-blue-550 dark:text-gray-400 group-hover:dark:text-blue-550`}
+                    class={`pointer-events-none h-8 w-8 items-center justify-center text-xl text-stone-500 group-hover:bg-blue-500 group-hover:bg-opacity-[0.15] group-hover:text-blue-500 dark:text-gray-400 group-hover:dark:text-blue-500`}
                 >
                     <HiChatBubbleOvalLeftOutline class="stroke-2" />
                 </Button>
                 <span
-                    class={`pl-1 pr-3 text-sm text-stone-500 group-hover:text-blue-550 dark:text-gray-400 group-hover:dark:text-blue-550`}
+                    class={`pl-1 pr-3 text-sm text-stone-500 group-hover:text-blue-500 dark:text-gray-400 group-hover:dark:text-blue-500`}
                 >
                     {post.replyCount}
                 </span>
@@ -333,7 +355,7 @@ export const MessageStream = component$(() => {
    // const border = `border-l-[1px] border-r-[1px]  border-neutral-500`
    // class="flex flex-col pt-[3.3rem] w-[600px]"
     return <>
-        <div class='flex'><SearchBox /><LanguageSelect class='lg:hidden ' /><DarkButton class='lg:hidden ' /></div>
+        <div class='flex lg:hidden'><SearchBox /><LanguageSelect  /><DarkButton /></div>
         <div class=" max-w-full flex-grow self-center ">
             <Header />
             <section >

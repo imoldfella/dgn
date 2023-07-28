@@ -230,7 +230,7 @@ export const PageTool = component$(() => {
                 <div class='flex'>
                     <div class='flex-1 max-w-lg '><Slot /></div>
                     <div class='hidden lg:block border-l-[1px] border-neutral-500'>
-                        <div class='flex'><LanguageSelect /><DarkButton /></div>
+                        <div class='flex py-2'><LanguageSelect /><DarkButton /></div>
                     </div></div>
             </div>
         </div>

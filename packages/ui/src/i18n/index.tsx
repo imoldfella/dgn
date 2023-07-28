@@ -179,7 +179,7 @@ export const LanguageSelect = component$((props: SelectProps) => {
         <select {...props}
             id='ln'
             aria-label={_`Select language`}
-            class='flex-1  rounded-md dark:bg-neutral-900 text-black dark:text-white '
+            class='flex-1 border-none rounded-md dark:bg-neutral-900 text-black dark:text-white '
             onInput$={async (e, target) => {
                 const newlang = target.value;
                 const rest = new URL(loc.url).pathname.split('/').slice(2).join('/')
