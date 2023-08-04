@@ -4,7 +4,7 @@
 
 import { component$, useVisibleTask$,  noSerialize} from "@builder.io/qwik"
 import { useSignin } from "../provider"
-import { LoginApi, ChallengeNotify, LoginInfo, SimplePage, SimpleLogin } from "../login"
+import { LoginApi, ChallengeNotify, SimplePage, SimpleLogin, LoginResponse } from "../login"
 import { H2 } from "../theme"
 import { $localize, useLocale, L } from "../i18n"
 // import { Peer, WsChannel, apiCall } from "../abc"
@@ -22,7 +22,7 @@ export const Signin = component$(()=>{
             loginpassword: function (user: string, password: string): Promise<[ChallengeNotify, string]> {
                 throw new Error("Function not implemented.")
             },
-            loginpassword2: function (secret: string): Promise<[LoginInfo, string]> {
+            loginpassword2: function (secret: string): Promise<[LoginResponse, string]> {
                 throw new Error("Function not implemented.")
             },
             register: function (name: string): Promise<any> {
@@ -37,7 +37,7 @@ export const Signin = component$(()=>{
             addpasskey2: function (cred: any): Promise<[string, string]> {
                 throw new Error("Function not implemented.")
             },
-            login2: function (cred: any): Promise<LoginInfo> {
+            login2: function (cred: any): Promise<LoginResponse> {
                 throw new Error("Function not implemented.")
             },
             login: function (deviceId: string): Promise<any> {
@@ -50,7 +50,7 @@ export const Signin = component$(()=>{
                 throw new Error("Function not implemented.")
             }
         }
-        ch.api = noSerialize(api)
+        //ch.api = noSerialize(api)
         //const wss = new Peer(new WsChannel("/ws"))
         //ch.api = loginApi(wss)
     })

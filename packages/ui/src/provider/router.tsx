@@ -1,4 +1,5 @@
 import { $, useOnWindow, createContextId, component$, useContextProvider, Slot, useContext, useServerData, useStore, useTask$, useSignal } from "@builder.io/qwik";
+import { AnchorProps } from "../theme";
 
 // with the new approach the top route only becomes the default language.
 // we could override it in a lower context.
@@ -35,9 +36,9 @@ export const Router = component$(() => {
   }))
   return <Slot />
 })
-
-export const Link = component$<{ href: string }>((props) => {
-  return <a href={props.href}><Slot/></a>
+export const link = 'text-blue-500 hover:text-blue-700 hover:underline'
+export const Link = component$<AnchorProps&{href: string}>((props) => {
+  return <a {...props} href={props.href}><Slot/></a>
 })
 // export declare interface FunctionComponent<P = Record<string, any>> {
 //   (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;

@@ -38,7 +38,8 @@ export function onChange(editor: LexicalEditor, onChange: (    editorState: Edit
         }
     )
 }
-
+export interface ImagePayload {
+}
 export type InsertImagePayload = Readonly<ImagePayload>;
 const ACCEPTABLE_IMAGE_TYPES = [
     'image/',

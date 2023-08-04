@@ -1,15 +1,23 @@
 
 
 import { SigninProvider, ThemeBootstrap, useSignin } from "./provider";
-import { Router, RouterOutlet, RoutingConfigItem, useLocation } from "./provider/router";
+import { Router, RoutingConfigItem, useLocation, useNavigate } from "./provider/router";
 
 import "./global.css";
-import { component$, useComputed$, useSignal, useStore, useVisibleTask$, } from "@builder.io/qwik";
-import {  MessageStream, Onboard, Signin } from "./message";
-import { LocaleProvider } from "./i18n";
-import { PageTool, Render } from "./tool";
-import { Share } from "./share";
-
+import { Component, component$, } from "@builder.io/qwik";
+import {  Cart, MessageStream, SearchBox } from "./message";
+import { LanguageSelect, LocaleProvider } from "./i18n";
+import { Edit, PageTool, Review, useApp } from "./tool";
+import { Signin2, Signup } from "./message/signup";
+import { Account } from "./account";
+import { FileBrowser } from "./filebrowser";
+import { More } from "./more";
+import { Propose } from "./propose";
+import { Search } from "./search";
+import { Avatar, Share } from "./share";
+import { TocTabbed } from "./toc";
+import example from "./toc/test.en"
+import { DarkButton } from "./theme";
 
 type RoutingConfig = RoutingConfigItem[];
 
@@ -24,25 +32,96 @@ type RoutingConfig = RoutingConfigItem[];
 // we need to see how qwik city is loading its service worker.
 // we should probably listen to localstorage, and sign out the tab if signed out anywhere.
 // any reason to not use a signal here?
-interface Login {
-  did: string
-  until: number
-}
+
 
 // we might be going directly to a subdomain
 // 1. if subdomain is taken, then we should go to that page with whatever login we have
 // 2. if subdomain is not taken, then we should default that into the website name.
 const Outlet = component$((props) => {
-  const loc = useLocation()
-  const isSignin = useComputed$(() => {
-    return loc.url.endsWith("/signin")
-  })
   
+  //const nav = useNavigate()
+  const loc = useLocation() // should be signal?
+  const u = new URL(loc.url)
+  if (u.pathname === "/") {
+    if (window?.navigator) {
+      // nav("/en/timeline")
+    }
+   
+  }
+  const tool = u.searchParams.get('tool')??""
+  const path = u.pathname.split('/')
+  
+  const content = path[1]??"" // should be signal?
+
+  
+  // urls are content and optional tool
+  // should I use ?tool= 
+
+  // logged in:
+  // if / then pick the language based on the browser or stored.
+  // /en/ = timeline
+  // /es/t/{id} = topic  # note that this can't be cached, it should be live.
+  // 
+
   // maybe we should redirect a route? dns should matter?
   // only get to this root from datagrove.com?
   // in back of login we should see a list of linked sites? (each site then in a sandbox)
-  if (isSignin.value) return <Signin/>
-  return <PageTool><MessageStream/></PageTool>
+  // the content and the tool have 
+  if (loc.url.endsWith("/signin") ) return <Signin2/>
+  if (loc.url.endsWith("/signup") ) return <Signup/>
+  
+  // <ToolDialog q:slot='tool'/>
+  // <ToolDialog q:slot='tool'/>
+
+  let X : Component<{}>
+  switch(content) {
+    default:
+    case "timeline": X = Timeline; break;
+  }
+ 
+
+  return <PageTool tool={tool}>
+    <div q:slot='tool'>WTF</div>
+     <X/>
+      </PageTool>
+})
+
+// 
+export const Timeline = component$(() => {
+  const me = useSignin()
+  return <><div class='flex lg:hidden items-center'>
+                <div class='p-1'><Avatar user={me} /></div>
+            <SearchBox /><LanguageSelect  /><DarkButton /></div>
+            <MessageStream/>
+        </>
+})
+
+export const Topic = component$(() => {
+  const me = useSignin()
+  return <><div class='flex lg:hidden items-center'>
+
+                <div class='p-1'><Avatar user={me} /></div>
+            <SearchBox /><LanguageSelect  /><DarkButton />
+            </div>
+            <MessageStream/>
+        </>
+})
+
+export const ToolDialog = component$(() => {
+    const app = useApp()
+    switch (app.tab.value) {
+        case "menu": return <TocTabbed toc={example} />
+        case "search": return <Search />
+        case "share": return <Share />
+        case "cart": return <Cart />
+        case "edit": return <Edit />
+        case "files": return <FileBrowser />
+        case "propose": return <Propose />
+        case "review": return <Review />
+        case "account": return <Account />
+        case "more": return <More />
+    }
+    return <div />
 })
 
 // thise needs to be executed for each page fetch/cache
@@ -62,11 +141,12 @@ export default component$(() => {
           </SigninProvider>
         </LocaleProvider>
         </Router>
-        <script src="/node_modules/preline/dist/preline.js"></script>
+        
       </body>    
   </>
 })
 
+// <script src="/node_modules/preline/dist/preline.js"></script>
 // const Info = component$(() => {
 //   const loc = useLocation()
 //   const lc = useLocale()

@@ -1,8 +1,8 @@
-import { component$, useSignal } from "@builder.io/qwik"
-import { RichEditor } from "../lexical/lexical";
+import { component$, useComputed$, useSignal } from "@builder.io/qwik"
+//import { RichEditor } from "../lexical/lexical";
 import { $localize } from "../i18n";
 import { DivProps } from "../tool/modal";
-import { useNavigate, useSignin } from "../provider";
+import { Link, link, useNavigate, useSignin } from "../provider";
 import { Icon } from "../headless";
 import { paperClip, personIcon } from "../theme";
 import { Close } from "../tool";
@@ -38,16 +38,18 @@ const Hr = function () {
 const defaultAvatar = 'https://avatars.githubusercontent.com/u/5510808?v=4'
 // needs to be async, cached, fetch
 // needs to support png
-export const Avatar = component$(({ user }: { user: any }) => {
+export const Avatar = component$(({ user,  }: { user: any }) => {
+    const nav = useNavigate()
     if (user.image)
    return <img
         src={user.image }
         alt="user avatar"
-
+        onClick$={()=>nav(`/user/${user.id}`)}
         width={48}
         height={48}
         class="z-0 rounded-full" />
-    else return <Icon svg={personIcon} class='w-[48px] h-[48px]' />
+    else return <div><Link class={link} href={`/signup`}>{$localize`Sign in`}</Link></div>
+     //<Icon svg={personIcon} class='w-[48px] h-[48px]' onClick$={()=>nav('/signin')} />
     
 })
 
@@ -59,6 +61,10 @@ export const Share = component$(() => {
         return null
     }
     const editorRef = useSignal<HTMLElement>();
+
+    const name = useComputed$(()=> {
+        return "me"
+    })
     // this should work like share a message
     // share will probably change on devices to include local share options
     // on the web are limited, contact api for example is not widely supported.
@@ -68,11 +74,11 @@ export const Share = component$(() => {
             <Close/>
             <div class='w-16'><Avatar user={me.value!.info} /></div>
             <div class='flex-1'>
-                <div class='w-full'>{me.value!.info!.name?me.value!.info!.name:"me"}</div>
+                <div class='w-full'>{name.value}</div>
                 <div id='to' class='w-full' ref={editorRef} contentEditable='true' >Share to location</div>
                 <div><Icon svg={paperClip} class='w-4 h-4' /></div>
             </div>
         </div>
-        <RichEditor />
+        {/* <RichEditor /> */}
     </form>
 })

@@ -26,7 +26,17 @@ export function Input(props: InputProps)  {
         {props.error && <div class='mt-2'>{props.error}</div>}
     </>
 }
-
+export const Email = component$((props: InputProps) => {
+    const prompt = $localize`Email`
+    return <div >
+        <div class="flex items-center justify-between">
+            <InputLabel for="email" >{prompt}</InputLabel>
+        </div>
+        <div  >
+            <Input {...props} placeholder={prompt} id="email" name="email" type="text" autoComplete="username webauthn" />
+        </div>
+    </div>
+})
 
 export const Username = component$((props: InputProps) => {
     const prompt = $localize`Phone, email, or username`

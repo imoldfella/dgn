@@ -1,19 +1,12 @@
-import { component$, useSignal, $ } from "@builder.io/qwik"
+import { component$, useSignal, $, useStore } from "@builder.io/qwik"
 import { Icon } from "../headless"
-import { $localize, LanguageSelect } from "../i18n"
-import { DarkButton, elipsis, search } from "../theme"
+import { $localize } from "../i18n"
+import { bubbleLeft, elipsis, heartOutline, heartSolid, search } from "../theme"
 import { cart } from "../theme"
 import { Image } from "@unpic/qwik"
 import { timeAgo } from './dates'
-import {
-    HiHeartOutline,
-    HiHeartSolid,
-    HiChatBubbleOvalLeftOutline,
-} from '@qwikest/icons/heroicons'
-import { useNavigate, useSignin } from "../provider"
+import { useNavigate } from "../provider"
 import { Button, ErrorMessage, Spinner } from "./toast"
-import { Avatar } from "../share"
-
 
 export interface User {
     username: string
@@ -85,8 +78,6 @@ export const SearchBox = component$(() => {
         <input autoFocus
             class=" flex-1 border-0 focus:ring-0 focus:outline-none bg-transparent dark:text-white"
             placeholder={$localize`Search Datagrove`} type="search" /></div>
-
-
 })
 
 export const Cart = component$(() => {
@@ -214,10 +205,7 @@ export const PostItem = component$(({ post, isInReplyTree }: any) => {
             <div
                 class="group absolute bottom-[0.4rem] left-[4.25rem] flex cursor-pointer items-center"
                 onClick$={async () => {
-
-
                     if (post.userLiked) {
-                        // optimistic update
                         post.userLiked = 0
                         post.likeCount = (parseInt(post.likeCount) - 1).toString()
 
@@ -253,7 +241,7 @@ export const PostItem = component$(({ post, isInReplyTree }: any) => {
                             : 'text-stone-500 dark:text-gray-400'
                         } group-hover:bg-pink-500 group-hover:bg-opacity-[0.15] group-hover:text-pink-500 group-hover:dark:text-pink-600`}
                 >
-                    {post.userLiked ? <HiHeartSolid /> : <HiHeartOutline class="stroke-2" />}
+                    {post.userLiked ? <Icon svg={heartSolid}/> : <Icon svg={heartOutline} class='stroke-2' />}
                 </Button>
                 <span
                     class={`pl-1 pr-3 text-sm ${post.userLiked
@@ -273,7 +261,7 @@ export const PostItem = component$(({ post, isInReplyTree }: any) => {
                     aria-label="Like"
                     class={`pointer-events-none h-8 w-8 items-center justify-center text-xl text-stone-500 group-hover:bg-blue-500 group-hover:bg-opacity-[0.15] group-hover:text-blue-500 dark:text-gray-400 group-hover:dark:text-blue-500`}
                 >
-                    <HiChatBubbleOvalLeftOutline class="stroke-2" />
+                    <Icon svg={bubbleLeft} class='stroke-2' />
                 </Button>
                 <span
                     class={`pl-1 pr-3 text-sm text-stone-500 group-hover:text-blue-500 dark:text-gray-400 group-hover:dark:text-blue-500`}
@@ -301,6 +289,7 @@ export const Header = component$(() => {
 })
 
 
+
 //  <div class='p-2 dark:text-white'>
 //    <DatagroveHeader/>
 //    {userPosts.map((post) => (
@@ -308,9 +297,12 @@ export const Header = component$(() => {
 //         ))}
 //     </div> 
 export const MessageStream = component$(() => {
-    const me = useSignin()
+
     const loadingMore = useSignal(false)
-    const posts: UserPost[] = fakePosts()
+    const posts: UserPost[] =fakePosts()
+    const x = useStore({
+        posts: posts
+    })
     const postsSignal = useSignal({
         code: 200,
         message: '',
@@ -318,17 +310,12 @@ export const MessageStream = component$(() => {
 
    // const border = `border-l-[1px] border-r-[1px]  border-neutral-500`
    // class="flex flex-col pt-[3.3rem] w-[600px]"
-    return <>
-        <div class='flex lg:hidden'>
-            <div class='p-1'><Avatar user={me} /></div>
-            <SearchBox /><LanguageSelect  /><DarkButton /></div>
-        <div class=" max-w-full flex-grow self-center ">
-            <Header />
-            <section >
+    return <div class=" max-w-full flex-grow self-center ">
+
                 {postsSignal.value.code !== 200 ? (
                     <ErrorMessage message={postsSignal.value.message} />
                 ) : (
-                    posts.map((post) => <PostItem key={post.id} post={post} />)
+                    x.posts.map((post) => <PostItem key={post.id} post={post} />)
                 )}
 
                 {loadingMore.value ? (
@@ -338,8 +325,8 @@ export const MessageStream = component$(() => {
                 ) : (
                     <div class="mt-14 h-2 w-2 self-center rounded-full bg-stone-200 dark:bg-slate-600" />
                 )}
-            </section>
-        </div></>
+        </div>
+        
 })
 
 

@@ -4,17 +4,11 @@ import {
   useContextProvider,
   createContextId,
 } from '@builder.io/qwik';
-import {  LoginApi, LoginInfo } from '../login/api';
+import {  LoginApi, Signin, testUser } from '../login/api';
 import { ClientState } from '../login/passkey';
 import { useNavigate } from './router';
 
 
-export interface Signin {
-    info?: LoginInfo
-    // list of remembered logins
-    alt?: LoginInfo[]
-}
-// this is initalized by loading the login page.
 
 
 export const SigninContext = createContextId<Signal<Signin|null>>(
@@ -24,6 +18,7 @@ export const useSignin = () => useContext(SigninContext);
 
 // note that this is always generated as not signed in, because of the useVisibleTask
 export const SigninProvider =  component$(() => {
+
   const login = useSignal<Signin|null>(null);
 
     useVisibleTask$(() => {

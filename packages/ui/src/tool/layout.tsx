@@ -14,7 +14,7 @@ import { FileBrowser } from "../filebrowser";
 import { Propose } from "../propose";
 import { Account } from "../account";
 import { personIcon, proposeIcon } from "../theme";
-import { SearchBox } from "../message";
+import { MessageStream, SearchBox } from "../message";
 import { More } from "../more/more";
 const startApp = ''
 export interface AppStore {
@@ -87,22 +87,7 @@ type TabKey = "menu" | "search" | "cart" | "share" | "edit" | "files" | "proposa
 
 
 
-const ToolDialog = component$(() => {
-    const app = useApp()
-    switch (app.tab.value) {
-        case "menu": return <TocTabbed toc={example} />
-        case "search": return <Search />
-        case "share": return <Share />
-        case "cart": return <Cart />
-        case "edit": return <Edit />
-        case "files": return <FileBrowser />
-        case "propose": return <Propose />
-        case "review": return <Review />
-        case "account": return <Account />
-        case "more": return <More />
-    }
-    return <div />
-})
+
 
 // this is going to be a recent at top infinite scroll for 
 // we should make this a slot for page tool
@@ -120,22 +105,26 @@ export const Render = component$(() => {
 })
 
 
+
 // we should be able to use media query to layout the buttons initially and only use javascript if a button is clicked.s
 // when loading statically we can assume 1 wide. We don't need to decide 1-2-3 wide until a menu is requested.
 // splitters should not download on mobile, only lazy load on desktop
 // we need to store locally for each tab?
-export const PageTool = component$(() => {
+export const PageTool = component$<{tool?: string}>((props) => {   
+    // maybe this should come as a signal?
+    const tab = useSignal(props.tool??"")
+    const y = useSignal(props.tool? 400 :46)
+    const x = useSignal(280) // width of left column
+
     const user = useSignin()
     const nav = useNavigate()
     const isListen = useSignal(false)
-    const x = useSignal(280) // width of left column
-    const y = useSignal(46)
     const width = useSignal(0)
     const height = useSignal(0)
     const branch = useSignal("First draft")
     const desktop = useSignal(true)
     // should this be part of the url?
-    const tab = useSignal(startApp)
+
     const app = useStore<AppStore>({
         tab,
         y: y,
@@ -233,13 +222,13 @@ export const PageTool = component$(() => {
             {tab.value != "" && <>
                 <div class='bg-neutral-900 border-l-[1px] border-neutral-800' style={{
                         width: x.value + "px"
-                    }}><ToolDialog /></div><div
+                    }}><Slot name='tools' /></div><div
                 onMouseDown$={leftSplit}
                 class='h-full   cursor-ew-resize flex flex-col justify-center bg-neutral-900' >
                     <button class='bg-neutral-800 cursor-ew-resize rounded-full h-16 w-2 mr-1' />
                 </div></>}
             <div class='flex-1 bg-black px-2 overflow-auto max-w-xl'>
-                <Slot />
+                <Slot/>
             </div>
             {/* <div class='flex-1 bg-red-500'>
                 bonus
@@ -279,7 +268,7 @@ export const PageTool = component$(() => {
                         <button class='bg-neutral-800 rounded-full w-16 h-2 my-1' />
                         </div>
                     {tab.value == "" && <HRail />}
-                    <ToolDialog />
+                    <Slot name='tools' />
                 </div>
             </div>
         </div>

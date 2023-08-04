@@ -11,8 +11,8 @@ import {
     HiChatBubbleOvalLeftOutline,
 } from '@qwikest/icons/heroicons'
 import { useNavigate } from "../provider"
-import { LuX } from '@qwikest/icons/lucide'
-import { LuRotateCcw } from '@qwikest/icons/lucide'
+// import { LuX } from '@qwikest/icons/lucide'
+// import { LuRotateCcw } from '@qwikest/icons/lucide'
 import { Stage, useCSSTransition } from "./transition"
 
 export const Toast = component$<{
