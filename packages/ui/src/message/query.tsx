@@ -25,8 +25,12 @@ type ShowFnProps<T> = {
     error: { message: string }
     data: T[]
   
- }
-type ShowFn<T> = (props: ShowFnProps<T> ) => JSX.Element
+}
+export interface Context {
+    min: number,
+    max: number
+}
+type ShowFn<T> = (data: T, x: number, y: number, context: Context ) => JSX.Element
 
 
 // should this call a function for an entire list of components, or for each component? How should we handle bonus space.

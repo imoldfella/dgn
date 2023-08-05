@@ -270,9 +270,13 @@ export const MessageStream = component$(() => {
         return x
     })
 
-    const r2 = useQuery$<UserPost>(({track, cleanup}) => {
+    // we can
+    const r2 = useQuery$<UserPost>(async ({track, cleanup}) => {
         track(()=>loc)
-
+        const a = new AbortController()
+        cleanup(()=>a.abort())  
+        const x = await getPosts(loc, a)
+        return x[0]
     })
 
 
