@@ -1,0 +1,65 @@
+
+// const loadingMore = useSignal(false)
+   
+
+// const postsSignal = useSignal({
+//     code: 200,
+//     message: '',
+// })
+
+
+// {loadingMore.value ? (
+//     <div class="mt-14">
+//         <Spinner />
+//     </div>
+// ) : null}
+
+
+    // useVisibleTask$(({ cleanup }) => {
+    //   const nearBottom = async () => {
+    //     if (
+    //       window.innerHeight + window.scrollY >= document.body.offsetHeight - 500 &&
+    //       !loadingMore.value
+    //     ) {
+    //       loadingMore.value = true
+
+    //       const newPosts = await getMorePosts({ offset: posts.length })
+
+    //       if (newPosts.code !== 200 || !newPosts.data) {
+    //         loadingMore.value = false
+    //         return
+    //       }
+
+    //       if (newPosts?.data?.length === 0) {
+    //         window.removeEventListener('scroll', nearBottom)
+
+    //         loadingMore.value = false
+    //         return
+    //       }
+
+    //       posts.push(...newPosts.data)
+
+    //       // small timeout to prevent multiple requests
+    //       setTimeout(() => (loadingMore.value = false), 500)
+    //     }
+    //   }
+
+    //   window.addEventListener('scroll', nearBottom)
+
+    //   cleanup(() => window.removeEventListener('scroll', nearBottom))
+    // })
+
+    /*
+
+*/
+
+
+
+//  <div class='p-2 dark:text-white'>
+//    <DatagroveHeader/>
+//    {userPosts.map((post) => (
+//           <PostItem key={post.id} post={post} />
+//         ))}
+//     </div> 
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars

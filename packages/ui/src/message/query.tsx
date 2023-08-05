@@ -11,7 +11,7 @@ import { JSX } from "@builder.io/qwik/jsx-runtime"
 export interface QueryReturn<T> {
 
 }
-export const useQuery$ = (query: string) => {
+export function useQuery$<T> (...query: any[])  {
     return {} as QueryReturn<any>
 }
 
@@ -19,18 +19,19 @@ export interface QuerySummary {
 
 }
 
-type ShowFnProps = {
+type ShowFnProps<T> = {
     before: QuerySummary,
     end: QuerySummary,
     error: { message: string }
+    data: T[]
  }
-type ShowFn = (props: ShowFnProps ) => JSX.Element
+type ShowFn<T> = (props: ShowFnProps<T> ) => JSX.Element
 
 
 // should this call a function for an entire list of components, or for each component? How should we handle bonus space.
 
-type QueryProps = {
-    value: Promise<QueryReturn<any>>
-    show: ShowFn
+type QueryProps<T> = {
+    value: QueryReturn<any>
+    show: ShowFn<T>
 }
-export const Query = component$<QueryProps>((props) => { return null})
+export const Query = component$<QueryProps<T>>((props) => { return null})

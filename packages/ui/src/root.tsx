@@ -5,8 +5,8 @@ import { Router, RoutingConfigItem, useLocation } from "./provider/router";
 
 import "./global.css";
 import { Component, component$, } from "@builder.io/qwik";
-import {  Cart, MessageStream, SearchBox } from "./message";
-import { LanguageSelect, LocaleProvider } from "./i18n";
+import {  MessageStream } from "./message";
+import { $localize, LanguageSelect, LocaleProvider } from "./i18n";
 import { Edit, PageTool, Review, useApp } from "./tool";
 import { Signin2, Signup } from "./message/signup";
 import { Account } from "./account";
@@ -17,10 +17,22 @@ import { Search } from "./search";
 import { Avatar, Share } from "./share";
 import { TocTabbed } from "./toc";
 import example from "./toc/test.en"
-import { DarkButton } from "./theme";
+import { DarkButton, cart, search } from "./theme";
+import { Icon } from "./headless";
 
 type RoutingConfig = RoutingConfigItem[];
 
+export const SearchBox = component$(() => {
+  return <div class='flex-1 m-2 flex items-center shadow  bg-neutral-800  rounded-lg px-1'
+  > <Icon svg={search} class='dark:text-white h-6 w-6' />
+      <input autoFocus
+          class=" flex-1 border-0 focus:ring-0 focus:outline-none bg-transparent dark:text-white"
+          placeholder={$localize`Search Datagrove`} type="search" /></div>
+})
+
+export const Cart = component$(() => {
+  return <Icon svg={cart} class='dark:text-white h-6 w-6' />
+})
 
 const Outlet = component$((props) => {
   //const nav = useNavigate()
@@ -65,8 +77,6 @@ export const Timeline = component$(() => {
            <MessageStream/>
         </>
 })
-
-
 
 export const ToolDialog = component$(() => {
     const app = useApp()

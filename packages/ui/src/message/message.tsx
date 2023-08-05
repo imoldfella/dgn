@@ -8,59 +8,12 @@ import { timeAgo } from './dates'
 import { RoutingLocation, useLocation, useNavigate } from "../provider"
 import { Button, ErrorMessage, Spinner } from "./toast"
 import { JSX } from "@builder.io/qwik/jsx-runtime"
+import { User, UserPost, fakePosts, fakeUser } from "./post"
+import { Query, useQuery$ } from "./query"
 
-export interface User {
-    username: string
-    displayName: string
-    image: string
-}
-interface UserPost {
-    id: string
-    content: string
-    createdAt: string
-    likeCount: number
-    replyCount:  number
-    userLiked: number
-    author: User
-}
-export const fakeUser = (): User => {
-    return {
-        username: 'test',
-        displayName: 'Test User',
-        image: 'https://avatars.githubusercontent.com/u/5510808?v=4',
-    }
-}
-
-
-export const fakePosts = (): UserPost[] => {
-    const userPosts: UserPost[] = []
-    for (let i = 0; i < 10; i++) {
-        userPosts.push({
-            id: i.toString(),
-            content: 'This is a test post',
-            createdAt: new Date().toISOString(),
-            likeCount: 1,
-            replyCount: 2,
-            userLiked: 1,
-            author: fakeUser()
-        })
-    }
-    return userPosts
-}
 
 // Datagrove home. This will generally be like social media, get to standalone websites for shopping etc.
 
-export const SearchBox = component$(() => {
-    return <div class='flex-1 m-2 flex items-center shadow  bg-neutral-800  rounded-lg px-1'
-    > <Icon svg={search} class='dark:text-white h-6 w-6' />
-        <input autoFocus
-            class=" flex-1 border-0 focus:ring-0 focus:outline-none bg-transparent dark:text-white"
-            placeholder={$localize`Search Datagrove`} type="search" /></div>
-})
-
-export const Cart = component$(() => {
-    return <Icon svg={cart} class='dark:text-white h-6 w-6' />
-})
 
 // export const GuestPage = component$(() => {
 //     const ln = useLocale()
@@ -302,15 +255,6 @@ export const Header = component$(() => {
 })
 
 
-
-//  <div class='p-2 dark:text-white'>
-//    <DatagroveHeader/>
-//    {userPosts.map((post) => (
-//           <PostItem key={post.id} post={post} />
-//         ))}
-//     </div> 
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getPosts(id: RoutingLocation, a: AbortController) : Promise<UserPost[]>   {
     const posts: UserPost[] =fakePosts()
     return posts
@@ -318,13 +262,14 @@ async function getPosts(id: RoutingLocation, a: AbortController) : Promise<UserP
 export const MessageStream = component$(() => {
     const loc = useLocation()
 
-    const r = useResource$<UserPost[]>(async ({track,cleanup}) => {
-        track(()=>loc)
-        const a = new AbortController()
-        cleanup(()=>a.abort())         
-        const x = await getPosts(loc, a)
-        return x
-    })
+    // const r = useResource$<UserPost[]>(async ({track,cleanup}) => {
+    //     track(()=>loc)
+    //     const a = new AbortController()
+    //     cleanup(()=>a.abort())         
+    //     const x = await getPosts(loc, a)
+    //     return x
+    // })
+    const r = useQuery$<UserPost>(loc.id)
     
     // suspense boundary here, we need to get the posts from the database.
 
@@ -335,63 +280,16 @@ export const MessageStream = component$(() => {
   
    // const border = `border-l-[1px] border-r-[1px]  border-neutral-500`
    // class="flex flex-col pt-[3.3rem] w-[600px]"
+
+   // should act like solid For?
     return <div >
-        <Resource
+        <Resource />
+        <Query
             value={r}
-            onPending={()=><>Loading...</>}
+            
             onRejected={(error)=><>Error { error.message}</>}
             onResolved={posts}
             />       
         </div>    
 })
 
-
-// const loadingMore = useSignal(false)
-   
-
-// const postsSignal = useSignal({
-//     code: 200,
-//     message: '',
-// })
-
-
-// {loadingMore.value ? (
-//     <div class="mt-14">
-//         <Spinner />
-//     </div>
-// ) : null}
-
-
-    // useVisibleTask$(({ cleanup }) => {
-    //   const nearBottom = async () => {
-    //     if (
-    //       window.innerHeight + window.scrollY >= document.body.offsetHeight - 500 &&
-    //       !loadingMore.value
-    //     ) {
-    //       loadingMore.value = true
-
-    //       const newPosts = await getMorePosts({ offset: posts.length })
-
-    //       if (newPosts.code !== 200 || !newPosts.data) {
-    //         loadingMore.value = false
-    //         return
-    //       }
-
-    //       if (newPosts?.data?.length === 0) {
-    //         window.removeEventListener('scroll', nearBottom)
-
-    //         loadingMore.value = false
-    //         return
-    //       }
-
-    //       posts.push(...newPosts.data)
-
-    //       // small timeout to prevent multiple requests
-    //       setTimeout(() => (loadingMore.value = false), 500)
-    //     }
-    //   }
-
-    //   window.addEventListener('scroll', nearBottom)
-
-    //   cleanup(() => window.removeEventListener('scroll', nearBottom))
-    // })

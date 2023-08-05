@@ -205,7 +205,7 @@ export const PageTool = component$<{tool?: string}>((props) => {
             </div>
         })
 
-        return <div class='w-screen h-screen hidden sm:flex '>
+        return <div class='w-screen h-screen flex '>
             <VRail />
 
             {tab.value != "" && <>
@@ -216,7 +216,7 @@ export const PageTool = component$<{tool?: string}>((props) => {
                 class='h-full   cursor-ew-resize flex flex-col justify-center bg-neutral-900' >
                     <button class='bg-neutral-800 cursor-ew-resize rounded-full h-16 w-2 mr-1' />
                 </div></>}
-            <div class='flex-1'>
+            <div class='flex-1 overflow-auto'>
                 <Slot/>
             </div>
         </div>
