@@ -15,9 +15,7 @@ export function useQuery2$<T> (...query: any[])  {
     return {} as QueryReturn<any>
 }
 
-export interface QuerySummary {
 
-}
 
 type ShowFnProps<T> = {
     before: QuerySummary,
@@ -53,15 +51,36 @@ export declare const useQuery$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceO
 // why not an error boundary, e.g. providing toast?
 
 // rows are a thing, because for most tables we need to be able to determine the height by formatting the entire row. 
-interface QueryRow<T> {
+export interface QueryRow<ROW> {
     id: string
     // this may not be the complete row as long as we can compute the height another way. shifting heights will cause ux issues.
-    data: T[]
+    data: ROW
     y: number
     x: number
 }
 
-interface QueryResult<T> {
-    front: 
+// the query could have a column that represents x, or more commonly x may be associated with the attribute
+// what about crosstabs? are these just adjustments to underlying sql?
+// what about generation of the sql using sort, filter, etc.?
+// what about moving/hiding columns? should this change the query?
+
+export interface Database {
+
+}
+
+
+
+export interface QueryModel {
+    
+    params: any[]
+    offset: number
+    limit: number
+}
+export interface QueryResult<T> {
+    db: Database
+    opt: QueryModel
     rows: QueryRow<T>[]
+    anchor: number
+    length: number
+    anchorOffset: number
 }
