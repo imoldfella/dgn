@@ -5,13 +5,13 @@
 // tool/id  # tool=status 
 //  we can have "load more" top and bottom.
 
-import { component$ } from "@builder.io/qwik"
+import { JSXNode, ResourceFn, ResourceOptions, component$ } from "@builder.io/qwik"
 import { JSX } from "@builder.io/qwik/jsx-runtime"
 
 export interface QueryReturn<T> {
 
 }
-export function useQuery$<T> (...query: any[])  {
+export function useQuery2$<T> (...query: any[])  {
     return {} as QueryReturn<any>
 }
 
@@ -24,6 +24,7 @@ type ShowFnProps<T> = {
     end: QuerySummary,
     error: { message: string }
     data: T[]
+  
  }
 type ShowFn<T> = (props: ShowFnProps<T> ) => JSX.Element
 
@@ -31,7 +32,13 @@ type ShowFn<T> = (props: ShowFnProps<T> ) => JSX.Element
 // should this call a function for an entire list of components, or for each component? How should we handle bonus space.
 
 type QueryProps<T> = {
-    value: QueryReturn<any>
+    value: QueryReturn<T>
     show: ShowFn<T>
+    onRejected: (error: any) => JSXNode
 }
-export const Query = component$<QueryProps<T>>((props) => { return null})
+export  function Query<T>(props: QueryProps<T>) : JSXNode {
+    return props.onRejected({message: "not implemented"})
+}
+//export declare const Query: <T>(props: ResourceProps<T>) => JSXNode;
+
+export declare const useQuery$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => QueryReturn<T>;

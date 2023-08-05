@@ -262,20 +262,24 @@ async function getPosts(id: RoutingLocation, a: AbortController) : Promise<UserP
 export const MessageStream = component$(() => {
     const loc = useLocation()
 
-    // const r = useResource$<UserPost[]>(async ({track,cleanup}) => {
-    //     track(()=>loc)
-    //     const a = new AbortController()
-    //     cleanup(()=>a.abort())         
-    //     const x = await getPosts(loc, a)
-    //     return x
-    // })
-    const r = useQuery$<UserPost>(loc.id)
+    const r = useResource$<UserPost[]>(async ({track,cleanup}) => {
+        track(()=>loc)
+        const a = new AbortController()
+        cleanup(()=>a.abort())         
+        const x = await getPosts(loc, a)
+        return x
+    })
+
+    const r2 = useQuery$<UserPost>(({track, cleanup}) => {
+        track(()=>loc)
+
+    })
+
+
     
     // suspense boundary here, we need to get the posts from the database.
-
-
-    const posts = (x: UserPost[])=> {
-        return <>{x.map((post) => <PostItem key={post.id} post={post} />)}</>
+    const posts = (post: UserPost)=> {
+        return <PostItem key={post.id} post={post} />
     }
   
    // const border = `border-l-[1px] border-r-[1px]  border-neutral-500`
@@ -283,12 +287,10 @@ export const MessageStream = component$(() => {
 
    // should act like solid For?
     return <div >
-        <Resource />
         <Query
-            value={r}
-            
+            value={r2}           
             onRejected={(error)=><>Error { error.message}</>}
-            onResolved={posts}
+            show={posts}
             />       
         </div>    
 })
