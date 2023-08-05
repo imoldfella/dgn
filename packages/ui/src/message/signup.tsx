@@ -19,7 +19,7 @@ export const Signin2 = component$(() => {
     const submitLogin = $(async () => {
     })
     return <SimplePage>
-        <H2>{$localize`Sign in`}</H2>
+        <H2 class='whitespace-nowrap'>{$localize`Sign in`}</H2>
         <div>Or, get started for free. <Link class={link} href='/signup'>Sign up</Link></div>
         <ContinueWith />
         <TextDivider>{$localize`or, Sign up with your email`}</TextDivider>

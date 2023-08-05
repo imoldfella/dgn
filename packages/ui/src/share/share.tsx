@@ -48,7 +48,7 @@ export const Avatar = component$(({ user,  }: { user: any }) => {
         width={48}
         height={48}
         class="z-0 rounded-full" />
-    else return <div><Link class={link} href={`/signup`}>{$localize`Sign in`}</Link></div>
+    else return <div><Link class={link+ ' whitespace-nowrap'} href={`/signup`}>{$localize`Sign in`}</Link></div>
      //<Icon svg={personIcon} class='w-[48px] h-[48px]' onClick$={()=>nav('/signin')} />
     
 })

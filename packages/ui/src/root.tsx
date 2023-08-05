@@ -38,7 +38,6 @@ type RoutingConfig = RoutingConfigItem[];
 // 1. if subdomain is taken, then we should go to that page with whatever login we have
 // 2. if subdomain is not taken, then we should default that into the website name.
 const Outlet = component$((props) => {
-  
   //const nav = useNavigate()
   const loc = useLocation() // should be signal?
   const u = new URL(loc.url)
