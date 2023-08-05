@@ -5,11 +5,17 @@ import { AnchorProps } from "../theme";
 // we could override it in a lower context.
 // why not location as a simple string? what else could we put here?
 // qwik city uses an URL, but how since it doesn't serialize?
-interface RoutingLocation {
+export interface RoutingLocation {
   url: string
+  tool: string
+  ln: string
+  id: string
+  lc: string
+  path: string[]
 }
 export const RouterContext = createContextId<RoutingLocation>('RoutingLocation')
 export const useLocation = () => useContext(RouterContext)
+
 export const useNavigate = () => {
   const ctx = useContext(RouterContext)
   return $((loc: string, opt: {reload?: boolean}= {} ) => {
@@ -22,12 +28,40 @@ export const useNavigate = () => {
   })
 }
 
-export const Router = component$(() => {
-  const svr = useServerData<string | null>('url')
-  const a = {
-    url: svr ?? window.location.href
+export function parseLocation(url: string): RoutingLocation {
+  const a = new URL(url)
+  const path = a.pathname.split('/')
+  path.shift()
+  // languages have exactly 2 or 5 characters with a hyphen. tool names avoid these.
+  let lc = path[0]
+  let ln
+  let tool 
+  let id 
+  const isLang = lc.length === 2 || (lc.length === 5 && lc[2] === '-')
+  // if tool is empty, then we need to use a default tool "status"
+  if (!isLang) {
+    ln = 'en'
+    lc = 'en-us'
+    tool = path[0]??"status"
+    id = path.slice(1).join('/')
+  } else {
+    tool = path[1]??"status"
+    id = path.slice(2).join('/')
+    ln = lc.substring(0,2)
   }
-  const routingState = useStore<RoutingLocation>(a)
+  return {
+    url: url,
+    tool: tool,
+    ln:ln,
+    lc: lc,
+    id: id,
+    path: path
+  }
+}
+
+export const Router = component$(() => {
+  const url = useServerData<string | null>('url')
+  const routingState = useStore<RoutingLocation>(parseLocation(url?? window.location.href))
   useContextProvider(RouterContext, routingState);
 
   useOnWindow('popstate', $((e: Event) => {

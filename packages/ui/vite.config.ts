@@ -16,6 +16,10 @@ export default defineConfig(() => {
         fileName: (format) => `index.qwik.${format === "es" ? "mjs" : "cjs"}`,
       },
     },
-    plugins: [qwikVite(), tsconfigPaths()],
+    plugins: [qwikVite({
+      devTools: {
+        clickToSource: false
+      }
+    }), tsconfigPaths()],
   };
 });

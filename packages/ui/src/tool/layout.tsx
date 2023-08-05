@@ -1,21 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, $, QwikMouseEvent, useComputed$, Signal, useTask$, Slot, useVisibleTask$ } from "@builder.io/qwik";
 import { Icon } from "../headless";
-import { DarkButton, bars_3, bubble, cart, elipsis, folder, search, tablet } from "../theme";
-import { Search } from "../search/search";
-import { $localize, LanguageSelect, xCircle } from "../i18n";
-import { Cart } from "./cart";
-import { Share } from "../share/share";
+import { bars_3, bubble, cart, elipsis, search } from "../theme";
+import { $localize, xCircle } from "../i18n";
 import { useLocation, useNavigate, useSignin } from "../provider";
 import { renderJson } from "./render";
-import { Dialog, TocTabbed } from "../toc";
-import example from "../toc/test.en"
-import { FileBrowser } from "../filebrowser";
-import { Propose } from "../propose";
-import { Account } from "../account";
-import { personIcon, proposeIcon } from "../theme";
-import { MessageStream, SearchBox } from "../message";
-import { More } from "../more/more";
+import { personIcon } from "../theme";
+import { Timeline } from "../root";
 const startApp = ''
 export interface AppStore {
     tab: Signal<string>
@@ -123,7 +114,6 @@ export const PageTool = component$<{tool?: string}>((props) => {
     const height = useSignal(0)
     const branch = useSignal("First draft")
     const desktop = useSignal(true)
-    // should this be part of the url?
 
     const app = useStore<AppStore>({
         tab,
@@ -201,8 +191,6 @@ export const PageTool = component$<{tool?: string}>((props) => {
     })
 
     const Desktop = component$(() => {
-        // break to allow side by side annotations.
-
         const VRailText = component$(() => {
             return <div/>
         })
@@ -219,6 +207,7 @@ export const PageTool = component$<{tool?: string}>((props) => {
 
         return <div class='w-screen h-screen hidden sm:flex '>
             <VRail />
+
             {tab.value != "" && <>
                 <div class='bg-neutral-900 border-l-[1px] border-neutral-800' style={{
                         width: x.value + "px"
@@ -227,12 +216,9 @@ export const PageTool = component$<{tool?: string}>((props) => {
                 class='h-full   cursor-ew-resize flex flex-col justify-center bg-neutral-900' >
                     <button class='bg-neutral-800 cursor-ew-resize rounded-full h-16 w-2 mr-1' />
                 </div></>}
-            <div class='flex-1 bg-black px-2 overflow-auto max-w-xl'>
+            <div class='flex-1'>
                 <Slot/>
             </div>
-            {/* <div class='flex-1 bg-red-500'>
-                bonus
-                </div> */}
         </div>
     })
 
@@ -259,7 +245,7 @@ export const PageTool = component$<{tool?: string}>((props) => {
         })
         return <div class='flex-1 h-screen'>
             <div class='flex flex-col h-screen'>
-                <div class='flex-1 overflow-auto'><Slot /></div>
+                <div class='flex-1 overflow-auto'><Slot/></div>
                 <div class='sm:hidden w-full  bg-neutral-900  rounded-t-lg bottom-0' onMouseDown$={bottomSplit}
                     style={{
                         height: (y.value) + "px",

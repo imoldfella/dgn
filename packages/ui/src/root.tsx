@@ -1,7 +1,7 @@
 
 
 import { SigninProvider, ThemeBootstrap, useSignin } from "./provider";
-import { Router, RoutingConfigItem, useLocation, useNavigate } from "./provider/router";
+import { Router, RoutingConfigItem, useLocation } from "./provider/router";
 
 import "./global.css";
 import { Component, component$, } from "@builder.io/qwik";
@@ -21,22 +21,7 @@ import { DarkButton } from "./theme";
 
 type RoutingConfig = RoutingConfigItem[];
 
-// can i use a dns that maps to local host for everything?
-// the trouble with this is that we also need https for different api's to work.
-// so we probably need to use our own setup for this? so then we can advertise the certificate as well. fly.io probably doesn't work because of their fancy certificates?
 
-// if they are a new user, they should go to the onboard page
-// if they are a known user, but logged out, they should go to the login page
-// if they are logged in, they should go to the last page they were on? Or maybe show a list of recent websites.
-// how does this work with ssr though? we need a visual task to check the localstorage?
-// we need to see how qwik city is loading its service worker.
-// we should probably listen to localstorage, and sign out the tab if signed out anywhere.
-// any reason to not use a signal here?
-
-
-// we might be going directly to a subdomain
-// 1. if subdomain is taken, then we should go to that page with whatever login we have
-// 2. if subdomain is not taken, then we should default that into the website name.
 const Outlet = component$((props) => {
   //const nav = useNavigate()
   const loc = useLocation() // should be signal?
@@ -49,23 +34,8 @@ const Outlet = component$((props) => {
   }
   const tool = u.searchParams.get('tool')??""
   const path = u.pathname.split('/')
-  
   const content = path[1]??"" // should be signal?
 
-  
-  // urls are content and optional tool
-  // should I use ?tool= 
-
-  // logged in:
-  // if / then pick the language based on the browser or stored.
-  // /en/ = timeline
-  // /es/t/{id} = topic  # note that this can't be cached, it should be live.
-  // 
-
-  // maybe we should redirect a route? dns should matter?
-  // only get to this root from datagrove.com?
-  // in back of login we should see a list of linked sites? (each site then in a sandbox)
-  // the content and the tool have 
   if (loc.url.endsWith("/signin") ) return <Signin2/>
   if (loc.url.endsWith("/signup") ) return <Signup/>
   
@@ -81,6 +51,7 @@ const Outlet = component$((props) => {
 
   return <PageTool tool={tool}>
     <div q:slot='tool'>WTF</div>
+    {/* <div>{JSON.stringify(loc)}</div> */}
      <X/>
       </PageTool>
 })
@@ -88,23 +59,14 @@ const Outlet = component$((props) => {
 // 
 export const Timeline = component$(() => {
   const me = useSignin()
-  return <><div class='flex lg:hidden items-center'>
+  return <><div class=' hidden large:flex  items-center'>
                 <div class='p-1'><Avatar user={me} /></div>
             <SearchBox /><LanguageSelect  /><DarkButton /></div>
-            <MessageStream/>
+           <MessageStream/>
         </>
 })
 
-export const Topic = component$(() => {
-  const me = useSignin()
-  return <><div class='flex lg:hidden items-center'>
 
-                <div class='p-1'><Avatar user={me} /></div>
-            <SearchBox /><LanguageSelect  /><DarkButton />
-            </div>
-            <MessageStream/>
-        </>
-})
 
 export const ToolDialog = component$(() => {
     const app = useApp()
@@ -160,3 +122,32 @@ export default component$(() => {
 // <RouterOutlet config={routingConfig} />
 
 
+// can i use a dns that maps to local host for everything?
+// the trouble with this is that we also need https for different api's to work.
+// so we probably need to use our own setup for this? so then we can advertise the certificate as well. fly.io probably doesn't work because of their fancy certificates?
+
+// if they are a new user, they should go to the onboard page
+// if they are a known user, but logged out, they should go to the login page
+// if they are logged in, they should go to the last page they were on? Or maybe show a list of recent websites.
+// how does this work with ssr though? we need a visual task to check the localstorage?
+// we need to see how qwik city is loading its service worker.
+// we should probably listen to localstorage, and sign out the tab if signed out anywhere.
+// any reason to not use a signal here?
+
+
+// we might be going directly to a subdomain
+// 1. if subdomain is taken, then we should go to that page with whatever login we have
+// 2. if subdomain is not taken, then we should default that into the website name.
+  // urls are content and optional tool
+  // should I use ?tool= 
+
+  // logged in:
+  // if / then pick the language based on the browser or stored.
+  // /en/ = timeline
+  // /es/t/{id} = topic  # note that this can't be cached, it should be live.
+  // 
+
+  // maybe we should redirect a route? dns should matter?
+  // only get to this root from datagrove.com?
+  // in back of login we should see a list of linked sites? (each site then in a sandbox)
+  // the content and the tool have 
