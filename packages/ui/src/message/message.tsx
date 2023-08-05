@@ -254,13 +254,20 @@ export const Header = component$(() => {
     )
 })
 
+export function scrollPosition(url: string) : number[]{
+    return [0]
+}
+export function setScrollPosition(url: string, index: number[]) : void {
 
+}
 async function getPosts(id: RoutingLocation, a: AbortController) : Promise<UserPost[]>   {
     const posts: UserPost[] =fakePosts()
     return posts
 }
 export const MessageStream = component$(() => {
     const loc = useLocation()
+
+    const sp = scrollPosition(loc.url)
 
     const r = useResource$<UserPost[]>(async ({track,cleanup}) => {
         track(()=>loc)
@@ -270,7 +277,7 @@ export const MessageStream = component$(() => {
         return x
     })
 
-    // we can
+    // we need to store the scroll location per window, + default on new windows to most recent position.
     const r2 = useQuery$<UserPost>(async ({track, cleanup}) => {
         track(()=>loc)
         const a = new AbortController()
@@ -282,7 +289,7 @@ export const MessageStream = component$(() => {
 
     
     // suspense boundary here, we need to get the posts from the database.
-    const posts = (post: UserPost)=> {
+    const posts = (post: QueryRow<UserPost>)=> {
         return <PostItem key={post.id} post={post} />
     }
   
@@ -292,10 +299,16 @@ export const MessageStream = component$(() => {
    // should act like solid For?
     return <div >
         <Query
+            id = {loc.url}
             value={r2}           
-            onRejected={(error)=><>Error { error.message}</>}
             show={posts}
             />       
         </div>    
 })
 
+// why not an error boundary, e.g. providing toast?
+
+// rows are a thing, because for most tables we need to be able to determine the height by formatting the entire row.
+interface QueryRow<T> {
+
+}

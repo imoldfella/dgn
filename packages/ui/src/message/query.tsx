@@ -22,7 +22,7 @@ export interface QuerySummary {
 type ShowFnProps<T> = {
     before: QuerySummary,
     end: QuerySummary,
-    error: { message: string }
+    //error: { message: string }
     data: T[]
   
 }
@@ -36,12 +36,14 @@ type ShowFn<T> = (data: T, x: number, y: number, context: Context ) => JSX.Eleme
 // should this call a function for an entire list of components, or for each component? How should we handle bonus space.
 
 type QueryProps<T> = {
+    id: string
     value: QueryReturn<T>
     show: ShowFn<T>
-    onRejected: (error: any) => JSXNode
+    //onRejected: (error: any) => JSXNode
 }
-export  function Query<T>(props: QueryProps<T>) : JSXNode {
-    return props.onRejected({message: "not implemented"})
+export  function Query<T>(props: QueryProps<T>) : JSXNode|null {
+    //return props.onRejected({message: "not implemented"})
+    return null
 }
 //export declare const Query: <T>(props: ResourceProps<T>) => JSXNode;
 
