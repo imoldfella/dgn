@@ -48,3 +48,20 @@ export  function Query<T>(props: QueryProps<T>) : JSXNode|null {
 //export declare const Query: <T>(props: ResourceProps<T>) => JSXNode;
 
 export declare const useQuery$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => QueryReturn<T>;
+
+
+// why not an error boundary, e.g. providing toast?
+
+// rows are a thing, because for most tables we need to be able to determine the height by formatting the entire row. 
+interface QueryRow<T> {
+    id: string
+    // this may not be the complete row as long as we can compute the height another way. shifting heights will cause ux issues.
+    data: T[]
+    y: number
+    x: number
+}
+
+interface QueryResult<T> {
+    front: 
+    rows: QueryRow<T>[]
+}
