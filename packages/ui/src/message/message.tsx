@@ -1,15 +1,12 @@
-import { component$, useSignal, $, useStore, useResource$, Resource, useVisibleTask$ } from "@builder.io/qwik"
+import { component$, $, useResource$ } from "@builder.io/qwik"
 import { Icon } from "../headless"
-import { $localize } from "../i18n"
-import { bubbleLeft, elipsis, heartOutline, heartSolid, search } from "../theme"
-import { cart } from "../theme"
+import { bubbleLeft, elipsis, heartOutline, heartSolid } from "../theme"
 import { Image } from "@unpic/qwik"
 import { timeAgo } from './dates'
 import { RoutingLocation, useLocation, useNavigate } from "../provider"
-import { Button, ErrorMessage, Spinner } from "./toast"
-import { JSX } from "@builder.io/qwik/jsx-runtime"
+import { Button } from "./toast"
 import { User, UserPost, fakePosts, fakeUser } from "./post"
-import { Query, QueryRow, QueryBody, useQuery$, useQueryPlan$, messageQuery,  } from "./query"
+import {  QueryBody, useQuery$, useQueryPlan$, messageQuery, Query,  } from "./query"
 
 
 // Datagrove home. This will generally be like social media, get to standalone websites for shopping etc.
@@ -290,14 +287,15 @@ export const MessageStream = component$(() => {
     // const q = useVisibleQuery$<{},UserPost>(async ({track, cleanup}) => {
 
     // })
-    const q = useQueryPlan$(({query, track}) => {
+    const q = useQueryPlan$<UserPost>(({query, track}) => {
         track(()=>loc)  
-        query.exec(messageQuery, {id: loc.id})
+        messageQuery(query, {id: loc.id})
     })
     
     return <Query
             query={q}
             > 
+        
             <QueryBody>
                 { q.row.map( post => <PostItem key={post.id} post={post} />)}
             </QueryBody>

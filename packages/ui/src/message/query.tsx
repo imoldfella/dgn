@@ -105,8 +105,7 @@ export interface VProps<PROPS > {
     filter: string
     params?: PROPS
 }
-export interface VisibleQueryResult<PROPS,ROW> {
-    props: VProps<PROPS>
+export interface VisibleQueryResult<ROW> {
     row: ROW[]
     start: number
     length: number
@@ -144,7 +143,7 @@ export const Virtualize = component$<DivProps>((props) => {
 // should work with a generic function/data source, not just sql?
 // maybe this doesn't need to be a component? does it need a slot?
 export const Query = component$<{
-    query: VisibleQueryResult<any,any>
+    query: VisibleQueryResult<any>
 }>((props) => {
     return <Slot/>
 
@@ -174,11 +173,19 @@ export const Query2d = component$<{
 export interface QueryPlan<PROPS, ROW> {
 
 }
-export const messageQuery : QueryPlan<{},[]> = {
+export function messageQuery (q: QueryPlan<{id: string},[]>, props: {id: string})  {
 
 }
 
-export function f<P,T>(props: QueryPlan<P,T>) {
 
+type TrackFn = ( fn: (()=>void))=>void
+type ExecFn<P,R> = (query: QueryPlan<P,R>, props: P)=> void
+type Qfnp = {
+    track: TrackFn, 
+    query: QueryPlan<any, any>
 }
-export const useQueryPlan$ = $(f)
+type Qfn2 = (fp: Qfnp)=> void
+export function useQueryPlan$<ROW>(fn: Qfn2) : VisibleQueryResult<ROW> {
+    return {} as VisibleQueryResult<ROW>
+}
+
