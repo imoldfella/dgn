@@ -7,7 +7,7 @@
 // tool/id  # tool=status 
 //  we can have "load more" top and bottom.
 
-import { JSXNode, ResourceFn, ResourceOptions, Slot, component$, useStore } from "@builder.io/qwik"
+import { $, JSXNode, ResourceFn, ResourceOptions, Slot, component$, useStore } from "@builder.io/qwik"
 import { JSX } from "@builder.io/qwik/jsx-runtime"
 import { DivProps } from "../tool/modal"
 
@@ -117,24 +117,22 @@ export interface VisibleQueryResult<PROPS,ROW> {
 // each field can have json/cbor shape.
 // we need width-in/height out to be able to scroll.
 
-export interface QuerySchema<PROPS, ROW> {
 
-}
-type Qfn = (props: VProps<any>) => void
-export function useVisibleQuery$<PROPS, ROW>(fn: Qfn) : VisibleQueryResult<PROPS, ROW> {
-    const props = useStore<VProps<PROPS>>({
-        query: "",
-    })
-    fn(props)
+// type Qfn = (props: VProps<any>) => void
+// export function useVisibleQuery$<PROPS, ROW>(fn: Qfn) : VisibleQueryResult<PROPS, ROW> {
+//     const props = useStore<VProps<PROPS>>({
+       
+//     })
+//     fn(props)
 
-    const r : VisibleQueryResult<PROPS, ROW> = {
-        props: props,
-        row: [],
-        start: 0,
-        length: 0
-    }
-    return useStore(r)
-}
+//     const r : VisibleQueryResult<PROPS, ROW> = {
+//         props: props,
+//         row: [],
+//         start: 0,
+//         length: 0
+//     }
+//     return useStore(r)
+// }
 
 export const Virtualize = component$<DivProps>((props) => {
     return <div class={props.class}>
@@ -148,24 +146,16 @@ export const Virtualize = component$<DivProps>((props) => {
 export const Query = component$<{
     query: VisibleQueryResult<any,any>
 }>((props) => {
-    return <>
-        <div> { props.query.props.select.map((header, index) => {
-            return <></>
-        }) } </div>
-        <Virtualize>
-        {props.query.row.map((row, index) => {
-            return <></>
-        })}
-        </Virtualize>
-    </>
+    return <Slot/>
+
 })
 
 type ShowVq<T> = (data: T, y: number, context: Context ) => JSX.Element
+
+// virtualize
 export const QueryBody = component$<{
-    query: VisibleQueryResult<any,any>
-    // show has to be called for each row segment as we scroll.
     
-    show: ShowVq<any>
+    // show has to be called for each row segment as we scroll.
 }>((props) => {
     return <></>
 })
@@ -180,3 +170,15 @@ export const Query2d = component$<{
 
     return <></>
 })
+
+export interface QueryPlan<PROPS, ROW> {
+
+}
+export const messageQuery : QueryPlan<{},[]> = {
+
+}
+
+export function f<P,T>(props: QueryPlan<P,T>) {
+
+}
+export const useQueryPlan$ = $(f)
