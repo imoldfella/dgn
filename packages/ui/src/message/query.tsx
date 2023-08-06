@@ -7,7 +7,7 @@
 // tool/id  # tool=status 
 //  we can have "load more" top and bottom.
 
-import { $, JSXNode, ResourceFn, ResourceOptions, Slot, component$, useStore, useVisibleTask$ } from "@builder.io/qwik"
+import { $, JSXNode, ResourceFn, ResourceOptions, Slot, component$, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik"
 import { JSX } from "@builder.io/qwik/jsx-runtime"
 import { DivProps } from "../tool/modal"
 
@@ -57,12 +57,14 @@ export interface QueryResult<ROW> {
     // the value here will depend on the sort order
     start: any[]
     length: number
+    averageHeight: number
 }
 export function newQuery<T> () : QueryResult<T> {
     const r: QueryResult<T> = {
         row: [],
         start: [],
         length: 0,
+        averageHeight: 96,
         plan: undefined
     }
     return r
@@ -87,10 +89,33 @@ export const Query = component$<{
 
 // virtualize
 export const QueryBody = component$<{
-    
+   
+    // const d = document.createElement('div');
+    // d.textContent = ' ';
+    // d.style.position = 'absolute';
+    // d.style.height = '1px';
+    // d.style.width = '1px';
+    // d.style.transition = 'transform 0.2s';
+    // this.scroller_.appendChild(d);
+
     // show has to be called for each row segment as we scroll.
 }>((props) => {
-    return <Slot/>
+    const d = useSignal<HTMLDivElement>()
+
+    useVisibleTask$(({track}) => {
+        // const d = document.createElement('div');
+        // d.textContent = ' ';
+        // d.style.position = 'absolute';
+        // d.style.height = '1px';
+        // d.style.width = '1px';
+        //d.style.transition = 'transform 0.2s';
+        d.style.transform = `translateY(${props.query.start[0] * props.query.averageHeight}px)`;
+    })
+
+    return <div>
+        <div ref={d} class='absolute h-[1px] w-[1px]' style='transition: transform 0.2s'> </div>
+        <Slot/>
+        </div>
 })
 
 

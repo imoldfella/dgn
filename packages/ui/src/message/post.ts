@@ -24,12 +24,12 @@ export const fakeUser = (): User => {
 }
 
 // start at 
-export const fakePosts = (start: any[], limit: number): UserPost[] => {
+export const fakePosts = (start: number, limit: number): UserPost[] => {
     const userPosts: UserPost[] = []
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < limit; i++) {
         userPosts.push({
             id: i.toString(),
-            content: `This is a test post ${i}`,
+            content: `This is a test post ${start+i}`,
             createdAt: new Date().toISOString(),
             likeCount: 1,
             replyCount: 2,
@@ -46,5 +46,7 @@ export async function messageQuery (q: QueryResult<UserPost>, props: {id: string
     const sp = scrollPosition(props.id)
     q.length = 50000
     q.start = []
-    q.row = fakePosts(q.start, 100)
+    q.row = fakePosts(25000, 100)
 }   
+
+// we potentially want multiple indices, or at least a way to have different threads sort in different ways. Each query will have a key.
