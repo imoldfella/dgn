@@ -1,12 +1,15 @@
 
+// query state is stored in the user database: scroll position, column arrangement, etc.
+// per tab, but default to most recent change on any tab when starting a new tab.
 
 // streams can be voted, top first, bottom first.
 // streams need to be found based on url.
 // tool/id  # tool=status 
 //  we can have "load more" top and bottom.
 
-import { JSXNode, ResourceFn, ResourceOptions, component$, useStore } from "@builder.io/qwik"
+import { JSXNode, ResourceFn, ResourceOptions, Slot, component$, useStore } from "@builder.io/qwik"
 import { JSX } from "@builder.io/qwik/jsx-runtime"
+import { DivProps } from "../tool/modal"
 
 export interface QueryReturn<T> {
 
@@ -40,10 +43,7 @@ type QueryProps<T> = {
     show: ShowFn<T>
     //onRejected: (error: any) => JSXNode
 }
-export  function Query<T>(props: QueryProps<T>) : JSXNode|null {
-    //return props.onRejected({message: "not implemented"})
-    return null
-}
+
 //export declare const Query: <T>(props: ResourceProps<T>) => JSXNode;
 
 export declare const useQuery$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => QueryReturn<T>;
@@ -86,8 +86,23 @@ export interface QueryResult<T> {
     anchorOffset: number
 }
 
+// query plans can be altered by the user: sort, filter, etc.
+// localization is ?. does it require a new query plan? is there a core plan that we can modify with all localization?
+export interface Column {
+    name: string
+
+}
+
+// the core plan is a view pre-built for business logic
+export interface CorePlan {
+
+}
+
 export interface VProps<PROPS > {
-    query: string
+    plan: CorePlan
+    select: number[]
+    orderby: number[]
+    filter: string
     params?: PROPS
 }
 export interface VisibleQueryResult<PROPS,ROW> {
@@ -121,13 +136,28 @@ export function useVisibleQuery$<PROPS, ROW>(fn: Qfn) : VisibleQueryResult<PROPS
     return useStore(r)
 }
 
+export const Virtualize = component$<DivProps>((props) => {
+    return <div class={props.class}>
+        <Slot/>
+        </div>
+})
+
 // render a row at a time, rows may be different heights.
 // should work with a generic function/data source, not just sql?
 // maybe this doesn't need to be a component? does it need a slot?
-export const QueryRow = component$<{
+export const Query = component$<{
     query: VisibleQueryResult<any,any>
-}>(() => {
-    return <></>
+}>((props) => {
+    return <>
+        <div> { props.query.props.select.map((header, index) => {
+            return <></>
+        }) } </div>
+        <Virtualize>
+        {props.query.row.map((row, index) => {
+            return <></>
+        })}
+        </Virtualize>
+    </>
 })
 
 type ShowVq<T> = (data: T, y: number, context: Context ) => JSX.Element
