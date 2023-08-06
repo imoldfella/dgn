@@ -7,7 +7,7 @@
 // tool/id  # tool=status 
 //  we can have "load more" top and bottom.
 
-import { $, JSXNode, ResourceFn, ResourceOptions, Slot, component$, useStore } from "@builder.io/qwik"
+import { $, JSXNode, ResourceFn, ResourceOptions, Slot, component$, useStore, useVisibleTask$ } from "@builder.io/qwik"
 import { JSX } from "@builder.io/qwik/jsx-runtime"
 import { DivProps } from "../tool/modal"
 
@@ -17,73 +17,11 @@ export interface QueryReturn<T> {
 export function useQuery2$<T> (...query: any[])  {
     return {} as QueryReturn<any>
 }
-
-interface QuerySummary {
+export function scrollPosition(url: string) : number[]{
+    return [0]
 }
+export function setScrollPosition(url: string, index: number[]) : void {
 
-type ShowFnProps<T> = {
-    before: QuerySummary,
-    end: QuerySummary,
-    //error: { message: string }
-    data: T[]
-  
-}
-export interface Context {
-    min: number,
-    max: number
-}
-type ShowFn<T> = (data: T, x: number, y: number, context: Context ) => JSX.Element
-
-
-// should this call a function for an entire list of components, or for each component? How should we handle bonus space.
-
-type QueryProps<T> = {
-    id: string
-    value: QueryReturn<T>
-    show: ShowFn<T>
-    //onRejected: (error: any) => JSXNode
-}
-
-//export declare const Query: <T>(props: ResourceProps<T>) => JSXNode;
-
-export declare const useQuery$: <T>(generatorFn: ResourceFn<T>, opts?: ResourceOptions) => QueryReturn<T>;
-
-
-// why not an error boundary, e.g. providing toast?
-
-// rows are a thing, because for most tables we need to be able to determine the height by formatting the entire row. 
-export interface QueryRow<ROW> {
-    id: string
-    // this may not be the complete row as long as we can compute the height another way. shifting heights will cause ux issues.
-    data: ROW
-    y: number
-    x: number
-}
-
-// the query could have a column that represents x, or more commonly x may be associated with the attribute
-// what about crosstabs? are these just adjustments to underlying sql?
-// what about generation of the sql using sort, filter, etc.?
-// what about moving/hiding columns? should this change the query?
-
-export interface Database {
-
-}
-
-
-
-export interface QueryModel {
-    
-    params: any[]
-    offset: number
-    limit: number
-}
-export interface QueryResult<T> {
-    db: Database
-    opt: QueryModel
-    rows: QueryRow<T>[]
-    anchor: number
-    length: number
-    anchorOffset: number
 }
 
 // query plans can be altered by the user: sort, filter, etc.
@@ -99,39 +37,37 @@ export interface CorePlan {
 }
 
 export interface VProps<PROPS > {
-    plan: CorePlan
-    select: number[]
-    orderby: number[]
-    filter: string
-    params?: PROPS
+
 }
-export interface VisibleQueryResult<ROW> {
+
+// export interface QueryResult<T> {
+//     db: Database
+//     opt: QueryModel
+//     rows: QueryRow<T>[]
+//     anchor: number
+//     length: number
+//     anchorOffset: number
+// }
+export interface QueryResult<ROW> {
+    plan?: CorePlan
+    select?: number[]
+    orderby?: number[]
+    filter?: string
     row: ROW[]
-    start: number
+    // the value here will depend on the sort order
+    start: any[]
     length: number
 }
-// anchor is stored in user database.
-// select * from table   anchor key1='drug'
-// select array_agg(lat) where lng between 1 and 2 and zoom=15
-// each field can have json/cbor shape.
-// we need width-in/height out to be able to scroll.
+export function newQuery<T> () : QueryResult<T> {
+    const r: QueryResult<T> = {
+        row: [],
+        start: [],
+        length: 0,
+        plan: undefined
+    }
+    return r
+}
 
-
-// type Qfn = (props: VProps<any>) => void
-// export function useVisibleQuery$<PROPS, ROW>(fn: Qfn) : VisibleQueryResult<PROPS, ROW> {
-//     const props = useStore<VProps<PROPS>>({
-       
-//     })
-//     fn(props)
-
-//     const r : VisibleQueryResult<PROPS, ROW> = {
-//         props: props,
-//         row: [],
-//         start: 0,
-//         length: 0
-//     }
-//     return useStore(r)
-// }
 
 export const Virtualize = component$<DivProps>((props) => {
     return <div class={props.class}>
@@ -143,46 +79,19 @@ export const Virtualize = component$<DivProps>((props) => {
 // should work with a generic function/data source, not just sql?
 // maybe this doesn't need to be a component? does it need a slot?
 export const Query = component$<{
-    query: VisibleQueryResult<any>
+    query: QueryResult<any>
 }>((props) => {
     return <Slot/>
 
 })
-
-type ShowVq<T> = (data: T, y: number, context: Context ) => JSX.Element
 
 // virtualize
 export const QueryBody = component$<{
     
     // show has to be called for each row segment as we scroll.
 }>((props) => {
-    return <></>
+    return <Slot/>
 })
 
 
-// Only render the visible cells. rendertostring? store/signal for each cell?
-// each row must have an X dimension.
-// I don't want to use map? how can we not? qwik uses vdom.
-export const Query2d = component$<{
-    show: (data: any, x: number, y: number, context: Context ) => JSX.Element
-}>((props) => {
-
-    return <></>
-})
-
-export interface QueryPlan<PROPS, ROW> {
-
-}
-
-
-type TrackFn = ( fn: (()=>void))=>void
-type ExecFn<P,R> = (query: QueryPlan<P,R>, props: P)=> void
-type Qfnp = {
-    track: TrackFn, 
-    query: QueryPlan<any, any>
-}
-type Qfn2 = (fp: Qfnp)=> void
-export function useQueryPlan$<ROW>(fn: Qfn2) : VisibleQueryResult<ROW> {
-    return {} as VisibleQueryResult<ROW>
-}
 

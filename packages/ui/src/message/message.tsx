@@ -1,4 +1,4 @@
-import { component$, $, useResource$ } from "@builder.io/qwik"
+import { component$, $, useResource$, useVisibleTask$, useStore } from "@builder.io/qwik"
 import { Icon } from "../headless"
 import { bubbleLeft, elipsis, heartOutline, heartSolid } from "../theme"
 import { Image } from "@unpic/qwik"
@@ -6,27 +6,7 @@ import { timeAgo } from './dates'
 import { RoutingLocation, useLocation, useNavigate } from "../provider"
 import { Button } from "./toast"
 import { User, UserPost, fakePosts, fakeUser, messageQuery } from "./post"
-import {  QueryBody, useQuery$, useQueryPlan$, Query,  } from "./query"
-
-
-// Datagrove home. This will generally be like social media, get to standalone websites for shopping etc.
-
-
-// export const GuestPage = component$(() => {
-//     const ln = useLocale()
-
-//     return <><div dir={ln.dir} class='px-2 space-x-1 my-2 fixed w-screen flex flex-row items-center'>
-//         <div><Slot name='top-left' /></div>
-//         <div class='flex-1 ' />
-//         <Cart />
-//     </div>
-//         <div class="flex items-center justify-center w-screen h-screen">
-//             <div class='w-96'>
-//                 <Slot />
-//             </div>
-//         </div>
-//     </>
-// })
+import {  QueryBody, Query,  QueryResult, newQuery,  } from "./query"
 
 
 
@@ -251,70 +231,24 @@ export const Header = component$(() => {
     )
 })
 
-export function scrollPosition(url: string) : number[]{
-    return [0]
-}
-export function setScrollPosition(url: string, index: number[]) : void {
 
-}
-async function getPosts(id: RoutingLocation, a: AbortController) : Promise<UserPost[]>   {
-    const posts: UserPost[] =fakePosts()
-    return posts
-}
 export const MessageStream = component$(() => {
     const loc = useLocation()
 
-    const sp = scrollPosition(loc.url)
-
-    const r = useResource$<UserPost[]>(async ({track,cleanup}) => {
-        track(()=>loc)
-        const a = new AbortController()
-        cleanup(()=>a.abort())         
-        const x = await getPosts(loc, a)
-        return x
-    })
-
-    // we need to store the scroll location per window, + default on new windows to most recent position.
-    const r2 = useQuery$<UserPost>(async ({track, cleanup}) => {
-        track(()=>loc)
-        const a = new AbortController()
-        cleanup(()=>a.abort())  
-        const x = await getPosts(loc, a)
-        return x[0]
-    })
-
-
-    // const q = useVisibleQuery$<{},UserPost>(async ({track, cleanup}) => {
-
-    // })
-    const q = useQueryPlan$<UserPost>(({query, track}) => {
+    const query = useStore(newQuery<UserPost>())
+    useVisibleTask$(({track,cleanup})=>{
         track(()=>loc)  
-        messageQuery(query, {id: loc.id})
+        messageQuery(query, {id: loc.id}, cleanup)
     })
-    
-    return <Query
-            query={q}
+    return <div>        
+        <Query
+            query={query}
             > 
-        
             <QueryBody>
-                { q.row.map( post => <PostItem key={post.id} post={post} />)}
+                { query.row.map( post => <PostItem key={post.id} post={post} />)}
             </QueryBody>
         </Query>
-    // suspense boundary here, we need to get the posts from the database.
-    // const posts = (post: QueryRow<UserPost>)=> {
-    //     return <PostItem key={post.id} post={post} />
-    // }
-  
-   // const border = `border-l-[1px] border-r-[1px]  border-neutral-500`
-   // class="flex flex-col pt-[3.3rem] w-[600px]"
+        </div>
 
-   // should act like solid For?
-    // return <div >
-    //     <Query
-    //         id = {loc.url}
-    //         value={r2}           
-    //         show={posts}
-    //         />       
-    //     </div>    
 })
 

@@ -1,4 +1,5 @@
-import { QueryPlan } from "./query"
+
+import { QueryResult, scrollPosition } from "./query"
 
 export interface User {
     username: string
@@ -22,13 +23,13 @@ export const fakeUser = (): User => {
     }
 }
 
-
-export const fakePosts = (): UserPost[] => {
+// start at 
+export const fakePosts = (start: any[], limit: number): UserPost[] => {
     const userPosts: UserPost[] = []
     for (let i = 0; i < 10; i++) {
         userPosts.push({
             id: i.toString(),
-            content: 'This is a test post',
+            content: `This is a test post ${i}`,
             createdAt: new Date().toISOString(),
             likeCount: 1,
             replyCount: 2,
@@ -38,6 +39,12 @@ export const fakePosts = (): UserPost[] => {
     }
     return userPosts
 }
-export function messageQuery (q: QueryPlan<{id: string},[]>, props: {id: string})  {
+export type CleanupFn = (fn: ()=>void) => void
 
-}
+// start should be a primary key? otherwise when we come back we have no way to resume
+export async function messageQuery (q: QueryResult<UserPost>, props: {id: string}, cleanup: CleanupFn)  {
+    const sp = scrollPosition(props.id)
+    q.length = 50000
+    q.start = []
+    q.row = fakePosts(q.start, 100)
+}   
