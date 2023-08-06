@@ -1,3 +1,5 @@
+import { QueryPlan } from "./query"
+
 export interface User {
     username: string
     displayName: string
@@ -35,4 +37,7 @@ export const fakePosts = (): UserPost[] => {
         })
     }
     return userPosts
+}
+export function messageQuery (q: QueryPlan<{id: string},[]>, props: {id: string})  {
+
 }

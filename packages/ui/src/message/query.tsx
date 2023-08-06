@@ -173,9 +173,6 @@ export const Query2d = component$<{
 export interface QueryPlan<PROPS, ROW> {
 
 }
-export function messageQuery (q: QueryPlan<{id: string},[]>, props: {id: string})  {
-
-}
 
 
 type TrackFn = ( fn: (()=>void))=>void

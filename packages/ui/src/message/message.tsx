@@ -5,8 +5,8 @@ import { Image } from "@unpic/qwik"
 import { timeAgo } from './dates'
 import { RoutingLocation, useLocation, useNavigate } from "../provider"
 import { Button } from "./toast"
-import { User, UserPost, fakePosts, fakeUser } from "./post"
-import {  QueryBody, useQuery$, useQueryPlan$, messageQuery, Query,  } from "./query"
+import { User, UserPost, fakePosts, fakeUser, messageQuery } from "./post"
+import {  QueryBody, useQuery$, useQueryPlan$, Query,  } from "./query"
 
 
 // Datagrove home. This will generally be like social media, get to standalone websites for shopping etc.
