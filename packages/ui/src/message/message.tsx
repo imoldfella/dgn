@@ -9,7 +9,7 @@ import { RoutingLocation, useLocation, useNavigate } from "../provider"
 import { Button, ErrorMessage, Spinner } from "./toast"
 import { JSX } from "@builder.io/qwik/jsx-runtime"
 import { User, UserPost, fakePosts, fakeUser } from "./post"
-import { Query, useQuery$ } from "./query"
+import { Query, QueryRow, QueryBody, QueryHead, useQuery$, useVisibleQuery$ } from "./query"
 
 
 // Datagrove home. This will generally be like social media, get to standalone websites for shopping etc.
@@ -287,22 +287,31 @@ export const MessageStream = component$(() => {
     })
 
 
-    
+    const q = useVisibleQuery$<{},UserPost>(async ({track, cleanup}) => {
+
+    })
+    return <>
+        <QueryRow
+            query={q}
+            head={ ()=><div>head</div>}
+            body={ (post: UserPost)=> <PostItem key={post.id} post={post} />}
+            />
+        </>
     // suspense boundary here, we need to get the posts from the database.
-    const posts = (post: QueryRow<UserPost>)=> {
-        return <PostItem key={post.id} post={post} />
-    }
+    // const posts = (post: QueryRow<UserPost>)=> {
+    //     return <PostItem key={post.id} post={post} />
+    // }
   
    // const border = `border-l-[1px] border-r-[1px]  border-neutral-500`
    // class="flex flex-col pt-[3.3rem] w-[600px]"
 
    // should act like solid For?
-    return <div >
-        <Query
-            id = {loc.url}
-            value={r2}           
-            show={posts}
-            />       
-        </div>    
+    // return <div >
+    //     <Query
+    //         id = {loc.url}
+    //         value={r2}           
+    //         show={posts}
+    //         />       
+    //     </div>    
 })
 

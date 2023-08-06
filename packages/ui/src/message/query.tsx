@@ -5,7 +5,7 @@
 // tool/id  # tool=status 
 //  we can have "load more" top and bottom.
 
-import { JSXNode, ResourceFn, ResourceOptions, component$ } from "@builder.io/qwik"
+import { JSXNode, ResourceFn, ResourceOptions, component$, useStore } from "@builder.io/qwik"
 import { JSX } from "@builder.io/qwik/jsx-runtime"
 
 export interface QueryReturn<T> {
@@ -15,7 +15,8 @@ export function useQuery2$<T> (...query: any[])  {
     return {} as QueryReturn<any>
 }
 
-
+interface QuerySummary {
+}
 
 type ShowFnProps<T> = {
     before: QuerySummary,
@@ -84,3 +85,68 @@ export interface QueryResult<T> {
     length: number
     anchorOffset: number
 }
+
+export interface VProps<PROPS > {
+    query: string
+    params?: PROPS
+}
+export interface VisibleQueryResult<PROPS,ROW> {
+    props: VProps<PROPS>
+    row: ROW[]
+    start: number
+    length: number
+}
+// anchor is stored in user database.
+// select * from table   anchor key1='drug'
+// select array_agg(lat) where lng between 1 and 2 and zoom=15
+// each field can have json/cbor shape.
+// we need width-in/height out to be able to scroll.
+
+export interface QuerySchema<PROPS, ROW> {
+
+}
+type Qfn = (props: VProps<any>) => void
+export function useVisibleQuery$<PROPS, ROW>(fn: Qfn) : VisibleQueryResult<PROPS, ROW> {
+    const props = useStore<VProps<PROPS>>({
+        query: "",
+    })
+    fn(props)
+
+    const r : VisibleQueryResult<PROPS, ROW> = {
+        props: props,
+        row: [],
+        start: 0,
+        length: 0
+    }
+    return useStore(r)
+}
+
+// render a row at a time, rows may be different heights.
+// should work with a generic function/data source, not just sql?
+// maybe this doesn't need to be a component? does it need a slot?
+export const QueryRow = component$<{
+    query: VisibleQueryResult<any,any>
+}>(() => {
+    return <></>
+})
+
+type ShowVq<T> = (data: T, y: number, context: Context ) => JSX.Element
+export const QueryBody = component$<{
+    query: VisibleQueryResult<any,any>
+    // show has to be called for each row segment as we scroll.
+    
+    show: ShowVq<any>
+}>((props) => {
+    return <></>
+})
+
+
+// Only render the visible cells.
+// each row must have an X dimension.
+// I don't want to use map? how can we not? qwik uses vdom.
+export const Query2d = component$<{
+    show: (data: any, x: number, y: number, context: Context ) => JSX.Element
+}>((props) => {
+
+    return <></>
+})
