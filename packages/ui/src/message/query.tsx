@@ -141,7 +141,7 @@ export const QueryBody = component$<{
 })
 
 
-// Only render the visible cells.
+// Only render the visible cells. rendertostring? store/signal for each cell?
 // each row must have an X dimension.
 // I don't want to use map? how can we not? qwik uses vdom.
 export const Query2d = component$<{
