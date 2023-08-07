@@ -55,6 +55,7 @@ export interface QueryResult<ROW> {
     filter?: string
     row: ROW[]
     // the value here will depend on the sort order
+    // maybe should be string key?
     start: any[]
     length: number
     averageHeight: number
@@ -109,7 +110,7 @@ export const QueryBody = component$<{
         // d.style.height = '1px';
         // d.style.width = '1px';
         //d.style.transition = 'transform 0.2s';
-        d.style.transform = `translateY(${props.query.start[0] * props.query.averageHeight}px)`;
+        d.value!.style.transform = `translateY(${props.query.start[0] * props.query.averageHeight}px)`;
     })
 
     return <div>
@@ -118,5 +119,13 @@ export const QueryBody = component$<{
         </div>
 })
 
+// we can't really merge dynamically and still have random access.
+// we can't be guaranteed that we can fit the entire timeline. so we are left with a materialized timeline that goes back in time dynamically.
+// yan cun: all data will be mediated by ai assistant. 
+interface Btree {
 
-
+}
+interface DynamicMerge {
+    tree: Btree[]
+    length: 
+}
