@@ -9,8 +9,8 @@
 
 import { $, CSSProperties, JSXNode, NoSerialize, QRL, Signal, Slot, component$, createContextId, noSerialize, useComputed$, useContext, useContextProvider, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik"
 import { DivProps } from "../tool/modal"
-import { Virtualizer, elementScroll, observeElementOffset, observeElementRect, useVirtualizer } from "../virtual-qwik"
 import { isServer } from "@builder.io/qwik/build"
+import { UserPost } from "./post"
 
 
 
@@ -104,19 +104,42 @@ type Qbp = {
 //     return st
 // }
 // virtualize
+export interface VirtualItem {
+    key: string
+    index: number
+    start: number
+    end: number
+    size: number
+    lane: number
+  }
+  
+
 type TScrollElement = Element|Window;
 type TItemElement = HTMLElement;
 export const QueryBody = component$<Qbp>((props) => {
     const query = useContext(QueryContext)
 
     const parentRef = useSignal<HTMLDivElement>()
-    const rowVirtualizer = useVirtualizer({
+    const rowVirtualizer = useStore({
         count: query.row.length,
-        getScrollElement: () => parentRef.value??null,
-        estimateSize: () => query.averageHeight,
+        row: query.row.map((e: UserPost,index: number) => {
+            const a: VirtualItem = {
+                key: e.id,
+                index: index,
+                start: 0,
+                end: 0,
+                size: 0,
+                lane: 0
+            } 
+            return a
+        }),
+        totalSize: 0,
       });
 
-
+      useResizeObserver(parentRef, $(()=>{
+        console.log('resize', parentRef.value!.offsetHeight)
+      }))
+      
     //const items = useSignal<HTMLDivElement>()
 
     // const height = useComputed$(() => {
@@ -171,15 +194,14 @@ export const QueryBody = component$<Qbp>((props) => {
     //     return r
     // }
 
-    const fubar = $(()=>{
         return <div class='h-full w-full overflow-auto' ref={parentRef}>
 
         <div  style={{
-            height: rowVirtualizer.value!.getTotalSize()+'px',
+            height: rowVirtualizer.totalSize+'px',
             width: '100%',
             position: 'relative'
         }}>
-            { rowVirtualizer.value!.getVirtualItems().map((row) => {
+            { rowVirtualizer.row.map((row: VirtualItem) => {
                 return <div key={row.key} 
                 style={{
                     position: 'absolute',
@@ -193,9 +215,6 @@ export const QueryBody = component$<Qbp>((props) => {
             })}
         </div>
         </div>
-    })
-
-    return <>{ rowVirtualizer.value && fubar() }</>
 })
 
 // we can't really merge dynamically and still have random access.
