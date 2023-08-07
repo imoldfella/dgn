@@ -1,5 +1,5 @@
 
-import { QueryResult } from "./query"
+import { QueryResult, VirtualItem } from "./query"
 
 import { faker  } from '@faker-js/faker'
 export interface User {
@@ -49,8 +49,19 @@ export async function messageQuery (
     cleanup: CleanupFn)  {
     q.length = 50000
     q.anchorKey = []
-    q.offset = 25000
-    q.row = fakePosts(25000, 100)
+    q.cacheStart = 25000
+    q.cache = fakePosts(25000, 100)
+    q.item = q.cache.map((_,index)=>{
+        const o : VirtualItem ={
+            index: 25000 + index,
+            key: 2500+index+"",
+            start: 0,
+            end: 0,
+            size: 0,
+            lane: 0
+        }
+        return o
+    })
 }   
 
 // we potentially want multiple indices, or at least a way to have different threads sort in different ways. Each query will have a key.

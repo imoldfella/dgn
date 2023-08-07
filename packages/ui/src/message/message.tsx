@@ -245,7 +245,7 @@ export const MessageStream = component$(() => {
         <Query
             query={query}
             > 
-            <QueryBody for={ $((index: number) => <PostItem post={query.row[index]} />)}
+            <QueryBody for={ $((index: number) => <PostItem post={query.cache[index]} />)}
                 />
         </Query>
         </div>
