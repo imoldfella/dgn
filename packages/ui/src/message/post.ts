@@ -1,6 +1,7 @@
 
-import { QueryResult, scrollPosition } from "./query"
+import { QueryResult } from "./query"
 
+import { faker  } from '@faker-js/faker'
 export interface User {
     username: string
     displayName: string
@@ -29,7 +30,7 @@ export const fakePosts = (start: number, limit: number): UserPost[] => {
     for (let i = 0; i < limit; i++) {
         userPosts.push({
             id: i.toString(),
-            content: `This is a test post ${start+i}`,
+            content: `This is a test post ${start+i}` + faker.lorem.paragraphs(2),
             createdAt: new Date().toISOString(),
             likeCount: 1,
             replyCount: 2,
@@ -42,10 +43,13 @@ export const fakePosts = (start: number, limit: number): UserPost[] => {
 export type CleanupFn = (fn: ()=>void) => void
 
 // start should be a primary key? otherwise when we come back we have no way to resume
-export async function messageQuery (q: QueryResult<UserPost>, props: {id: string}, cleanup: CleanupFn)  {
-    const sp = scrollPosition(props.id)
+export async function messageQuery (
+    q: QueryResult<UserPost>, 
+    props: {id: string}, 
+    cleanup: CleanupFn)  {
     q.length = 50000
-    q.start = []
+    q.anchorKey = []
+    q.offset = 25000
     q.row = fakePosts(25000, 100)
 }   
 

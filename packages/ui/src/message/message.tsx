@@ -231,6 +231,7 @@ export const Header = component$(() => {
     )
 })
 
+type Row<T> = T & { y: number }
 
 export const MessageStream = component$(() => {
     const loc = useLocation()
@@ -244,9 +245,8 @@ export const MessageStream = component$(() => {
         <Query
             query={query}
             > 
-            <QueryBody>
-                { query.row.map( post => <PostItem key={post.id} post={post} />)}
-            </QueryBody>
+            <QueryBody for={ $((index: number) => <PostItem post={query.row[index]} />)}
+                />
         </Query>
         </div>
 

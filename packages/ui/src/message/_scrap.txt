@@ -191,3 +191,15 @@ export interface QueryModel {
     limit: number
 }
 
+export interface QueryReturn<T> {
+
+}
+export function useQuery2$<T> (...query: any[])  {
+    return {} as QueryReturn<any>
+}
+export function scrollPosition(url: string) : number[]{
+    return [0]
+}
+export function setScrollPosition(url: string, index: number[]) : void {
+
+}

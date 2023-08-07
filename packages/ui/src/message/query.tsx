@@ -7,22 +7,12 @@
 // tool/id  # tool=status 
 //  we can have "load more" top and bottom.
 
-import { $, JSXNode, ResourceFn, ResourceOptions, Slot, component$, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik"
-import { JSX } from "@builder.io/qwik/jsx-runtime"
+import { $, CSSProperties, JSXNode, NoSerialize, QRL, Signal, Slot, component$, createContextId, noSerialize, useComputed$, useContext, useContextProvider, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik"
 import { DivProps } from "../tool/modal"
+import { Virtualizer, elementScroll, observeElementOffset, observeElementRect, useVirtualizer } from "../virtual-qwik"
+import { isServer } from "@builder.io/qwik/build"
 
-export interface QueryReturn<T> {
 
-}
-export function useQuery2$<T> (...query: any[])  {
-    return {} as QueryReturn<any>
-}
-export function scrollPosition(url: string) : number[]{
-    return [0]
-}
-export function setScrollPosition(url: string, index: number[]) : void {
-
-}
 
 // query plans can be altered by the user: sort, filter, etc.
 // localization is ?. does it require a new query plan? is there a core plan that we can modify with all localization?
@@ -56,17 +46,23 @@ export interface QueryResult<ROW> {
     row: ROW[]
     // the value here will depend on the sort order
     // maybe should be string key?
-    start: any[]
+    anchorKey: any[]
     length: number
     averageHeight: number
+    measuredHeight: number
+    y: number[]
+    offset: number
 }
 export function newQuery<T> () : QueryResult<T> {
     const r: QueryResult<T> = {
         row: [],
-        start: [],
+        y: [],
+        anchorKey: [],
+        offset: 0,
         length: 0,
         averageHeight: 96,
-        plan: undefined
+        plan: undefined,
+        measuredHeight: 0
     }
     return r
 }
@@ -78,45 +74,128 @@ export const Virtualize = component$<DivProps>((props) => {
         </div>
 })
 
+export const QueryContext = createContextId<QueryResult<any>>(
+    'dg.query-context'
+  );
+
 // render a row at a time, rows may be different heights.
 // should work with a generic function/data source, not just sql?
 // maybe this doesn't need to be a component? does it need a slot?
 export const Query = component$<{
     query: QueryResult<any>
 }>((props) => {
+    useContextProvider(QueryContext, props.query)
     return <Slot/>
 
 })
 
+ 
+type Qbp = {
+    for: (index: number) => JSXNode
+}
+
+// export function useVirtual(options: {}){
+//     const st = useStore({
+//         parentRef: useSignal<HTMLDivElement>(),
+//         totalSize: 0,
+
+//     })
+
+//     return st
+// }
 // virtualize
-export const QueryBody = component$<{
-   
-    // const d = document.createElement('div');
-    // d.textContent = ' ';
-    // d.style.position = 'absolute';
-    // d.style.height = '1px';
-    // d.style.width = '1px';
-    // d.style.transition = 'transform 0.2s';
-    // this.scroller_.appendChild(d);
+type TScrollElement = Element|Window;
+type TItemElement = HTMLElement;
+export const QueryBody = component$<Qbp>((props) => {
+    const query = useContext(QueryContext)
 
-    // show has to be called for each row segment as we scroll.
-}>((props) => {
-    const d = useSignal<HTMLDivElement>()
+    const parentRef = useSignal<HTMLDivElement>()
+    const rowVirtualizer = useVirtualizer({
+        count: query.row.length,
+        getScrollElement: () => parentRef.value??null,
+        estimateSize: () => query.averageHeight,
+      });
 
-    useVisibleTask$(({track}) => {
-        // const d = document.createElement('div');
-        // d.textContent = ' ';
-        // d.style.position = 'absolute';
-        // d.style.height = '1px';
-        // d.style.width = '1px';
-        //d.style.transition = 'transform 0.2s';
-        d.value!.style.transform = `translateY(${props.query.start[0] * props.query.averageHeight}px)`;
+
+    //const items = useSignal<HTMLDivElement>()
+
+    // const height = useComputed$(() => {
+    //     return query.measuredHeight + (query.length - query.row.length)*query.averageHeight
+    // })
+
+    // const vstyle = (index: number) => {
+    //     return {
+    //         position: 'absolute',
+    //         transform: `translateY(${query.y[index]}px)`,
+    //         top: 0,
+    //         left: 0,
+    //         width: '100%'
+
+    //     }
+    // }
+
+    // set up intersection observer, scroll event handlers.
+    // const v = useVirtual({
+    //     size: query.length,
+    //     parentRef: items,
+    //     estimateSize: query.averageHeight,
+    //     overscan: 5,
+
+    // })
+
+    // interface Vrow {
+    //     key: string
+    //     index: number
+    //     style: CSSProperties
+    // }
+
+    // const vmap = () : Vrow[] => {
+    //     let y = 0
+    //     const r=  query.row.map((row, index) => {
+    //         const r = {
+    //             key: (index+query.offset)+"",
+    //             index: index+query.offset,
+    //             style: {
+    //                 position: 'absolute' as any,
+    //                 top: 0,
+    //                 left: 0,
+    //                 width: '100%',
+    //                 height: `${32}px`,
+    //                 transform: `translateY(${y}px)`,
+    //             }
+    //         }
+    //         y += 48
+    //         return r
+    //     })
+    //     console.log(r)
+    //     return r
+    // }
+
+    const fubar = $(()=>{
+        return <div class='h-full w-full overflow-auto' ref={parentRef}>
+
+        <div  style={{
+            height: rowVirtualizer.value!.getTotalSize()+'px',
+            width: '100%',
+            position: 'relative'
+        }}>
+            { rowVirtualizer.value!.getVirtualItems().map((row) => {
+                return <div key={row.key} 
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${row.size}px`,
+                    transform: `translateY(${row.start}px)`,
+                  }}
+                >WTF {row.index}</div>
+            })}
+        </div>
+        </div>
     })
 
-    return <div>
-        <div ref={d} class='absolute h-[1px] w-[1px]' style='transition: transform 0.2s'> </div>
-        <Slot/>
-        </div>
+    return <>{ rowVirtualizer.value && fubar() }</>
 })
 
 // we can't really merge dynamically and still have random access.
@@ -125,7 +204,69 @@ export const QueryBody = component$<{
 interface Btree {
 
 }
-interface DynamicMerge {
-    tree: Btree[]
-    length: 
-}
+
+/*
+        <div ref={d} class='absolute h-[1px] w-[1px]' style={{
+            transform: `translateY(${height.value}px)`,
+             transition: `transform 0.2s`
+        }}> </div>
+*/
+
+/*
+        { 
+        })}
+*/
+
+/*
+    // how do we know when to measure?
+    // qwik won't render right away, so measurements might need a tick?
+
+    useVisibleTask$(({track})=>{
+        track(()=>query.row) // run every time the row changes
+        track(()=>query.length)
+        track(()=>query.offset)
+
+        // let h = 0
+        // for (let i = query.row.length; i < query.length; i++) {
+        //     const ch = items.value!.children[i]
+        //     h += (ch as HTMLElement).offsetHeight
+        // }
+        // query.measuredHeight = h
+        // we need to determine how to 
+        const dx = query.row.map((row, index) => {
+            return <div key={index} style={{
+                position: 'absolute',
+                transform: `translateY(${query.y[index]}px;`,
+            }}>{props.for(index)}</div>
+        })
+
+        for (let i = 0; i<dx.length; i++) {
+            console.log(renderToString(dx[i],{manifest}))
+        }
+    })
+*/
+
+export function useResizeObserver(
+    element: Signal<HTMLElement | undefined>,
+    onResize: QRL<() => void>
+  ) {
+    useVisibleTask$(({ track }) => {
+      track(() => element.value);
+  
+      let rAF = 0;
+      if (element.value) {
+        const resizeObserver = new ResizeObserver(() => {
+          cancelAnimationFrame(rAF);
+          rAF = window.requestAnimationFrame(onResize);
+        });
+        resizeObserver.observe(element.value);
+  
+        return () => {
+          window.cancelAnimationFrame(rAF);
+          if (element.value) {
+            resizeObserver.unobserve(element.value);
+          }
+        };
+      }
+    });
+  }
