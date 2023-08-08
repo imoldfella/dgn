@@ -63,6 +63,7 @@
     "@types/lodash": "^4.14.195",
     "@types/node": "^20.4.4",
     "eslint": "^8.44.0",
-    "vite-plugin-dts": "^3.3.1"
+    "vite-plugin-dts": "^3.3.1",
+    "vite-plugin-mkcert": "^1.16.0"
   }
 }

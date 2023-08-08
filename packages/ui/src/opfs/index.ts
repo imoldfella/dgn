@@ -18,7 +18,7 @@ export async function makeShared() {
     const api = apiCall<SharedApi>(peer, "add42", "memory")
     api.add42(1).then( (e) => console.log("add42", e))
     const mem = await api.memory() //new WebAssembly.Memory({initial: 1024, maximum: 1024, shared: true})
-
+    console.log("sab", self.crossOriginIsolated)
     if (mem) {
       const memView = new Uint8Array(mem.buffer);
 

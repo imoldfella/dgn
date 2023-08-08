@@ -1,9 +1,9 @@
 import { defineConfig } from "vite";
 import { qwikVite } from "@builder.io/qwik/optimizer";
 import tsconfigPaths from "vite-tsconfig-paths";
+import mkcert from 'vite-plugin-mkcert'
 
-export default defineConfig(() => {
-  return {
+export default defineConfig( {
     server: {
       port: 7083,
       host: '0.0.0.0',
@@ -13,13 +13,6 @@ export default defineConfig(() => {
         "Cross-Origin-Resource-Policy": "cross-origin",
         "Cross-Origin-Opener-Policy": "same-origin",
       },
-      // Set the content security policy to allow SharedArrayBuffer transfer
-      contentSecurityPolicy: {
-        directives: {
-          'worker-src': "'self' blob: data:;",
-          'connect-src': "'self' blob: data:;"
-        }
-      }
     },
     build: {
       target: "es2020",
@@ -29,10 +22,20 @@ export default defineConfig(() => {
         fileName: (format) => `index.qwik.${format === "es" ? "mjs" : "cjs"}`,
       },
     },
-    plugins: [qwikVite({
+    plugins: [
+      {
+        name: "isolation",
+        configureServer(server) {
+          server.middlewares.use((_req, res, next) => {
+            res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+            res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+            next();
+          });
+        },
+      },
+      mkcert(),qwikVite({
       devTools: {
         clickToSource: false
       }
     }), tsconfigPaths()],
-  };
-});
+  })
