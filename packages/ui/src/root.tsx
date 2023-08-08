@@ -4,7 +4,7 @@ import { SigninProvider, ThemeBootstrap, useSignin } from "./provider";
 import { Router, RoutingConfigItem, useLocation } from "./provider/router";
 
 import "./global.css";
-import { Component, component$, } from "@builder.io/qwik";
+import { Component, component$, useSignal, useVisibleTask$, } from "@builder.io/qwik";
 import {  MessageStream } from "./message";
 import { $localize, LanguageSelect, LocaleProvider } from "./i18n";
 import { Edit, PageTool, Review, useApp } from "./tool";
@@ -94,6 +94,8 @@ export const ToolDialog = component$(() => {
     }
     return <div />
 })
+
+
 
 // thise needs to be executed for each page fetch/cache
 // we need to resolve the database fetch so to include the base html

@@ -10,6 +10,7 @@
 import { $, JSXNode, QRL, Signal, Slot, component$, createContextId, useComputed$, useContext, useContextProvider, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik"
 import { DivProps } from "../tool/modal"
 import { UserPost } from "./post"
+import { useResizeObserver } from "./resize"
 
 
 
@@ -67,6 +68,7 @@ export interface QueryResult<ROW> {
     averageHeight: number
     measuredHeight: number
     item: VirtualItem[]
+    totalHeight: number
 }
 export function newQuery<T> () : QueryResult<T> {
     const r: QueryResult<T> = {
@@ -76,7 +78,8 @@ export function newQuery<T> () : QueryResult<T> {
         cacheStart: 0,
         length: 0,
         averageHeight: 96,
-        measuredHeight: 0
+        measuredHeight: 0,
+        totalHeight: 0
     }
     return r
 }
@@ -103,84 +106,46 @@ export const Query = component$<{
 
 })
 
- 
+type TScrollElement = Element|Window;
+type TItemElement = HTMLElement; 
+
 type Qbp = {
     for: (index: number) => JSXNode
 }
-
-// export function useVirtual(options: {}){
-//     const st = useStore({
-//         parentRef: useSignal<HTMLDivElement>(),
-//         totalSize: 0,
-
-//     })
-
-//     return st
-// }
-// virtualize
-
-  export function useResizeObserver(
-    element: Signal<HTMLElement | undefined>,
-    onResize: QRL<() => void>
-  ) {
-    useVisibleTask$(({ track }) => {
-      track(() => element.value);
-  
-      let rAF = 0;
-      if (element.value) {
-        const resizeObserver = new ResizeObserver(() => {
-          cancelAnimationFrame(rAF);
-          rAF = window.requestAnimationFrame(onResize);
-        });
-        resizeObserver.observe(element.value);
-  
-        return () => {
-          window.cancelAnimationFrame(rAF);
-          if (element.value) {
-            resizeObserver.unobserve(element.value);
-          }
-        };
-      }
-    });
-  } 
-type TScrollElement = Element|Window;
-type TItemElement = HTMLElement;
 export const QueryBody = component$<Qbp>((props) => {
     const query = useContext<QueryResult<UserPost>>(QueryContext)
     const parentRef = useSignal<HTMLDivElement>()
     const runway = useSignal<HTMLDivElement>()
 
       useResizeObserver(parentRef, $(()=>{
-        console.log('resize', parentRef.value!.offsetHeight)
+        //console.log('resize', parentRef.value!.offsetHeight)
       }))
 
       useVisibleTask$(({ track }) => {
         track(()=>query.cache)
         parentRef.value?.addEventListener('scroll', (e)=>{
-          console.log('scroll', parentRef.value!.scrollTop)
+          //console.log('scroll', parentRef.value!.scrollTop)
         })
         let start = query.averageHeight*query.cacheStart
-        runway.value!.scrollTop = -100
-        console.log('W',parentRef.value!.id, parentRef.value!.scrollTop,  start)
+
+        //console.log('W',parentRef.value!.id, parentRef.value!.scrollTop,  start)
         let mh = 0
         for (let i = 0; i < query.item.length; i++) {
           query.item[i].start = start
           const el = runway.value!.children[i] as HTMLElement
-          start += el.offsetHeight
+          start +=  el.offsetHeight
           mh += el.offsetHeight
         }
         query.measuredHeight = mh
+        query.totalHeight = query.measuredHeight + (query.length - query.cache.length)*query.averageHeight
+        
       })
  
-      const totalHeight = useComputed$(()=> query.measuredHeight + (query.length - query.cache.length)*query.averageHeight)
-        return <>
-                  <div class='fixed z-40' >
-          {query.averageHeight} {query.measuredHeight} {query.length} {query.cache.length} {totalHeight.value} {query.item[0]?.start} wtf{parentRef.value?.offsetHeight}fwt
-          </div>
-        <div id='wtf' class='h-full w-full overflow-auto' ref={parentRef}>
+        return <div id='wtf' class='h-full w-full overflow-auto' ref={parentRef}>
+                        {/* <button class='fixed right-0 bg-neutral-800 z-50' onClick$={()=>{parentRef.value!.scrollTop = 400}}> click me </button> */}
 
         <div ref={runway} style={{
-            height: totalHeight.value+'px',
+            height: query.totalHeight+'px',
             width: '100%',
             position: 'relative'
         }}>
@@ -197,7 +162,7 @@ export const QueryBody = component$<Qbp>((props) => {
             }
         </div>
         </div>
-        </>
+        
 })
 
   // }

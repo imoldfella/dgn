@@ -1,4 +1,4 @@
-import { component$, $, useResource$, useVisibleTask$, useStore } from "@builder.io/qwik"
+import { component$, $, useResource$, useVisibleTask$, useStore, useSignal } from "@builder.io/qwik"
 import { Icon } from "../headless"
 import { bubbleLeft, elipsis, heartOutline, heartSolid } from "../theme"
 import { Image } from "@unpic/qwik"
@@ -241,14 +241,50 @@ export const MessageStream = component$(() => {
         track(()=>loc)  
         messageQuery(query, {id: loc.id}, cleanup)
     })
-    return <div>        
-        <Query
+    return <>
+    <div class='fixed z-40' >
+          {query.averageHeight} {query.measuredHeight} {query.length} {query.cache.length} {query.totalHeight} {query.item[0]?.start} 
+          </div>
+    <Query
             query={query}
             > 
-            <QueryBody for={ $((index: number) => <PostItem post={query.cache[index]} />)}
+            {/* header would go here */}
+            <QueryBody 
+                for={ $((index: number) => {
+                    return <PostItem post={query.cache[index]} />
+                })}
                 />
         </Query>
-        </div>
-
+        </>
 })
 
+export const MessageStream2 = component$(() => {
+    const inner = useSignal<HTMLDivElement>()
+    const outer = useSignal<HTMLDivElement>()
+    const lines : string[] = []
+    for (let i = 0; i < 100; i++) {
+      lines.push(`line ${i}`)
+    }
+    useVisibleTask$(() => {
+      outer.value?.addEventListener('scroll', (e) => {
+        //console.log('scroll', outer.value!.scrollTop)
+      })
+      outer.value!.scrollTop = 400
+    })
+    return <div ref={outer} class='w-full bg-neutral-800 h-screen overflow-y-auto'>
+      <div ref={inner} style={{
+        height: '10000px',
+        position: 'relative'
+      }}>
+      { 
+        lines.map((line,index) => <div style={
+          {
+            position: 'absolute',
+            top: `${index * 20}px`
+          }
+        } key={index}>{line}</div>)
+        }
+      </div>
+    </div>
+  })
+  

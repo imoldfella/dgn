@@ -30,7 +30,7 @@ export const fakePosts = (start: number, limit: number): UserPost[] => {
     for (let i = 0; i < limit; i++) {
         userPosts.push({
             id: i.toString(),
-            content: `This is a test post ${start+i}` + faker.lorem.paragraphs(2),
+            content: `This is a test post ${start+i}` + faker.lorem.paragraphs(1+faker.number.int(3)),
             createdAt: new Date().toISOString(),
             likeCount: 1,
             replyCount: 2,
@@ -46,7 +46,8 @@ export type CleanupFn = (fn: ()=>void) => void
 export async function messageQuery (
     q: QueryResult<UserPost>, 
     props: {id: string}, 
-    cleanup: CleanupFn)  {
+    cleanup: CleanupFn)  
+{
     q.length = 100
     q.anchorKey = []
     q.cacheStart = 0
