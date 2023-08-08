@@ -56,7 +56,7 @@ export function createSharedListener<T>(api: ServiceFn<T>, init: T) {
         })
 
         port.start(); // Required when using addEventListener. Otherwise called implicitly by onmessage setter.
-        let initfn = api["connect"]
+        const initfn = api["connect"]
         if (initfn) {
             initfn(context, {})
         }

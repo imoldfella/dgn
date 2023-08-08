@@ -32,7 +32,7 @@ export class Listener {
         this._listen.delete(p)
     }
     notify() {
-        for (let p of this._listen) {
+        for (const p of this._listen) {
             p()
         }
     }
@@ -150,6 +150,7 @@ export type ApiSet = {
     [key: string]: ((...a: any[]) => Promise<any>)
 }
 
+// used as a type for a result that can be transfered.
 export class TransferableResult {
     constructor(public result: any, public transfer: any[]) {
     }
@@ -186,7 +187,7 @@ export class Peer {
         //console.log("recv", data)
         if (data.method) {
             console.log("listen ", data.method, data.params)
-            for (let apix of this.api) {
+            for (const apix of this.api) {
                 const api = apix[data.method]
                 if (!api) {
                     continue

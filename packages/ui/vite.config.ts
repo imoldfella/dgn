@@ -6,7 +6,20 @@ export default defineConfig(() => {
   return {
     server: {
       port: 7083,
-      host: '0.0.0.0'
+      host: '0.0.0.0',
+      cors: true,
+      headers: {
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Cross-Origin-Resource-Policy": "cross-origin",
+        "Cross-Origin-Opener-Policy": "same-origin",
+      },
+      // Set the content security policy to allow SharedArrayBuffer transfer
+      contentSecurityPolicy: {
+        directives: {
+          'worker-src': "'self' blob: data:;",
+          'connect-src': "'self' blob: data:;"
+        }
+      }
     },
     build: {
       target: "es2020",
