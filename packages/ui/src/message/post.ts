@@ -47,14 +47,15 @@ export async function messageQuery (
     q: QueryResult<UserPost>, 
     props: {id: string}, 
     cleanup: CleanupFn)  {
-    q.length = 50000
+    q.length = 100
     q.anchorKey = []
-    q.cacheStart = 25000
-    q.cache = fakePosts(25000, 100)
+    q.cacheStart = 0
+    q.cache = fakePosts(0, 100)
+    q.averageHeight = 48
     q.item = q.cache.map((_,index)=>{
         const o : VirtualItem ={
-            index: 25000 + index,
-            key: 2500+index+"",
+            index: 0 + index,
+            key: 0+index+"",
             start: 0,
             end: 0,
             size: 0,

@@ -7,7 +7,7 @@
 // tool/id  # tool=status 
 //  we can have "load more" top and bottom.
 
-import { $, JSXNode, QRL, Signal, Slot, component$, createContextId, useContext, useContextProvider, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik"
+import { $, JSXNode, QRL, Signal, Slot, component$, createContextId, useComputed$, useContext, useContextProvider, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik"
 import { DivProps } from "../tool/modal"
 import { UserPost } from "./post"
 
@@ -148,153 +148,56 @@ type TItemElement = HTMLElement;
 export const QueryBody = component$<Qbp>((props) => {
     const query = useContext<QueryResult<UserPost>>(QueryContext)
     const parentRef = useSignal<HTMLDivElement>()
+    const runway = useSignal<HTMLDivElement>()
 
       useResizeObserver(parentRef, $(()=>{
         console.log('resize', parentRef.value!.offsetHeight)
       }))
+
+      useVisibleTask$(({ track }) => {
+        track(()=>query.cache)
+        parentRef.value?.addEventListener('scroll', (e)=>{
+          console.log('scroll', parentRef.value!.scrollTop)
+        })
+        let start = query.averageHeight*query.cacheStart
+        runway.value!.scrollTop = -100
+        console.log('W',parentRef.value!.id, parentRef.value!.scrollTop,  start)
+        let mh = 0
+        for (let i = 0; i < query.item.length; i++) {
+          query.item[i].start = start
+          const el = runway.value!.children[i] as HTMLElement
+          start += el.offsetHeight
+          mh += el.offsetHeight
+        }
+        query.measuredHeight = mh
+      })
  
-        return <div class='h-full w-full overflow-auto' ref={parentRef}>
-        <div  style={{
-            height: (query.length*query.averageHeight)+'px',
+      const totalHeight = useComputed$(()=> query.measuredHeight + (query.length - query.cache.length)*query.averageHeight)
+        return <>
+                  <div class='fixed z-40' >
+          {query.averageHeight} {query.measuredHeight} {query.length} {query.cache.length} {totalHeight.value} {query.item[0]?.start} wtf{parentRef.value?.offsetHeight}fwt
+          </div>
+        <div id='wtf' class='h-full w-full overflow-auto' ref={parentRef}>
+
+        <div ref={runway} style={{
+            height: totalHeight.value+'px',
             width: '100%',
             position: 'relative'
         }}>
-            <div class='absolute w-full' style={{
-                transform: `translateY(${query.cacheStart*query.averageHeight}px)`,
-            }}/>
-            { query.cache.map((row: UserPost,index: number) => props.for(index))}
+            { 
+            query.item.map((row: VirtualItem,index: number) => { 
+              return <div key={row.key} style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${row.start}px)`
+              }}>{props.for(index)}</div>
+            })
+            }
         </div>
         </div>
+        </>
 })
 
-// we can't really merge dynamically and still have random access.
-// we can't be guaranteed that we can fit the entire timeline. so we are left with a materialized timeline that goes back in time dynamically.
-// yan cun: all data will be mediated by ai assistant. 
-interface Btree {
-
-}
-
-/*
-            { query.row.map((row: UserPost,index: number) => {
-                return <div key={index} 
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: `${32}px`,
-                    transform: `translateY(${index*32}px)`,
-                  }}
-                >WTF {index}</div>
-            })}
-        <div ref={d} class='absolute h-[1px] w-[1px]' style={{
-            transform: `translateY(${height.value}px)`,
-             transition: `transform 0.2s`
-        }}> </div>
-*/
-
-/*
-        { 
-        })}
-*/
-
-/*
-    const rowVirtualizer = useStore({
-        count: query.row.length,
-        row: query.row.map((e: UserPost,index: number) => {
-            const a: VirtualItem = {
-                key: e.id,
-                index: index,
-                start: 0,
-                end: 0,
-                size: 0,
-                lane: 0
-            } 
-            return a
-        }),
-        totalSize: query.averageHeight * query.length,
-      });
-
-
-    // how do we know when to measure?
-    // qwik won't render right away, so measurements might need a tick?
-
-    useVisibleTask$(({track})=>{
-        track(()=>query.row) // run every time the row changes
-        track(()=>query.length)
-        track(()=>query.offset)
-
-        // let h = 0
-        // for (let i = query.row.length; i < query.length; i++) {
-        //     const ch = items.value!.children[i]
-        //     h += (ch as HTMLElement).offsetHeight
-        // }
-        // query.measuredHeight = h
-        // we need to determine how to 
-        const dx = query.row.map((row, index) => {
-            return <div key={index} style={{
-                position: 'absolute',
-                transform: `translateY(${query.y[index]}px;`,
-            }}>{props.for(index)}</div>
-        })
-
-        for (let i = 0; i<dx.length; i++) {
-            console.log(renderToString(dx[i],{manifest}))
-        }
-    })
-*/
-
-    
-  //const items = useSignal<HTMLDivElement>()
-
-  // const height = useComputed$(() => {
-  //     return query.measuredHeight + (query.length - query.row.length)*query.averageHeight
-  // })
-
-  // const vstyle = (index: number) => {
-  //     return {
-  //         position: 'absolute',
-  //         transform: `translateY(${query.y[index]}px)`,
-  //         top: 0,
-  //         left: 0,
-  //         width: '100%'
-
-  //     }
-  // }
-
-  // set up intersection observer, scroll event handlers.
-  // const v = useVirtual({
-  //     size: query.length,
-  //     parentRef: items,
-  //     estimateSize: query.averageHeight,
-  //     overscan: 5,
-
-  // })
-
-  // interface Vrow {
-  //     key: string
-  //     index: number
-  //     style: CSSProperties
-  // }
-
-  // const vmap = () : Vrow[] => {
-  //     let y = 0
-  //     const r=  query.row.map((row, index) => {
-  //         const r = {
-  //             key: (index+query.offset)+"",
-  //             index: index+query.offset,
-  //             style: {
-  //                 position: 'absolute' as any,
-  //                 top: 0,
-  //                 left: 0,
-  //                 width: '100%',
-  //                 height: `${32}px`,
-  //                 transform: `translateY(${y}px)`,
-  //             }
-  //         }
-  //         y += 48
-  //         return r
-  //     })
-  //     console.log(r)
-  //     return r
   // }
