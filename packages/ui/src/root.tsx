@@ -4,8 +4,8 @@ import { SigninProvider, ThemeBootstrap, useSignin } from "./provider";
 import { Router, RoutingConfigItem, useLocation } from "./provider/router";
 
 import "./global.css";
-import { Component, Resource, component$, useResource$, useSignal, useVisibleTask$, } from "@builder.io/qwik";
-import {  QueryAst, QueryStream } from "./message";
+import { Component, Resource, component$, useResource$, useSignal, useStore, useVisibleTask$, } from "@builder.io/qwik";
+import {  PostStream } from "./message";
 import { $localize, LanguageSelect, LocaleProvider } from "./i18n";
 import { Edit, PageTool, Review, Tool, useApp } from "./tool";
 import { Signin2 } from "./message/signup";
@@ -20,8 +20,8 @@ import example from "./toc/test.en"
 import { DarkButton, bubble, cart, elipsis, pencil, search } from "./theme";
 import { Icon } from "./headless";
 import { makeShared } from "./opfs";
-import { QueryResult } from "./message/query";
-import { UserPost } from "./message/post";
+import { QueryResult, newQuery } from "./message/query";
+import { UserPost, messageQuery } from "./message/post";
 
 type RoutingConfig = RoutingConfigItem[];
 
@@ -79,6 +79,16 @@ const Outlet = component$((props) => {
   // if (loc.url.endsWith("/signin") ) return <Signin2/>
   // if (loc.url.endsWith("/signup") ) return <Signup/>
 
+  // why can't can call a store from useResource?
+  // should we make this a signal so we can replace in one go?
+  const query = useStore(newQuery<any>())
+
+  const ContentPage = () => {
+    switch(query.type) {
+      case 'post': return <PostStream query={query} />
+    }
+    return <div >Can't open {query.type}</div>
+  }
 
   const pickTool = useSignal("")
    const ToolDialog = component$(() => {
@@ -87,7 +97,7 @@ const Outlet = component$((props) => {
         case "": return null
         case "search": return <Search />
         case "cart": return <Cart />
-        case "more": return <Cart />        
+        case "more": return <More />        
     }
 
     // requires login.
@@ -95,40 +105,31 @@ const Outlet = component$((props) => {
       return <Signin2/>
     }
     switch (pickTool.value) {
-        case "share": return <Share />
         case "edit": return <Edit />
-        case "files": return <FileBrowser />
-        case "propose": return <Propose />
-        case "review": return <Review />
-        case "account": return <Account />
-        case "more": return <More />
+
+        // case "files": return <FileBrowser />
+        // case "propose": return <Propose />
+        // case "review": return <Review />
+        // case "account": return <Account />
     }
     return <div />
 })
 
-const example : QueryAst = {}
   // should tools be part of the url? should we be able to link to edit mode for example? not needed. why even pick tools here then, other than as configuration?
-  const sproc = useResource$(async ({track}) => {
-    
-    let qr : QueryResult<UserPost> 
-    return example
+  const sproc = useResource$(async ({track,cleanup}) => {
+        // queries need to be async. query starts in loading state.
+        track(() => loc)
+        await messageQuery(query, { id: loc.id }, cleanup)
   })
-
-
 
   return <PageTool tool={tool} pickTool={pickTool}>
     <div q:slot='tools'><ToolDialog/></div>
-          <div class=' flex  items-center'>
-                <div class='p-1'><Avatar user={me} /></div>
-            <SearchBox /><LanguageSelect  /><DarkButton /></div>
+
             <Resource 
               value={sproc }
               onPending={() => <>Loading...</>}
               onRejected={(error) => <>Error: {error.message}</>}
-              onResolved={(example) => (           
-               <QueryStream 
-                query={example}
-                />)} />
+              onResolved={() => <ContentPage/>} />
     </PageTool>
 })
 

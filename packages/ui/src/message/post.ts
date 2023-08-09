@@ -48,6 +48,7 @@ export async function messageQuery (
     props: {id: string}, 
     cleanup: CleanupFn)  
 {
+    q.type = 'post'
     q.length = 100
     q.anchorKey = []
     q.cacheStart = 0

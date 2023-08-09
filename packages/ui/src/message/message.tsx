@@ -1,13 +1,16 @@
 import { component$, $, useResource$, useVisibleTask$, useStore, useSignal, Slot, JSXNode } from "@builder.io/qwik"
 import { Icon } from "../headless"
-import { bubbleLeft, elipsis, heartOutline, heartSolid } from "../theme"
+import { DarkButton, bubbleLeft, elipsis, heartOutline, heartSolid } from "../theme"
 import { Image } from "@unpic/qwik"
 import { timeAgo } from './dates'
-import { RoutingLocation, useLocation, useNavigate } from "../provider"
+import { RoutingLocation, useLocation, useNavigate, useSignin } from "../provider"
 import { Button } from "./toast"
 import { User, UserPost, fakePosts, fakeUser, messageQuery } from "./post"
 import { QueryBody, Query, QueryResult, newQuery, } from "./query"
 import { JSX } from "@builder.io/qwik/jsx-runtime"
+import { LanguageSelect } from "../i18n"
+import { SearchBox } from "../root"
+import { Avatar } from "../share"
 
 
 
@@ -238,17 +241,9 @@ type Row<T> = T & { y: number }
 
 
 // each location represents a query. If there is no query or the user is not allowed to see the query, then we need to 404. The 404 can potentially trigger a sign in.
-export const QueryStream = component$<{ query: QueryAst
-}>((props) => {
-    const loc = useLocation()
+export const PostStream = component$<{ query: QueryResult<UserPost> }>(({query}) => {
 
-    // queries need to be async. query starts in loading state.
-    const query = useStore(newQuery<UserPost>())
 
-    useVisibleTask$(({ track, cleanup }) => {
-        track(() => loc)
-        messageQuery(query, { id: loc.id }, cleanup)
-    })
     return <>
         {query.found && <><div class='fixed z-40' >
             {query.averageHeight} {query.measuredHeight} {query.length} {query.cache.length} {query.totalHeight} {query.item[0]?.start}
@@ -268,6 +263,7 @@ export const QueryStream = component$<{ query: QueryAst
 })
 
 export const MessageStreamMockup = component$(() => {
+    const me = useSignin()
     const inner = useSignal<HTMLDivElement>()
     const outer = useSignal<HTMLDivElement>()
     const lines: string[] = []
@@ -281,10 +277,14 @@ export const MessageStreamMockup = component$(() => {
         outer.value!.scrollTop = 400
     })
     return <div ref={outer} class='w-full bg-neutral-800 h-screen overflow-y-auto'>
+
         <div ref={inner} style={{
             height: '10000px',
             position: 'relative'
         }}>
+                              <div class=' flex  items-center'>
+                <div class='p-1'><Avatar user={me} /></div>
+            <SearchBox /><LanguageSelect  /><DarkButton /></div>
             {
                 lines.map((line, index) => <div style={
                     {

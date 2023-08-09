@@ -54,9 +54,11 @@ export interface QueryPlan {
     orderby?: number[]
     filter?: string
 }    
-  
+
+type QueryType = null | 'post'
 // this is a store that we change when the the worker sends updates
 export interface QueryResult<ROW> {
+    type: QueryType
     length: number  // total number of rows in result
     cacheStart: number
     cache: ROW[]
@@ -76,6 +78,7 @@ export interface QueryResult<ROW> {
 }
 export function newQuery<T> () : QueryResult<T> {
     const r: QueryResult<T> = {
+        type: null,
         loaded: true,
         found: true,
         cache: [],
