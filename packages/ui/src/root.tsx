@@ -4,8 +4,8 @@ import { SigninProvider, ThemeBootstrap, useSignin } from "./provider";
 import { Router, RoutingConfigItem, useLocation } from "./provider/router";
 
 import "./global.css";
-import { Component, Resource, component$, useSignal, useVisibleTask$, } from "@builder.io/qwik";
-import {  QueryStream } from "./message";
+import { Component, Resource, component$, useResource$, useSignal, useVisibleTask$, } from "@builder.io/qwik";
+import {  QueryAst, QueryStream } from "./message";
 import { $localize, LanguageSelect, LocaleProvider } from "./i18n";
 import { Edit, PageTool, Review, Tool, useApp } from "./tool";
 import { Signin2 } from "./message/signup";
@@ -20,6 +20,8 @@ import example from "./toc/test.en"
 import { DarkButton, bubble, cart, elipsis, pencil, search } from "./theme";
 import { Icon } from "./headless";
 import { makeShared } from "./opfs";
+import { QueryResult } from "./message/query";
+import { UserPost } from "./message/post";
 
 type RoutingConfig = RoutingConfigItem[];
 
@@ -69,7 +71,6 @@ const Outlet = component$((props) => {
     if (window?.navigator) {
       // nav("/en/timeline")
     }
-   
   }
   //const tool = u.searchParams.get('tool')??""
   const path = u.pathname.split('/')
@@ -105,18 +106,29 @@ const Outlet = component$((props) => {
     return <div />
 })
 
- 
+const example : QueryAst = {}
   // should tools be part of the url? should we be able to link to edit mode for example? not needed. why even pick tools here then, other than as configuration?
+  const sproc = useResource$(async ({track}) => {
+    
+    let qr : QueryResult<UserPost> 
+    return example
+  })
+
+
 
   return <PageTool tool={tool} pickTool={pickTool}>
     <div q:slot='tools'><ToolDialog/></div>
           <div class=' flex  items-center'>
                 <div class='p-1'><Avatar user={me} /></div>
             <SearchBox /><LanguageSelect  /><DarkButton /></div>
-       <QueryStream 
-          loading={()=><div>$localize`Loading`</div>}
-          notFound={()=><div>$localize`Not found`</div>}
-        />
+            <Resource 
+              value={sproc }
+              onPending={() => <>Loading...</>}
+              onRejected={(error) => <>Error: {error.message}</>}
+              onResolved={(example) => (           
+               <QueryStream 
+                query={example}
+                />)} />
     </PageTool>
 })
 

@@ -236,14 +236,11 @@ export const Header = component$(() => {
 
 type Row<T> = T & { y: number }
 
+
 // each location represents a query. If there is no query or the user is not allowed to see the query, then we need to 404. The 404 can potentially trigger a sign in.
-export const QueryStream = component$<{ loading: ()=>JSXNode,
-    notFound: ()=>JSXNode
+export const QueryStream = component$<{ query: QueryAst
 }>((props) => {
     const loc = useLocation()
-
-    const loading = $(()=> props.loading())
-    const notFound = $(()=> props.notFound())
 
     // queries need to be async. query starts in loading state.
     const query = useStore(newQuery<UserPost>())
@@ -253,8 +250,6 @@ export const QueryStream = component$<{ loading: ()=>JSXNode,
         messageQuery(query, { id: loc.id }, cleanup)
     })
     return <>
-        {!query.loaded && loading()}
-        {!query.found && notFound() }
         {query.found && <><div class='fixed z-40' >
             {query.averageHeight} {query.measuredHeight} {query.length} {query.cache.length} {query.totalHeight} {query.item[0]?.start}
         </div>
