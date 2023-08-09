@@ -4,24 +4,18 @@ import { SigninProvider, ThemeBootstrap, useSignin } from "./provider";
 import { Router, RoutingConfigItem, useLocation } from "./provider/router";
 
 import "./global.css";
-import { Component, Resource, component$, useResource$, useSignal, useStore, useVisibleTask$, } from "@builder.io/qwik";
+import { Resource, component$, useResource$, useSignal, useStore, useVisibleTask$, } from "@builder.io/qwik";
 import {  PostStream } from "./message";
-import { $localize, LanguageSelect, LocaleProvider } from "./i18n";
-import { Edit, PageTool, Review, Tool, useApp } from "./tool";
+import { $localize, LocaleProvider } from "./i18n";
+import { Edit, PageTool, Tool } from "./tool";
 import { Signin2 } from "./message/signup";
-import { Account } from "./account";
-import { FileBrowser } from "./filebrowser";
 import { More } from "./more";
-import { Propose } from "./propose";
 import { Search } from "./search";
-import { Avatar, Share } from "./share";
-import { TocTabbed } from "./toc";
-import example from "./toc/test.en"
-import { DarkButton, bubble, cart, elipsis, pencil, search } from "./theme";
+import { bubble, cart, elipsis, pencil, search } from "./theme";
 import { Icon } from "./headless";
 import { makeShared } from "./opfs";
-import { QueryResult, newQuery } from "./message/query";
-import { UserPost, messageQuery } from "./message/post";
+import { newQuery } from "./message/query";
+import { messageQuery } from "./message/post";
 
 type RoutingConfig = RoutingConfigItem[];
 
