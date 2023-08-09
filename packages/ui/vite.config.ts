@@ -1,19 +1,9 @@
 import { defineConfig } from "vite";
 import { qwikVite } from "@builder.io/qwik/optimizer";
 import tsconfigPaths from "vite-tsconfig-paths";
-import mkcert from 'vite-plugin-mkcert'
 
-export default defineConfig( {
-    server: {
-      port: 7083,
-      host: '0.0.0.0',
-      cors: true,
-      headers: {
-        "Cross-Origin-Embedder-Policy": "require-corp",
-        "Cross-Origin-Resource-Policy": "cross-origin",
-        "Cross-Origin-Opener-Policy": "same-origin",
-      },
-    },
+export default defineConfig(() => {
+  return {
     build: {
       target: "es2020",
       lib: {
@@ -33,9 +23,6 @@ export default defineConfig( {
           });
         },
       },
-      mkcert(),qwikVite({
-      devTools: {
-        clickToSource: false
-      }
-    }), tsconfigPaths()],
-  })
+      qwikVite(), tsconfigPaths()],
+  };
+});

@@ -69,9 +69,15 @@ export interface QueryResult<ROW> {
     measuredHeight: number
     item: VirtualItem[]
     totalHeight: number
+
+    // we
+    found: boolean
+    loaded: boolean
 }
 export function newQuery<T> () : QueryResult<T> {
     const r: QueryResult<T> = {
+        loaded: true,
+        found: true,
         cache: [],
         item: [],
         anchorKey: [],

@@ -1,6 +1,8 @@
 import { Slot, component$ } from "@builder.io/qwik"
 import { DarkButton, LanguageSelect, useLocale } from ".."
 
+
+
 export const SimplePage = component$(() => {
    
     const ln = useLocale()

@@ -4,11 +4,11 @@ import { SigninProvider, ThemeBootstrap, useSignin } from "./provider";
 import { Router, RoutingConfigItem, useLocation } from "./provider/router";
 
 import "./global.css";
-import { Component, component$, useSignal, useVisibleTask$, } from "@builder.io/qwik";
-import {  MessageStream } from "./message";
+import { Component, Resource, component$, useSignal, useVisibleTask$, } from "@builder.io/qwik";
+import {  QueryStream } from "./message";
 import { $localize, LanguageSelect, LocaleProvider } from "./i18n";
-import { Edit, PageTool, Review, useApp } from "./tool";
-import { Signin2, Signup } from "./message/signup";
+import { Edit, PageTool, Review, Tool, useApp } from "./tool";
+import { Signin2 } from "./message/signup";
 import { Account } from "./account";
 import { FileBrowser } from "./filebrowser";
 import { More } from "./more";
@@ -17,7 +17,7 @@ import { Search } from "./search";
 import { Avatar, Share } from "./share";
 import { TocTabbed } from "./toc";
 import example from "./toc/test.en"
-import { DarkButton, cart, search } from "./theme";
+import { DarkButton, bubble, cart, elipsis, pencil, search } from "./theme";
 import { Icon } from "./headless";
 import { makeShared } from "./opfs";
 
@@ -35,9 +35,35 @@ export const Cart = component$(() => {
   return <Icon svg={cart} class='dark:text-white h-6 w-6' />
 })
 
+const tool: Tool[] = [
+  // the menu is sync'd to the current page.
+
+  { name: "search", desc: $localize`Find`, svg: search },
+  { name: "share", desc: $localize`Message`, svg: bubble },
+
+  // behind "more" on mobile. we could also hide and require them to be in the menu
+  // { name: "edit", desc: $localize`Edit`, svg: tablet },
+  // { name: "files", desc: $localize`Files`, svg: folder },
+  { name: "cart", desc: $localize`To do`, svg: cart },
+  { name: "edit", desc: $localize`Edit`, svg: pencil },
+  { name: "more", desc: $localize`More`, svg: elipsis },
+
+  //{ name: "account", desc: $localize`Account`, svg: personIcon },
+  // how do I lock the main branch?
+  // vote for adoption, publish
+  // { name: "propose", desc: $localize`Propose`, svg: proposeIcon },
+  // { name: "review", desc: $localize`Review`, svg: reviewIcon },
+
+  //{ name: "data", desc: $localize`Data`, svg: circleStack },
+]
+
+// if the url requires a sign in, then we need to show a blank page with a sign in dialog? This should be a hidden tool. If they close the box with signing in, it should go to the datagrove home page.
+// maybe if they don't have access to the page for any reason we should 404?
+// the 404 could take them to a login or change login if they are already logged in.
 const Outlet = component$((props) => {
   //const nav = useNavigate()
   const loc = useLocation() // should be signal?
+  const me = useSignin()
   const u = new URL(loc.url)
   if (u.pathname === "/") {
     if (window?.navigator) {
@@ -45,47 +71,30 @@ const Outlet = component$((props) => {
     }
    
   }
-  const tool = u.searchParams.get('tool')??""
+  //const tool = u.searchParams.get('tool')??""
   const path = u.pathname.split('/')
   const content = path[1]??"" // should be signal?
 
-  if (loc.url.endsWith("/signin") ) return <Signin2/>
-  if (loc.url.endsWith("/signup") ) return <Signup/>
-  
-  // <ToolDialog q:slot='tool'/>
-  // <ToolDialog q:slot='tool'/>
+  // if (loc.url.endsWith("/signin") ) return <Signin2/>
+  // if (loc.url.endsWith("/signup") ) return <Signup/>
 
-  let X : Component<{}>
-  switch(content) {
-    default:
-    case "timeline": X = Timeline; break;
-  }
- 
 
-  return <PageTool tool={tool}>
-    <div q:slot='tool'>WTF</div>
-    {/* <div>{JSON.stringify(loc)}</div> */}
-     <X/>
-      </PageTool>
-})
-
-// 
-export const Timeline = component$(() => {
-  const me = useSignin()
-  return <><div class=' hidden large:flex  items-center'>
-                <div class='p-1'><Avatar user={me} /></div>
-            <SearchBox /><LanguageSelect  /><DarkButton /></div>
-           <MessageStream/>
-        </>
-})
-
-export const ToolDialog = component$(() => {
-    const app = useApp()
-    switch (app.tab.value) {
-        case "menu": return <TocTabbed toc={example} />
+  const pickTool = useSignal("")
+   const ToolDialog = component$(() => {
+    // do not require login.
+    switch (pickTool.value) {
+        case "": return null
         case "search": return <Search />
-        case "share": return <Share />
         case "cart": return <Cart />
+        case "more": return <Cart />        
+    }
+
+    // requires login.
+    if (!me.value) {
+      return <Signin2/>
+    }
+    switch (pickTool.value) {
+        case "share": return <Share />
         case "edit": return <Edit />
         case "files": return <FileBrowser />
         case "propose": return <Propose />
@@ -96,12 +105,29 @@ export const ToolDialog = component$(() => {
     return <div />
 })
 
+ 
+  // should tools be part of the url? should we be able to link to edit mode for example? not needed. why even pick tools here then, other than as configuration?
+
+  return <PageTool tool={tool} pickTool={pickTool}>
+    <div q:slot='tools'><ToolDialog/></div>
+          <div class=' flex  items-center'>
+                <div class='p-1'><Avatar user={me} /></div>
+            <SearchBox /><LanguageSelect  /><DarkButton /></div>
+       <QueryStream 
+          loading={()=><div>$localize`Loading`</div>}
+          notFound={()=><div>$localize`Not found`</div>}
+        />
+    </PageTool>
+})
+
+
+
 
 
 // thise needs to be executed for each page fetch/cache
 // we need to resolve the database fetch so to include the base html
 // that html can have QRLs in it. A challenge is to build it all together, as the QRL's may change. Publish implies an SSG step. A challenge is then to allow some changes incrementally patching the underlying site, perhaps these are only loaded from json? sanitizing the json is easier than sanitizing html, although clients that can write pages are trusted? How do we authorize roots for the various database slices?
-export default component$(() => {
+const o1 = component$(() => {
   useVisibleTask$(()=>{
     makeShared()
   })
@@ -122,6 +148,29 @@ export default component$(() => {
       </body>    
   </>
 })
+
+const o2  = component$(() => {
+  const x = useSignal(true)
+  useVisibleTask$(()=> {
+    x.value = window.crossOriginIsolated
+  })
+
+  return (
+    <>
+      <head>
+        <meta charSet="utf-8" />
+        <title>Qwik Blank App</title>
+      </head>
+      <body>
+        sab { x.value.toString() }
+      </body>
+    </>
+  );
+})
+
+
+
+export default o1
 
 // <script src="/node_modules/preline/dist/preline.js"></script>
 // const Info = component$(() => {
