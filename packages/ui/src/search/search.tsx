@@ -1,6 +1,6 @@
 import { component$ } from "@builder.io/qwik"
 import { Icon } from "../headless"
-import { Close } from "../tool/layout"
+import { Close, SimpleDialog } from "../tool/layout"
 import { search } from "../theme"
 
 // search background is a filterable/user-unique page. Generally this should have a sticky link to the drive root.
@@ -26,11 +26,11 @@ export const Search = component$(() => {
     // segment control to switch page/site/all/world
 
 
-    return <><div class='flex items-center mr-1'>
+    return <SimpleDialog><div class='flex items-center mr-1'>
         <SearchBox />
         <Close/>
     </div>
-    </>
+    </SimpleDialog>
 })
 
 export interface FilterSet {

@@ -11,7 +11,7 @@ import { AppContext, AppStore, Edit, PageTool, Tool } from "./tool";
 import { Signin2 } from "./post/signup";
 import { More } from "./more";
 import { Search } from "./search";
-import { H2, bubble, cart, elipsis, pencil, search } from "./theme";
+import { H2, bubble, cart, elipsis, pencil, personIcon, search } from "./theme";
 import { Icon } from "./headless";
 import { makeShared } from "./opfs";
 import { newQuery } from "./query/query";
@@ -67,6 +67,7 @@ const Outlet = component$((props) => {
   const me = useSignal<Signin|null>({
     id: 1,
     name: 'test',
+    avatar: '',
   })
 
   const app = useStore<AppStore>({
@@ -81,6 +82,7 @@ const Outlet = component$((props) => {
     me.value = {
       id: 1,
       name: 'test',
+      avatar: personIcon
     }
   })
   useContextProvider(AppContext, app);  //const tool = u.searchParams.get('tool')??""
