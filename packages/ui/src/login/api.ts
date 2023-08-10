@@ -5,13 +5,15 @@
 // we need a name, an email (could be apple fake), 
 
 
-export interface Signin {
-    info?: number
+export interface UserBasic {
+    name: string
+    id: string
+    avatar: string   // data url for pngs, should we use data urls for everything?
+}
+export interface Signin extends UserBasic {
+
     // list of remembered logins
-    alt?: {
-        name: string
-        id: number
-    }
+    alt?: UserBasic[]
 }
 // this is initalized by loading the login page.
 export const testUser = 1
@@ -56,11 +58,7 @@ export interface Login {
     did: string
     until: number
   }
-export interface UserBasic {
-    name: string
-    handle: string
-    avatar: string   // data url for pngs, should we use data urls for everything?
-}
+
 export interface UserExtended {
     basic: UserBasic
     description: string

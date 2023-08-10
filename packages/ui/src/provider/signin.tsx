@@ -1,11 +1,10 @@
-import { component$, Slot, useStore, NoSerialize, useVisibleTask$, useSignal, Signal } from '@builder.io/qwik';
+import { component$, Slot, useVisibleTask$, useSignal, Signal } from '@builder.io/qwik';
 import {
   useContext,
   useContextProvider,
   createContextId,
 } from '@builder.io/qwik';
-import {  LoginApi, Signin, testUser } from '../login/api';
-import { ClientState } from '../login/passkey';
+import {  Signin } from '../login/api';
 import { useNavigate } from './router';
 
 

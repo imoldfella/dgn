@@ -1,30 +1,32 @@
 
 
 import { SigninProvider, ThemeBootstrap, useSignin } from "./provider";
-import { Router, RoutingConfigItem, useLocation } from "./provider/router";
+import { Router, RoutingConfigItem, link, useLocation } from "./provider/router";
 
 import "./global.css";
-import { Resource, component$, useResource$, useSignal, useStore, useVisibleTask$, } from "@builder.io/qwik";
-import {  PostStream } from "./message";
+import { Resource, component$, useContextProvider, useResource$, useSignal, useStore, useTask$, useVisibleTask$, } from "@builder.io/qwik";
+import { PostStream } from "./post";
 import { $localize, LocaleProvider } from "./i18n";
-import { Edit, PageTool, Tool } from "./tool";
-import { Signin2 } from "./message/signup";
+import { AppContext, AppStore, Edit, PageTool, Tool } from "./tool";
+import { Signin2 } from "./post/signup";
 import { More } from "./more";
 import { Search } from "./search";
-import { bubble, cart, elipsis, pencil, search } from "./theme";
+import { H2, bubble, cart, elipsis, pencil, search } from "./theme";
 import { Icon } from "./headless";
 import { makeShared } from "./opfs";
-import { newQuery } from "./message/query";
-import { messageQuery } from "./message/post";
+import { newQuery } from "./query/query";
+import { messageQuery } from "./post/post";
+import { DmList } from "./dm";
+import { Signin } from "./login";
 
 type RoutingConfig = RoutingConfigItem[];
 
 export const SearchBox = component$(() => {
   return <div class='flex-1 m-2 flex items-center shadow  bg-neutral-800  rounded-lg px-1'
   > <Icon svg={search} class='dark:text-white h-6 w-6' />
-      <input autoFocus
-          class=" flex-1 border-0 focus:ring-0 focus:outline-none bg-transparent dark:text-white"
-          placeholder={$localize`Search Datagrove`} type="search" /></div>
+    <input autoFocus
+      class=" flex-1 border-0 focus:ring-0 focus:outline-none bg-transparent dark:text-white"
+      placeholder={$localize`Search Datagrove`} type="search" /></div>
 })
 
 export const Cart = component$(() => {
@@ -59,75 +61,97 @@ const tool: Tool[] = [
 const Outlet = component$((props) => {
   //const nav = useNavigate()
   const loc = useLocation() // should be signal?
-  const me = useSignin()
+  //const me = useSignin()
   const u = new URL(loc.url)
-  if (u.pathname === "/") {
-    if (window?.navigator) {
-      // nav("/en/timeline")
+
+  const me = useSignal<Signin|null>({
+    id: 1,
+    name: 'test',
+  })
+
+  const app = useStore<AppStore>({
+    me: me,
+    tab: "",
+    y: 46,
+    branch: "First draft",
+    tool: tool
+  })
+
+  useTask$(async () => {
+    me.value = {
+      id: 1,
+      name: 'test',
     }
-  }
-  //const tool = u.searchParams.get('tool')??""
+  })
+  useContextProvider(AppContext, app);  //const tool = u.searchParams.get('tool')??""
   const path = u.pathname.split('/')
-  const content = path[1]??"" // should be signal?
-
-  // if (loc.url.endsWith("/signin") ) return <Signin2/>
-  // if (loc.url.endsWith("/signup") ) return <Signup/>
-
-  // why can't can call a store from useResource?
-  // should we make this a signal so we can replace in one go?
   const query = useStore(newQuery<any>())
 
+
+  // this can't be a component?, because it is called from resource?.
+  // apparently it can call components though?
   const ContentPage = () => {
-    switch(query.type) {
-      case 'post': return <PostStream query={query} />
+    // only called when page and query have been resolved.
+    // the resolution may be that the page
+
+    // if the page can be created by the logged in user, we should give that option.
+    if (query.error=='login') {
+      return <div class='flex flex-col items-center justify-center h-screen'>
+          <H2>This page is not available</H2>
+          { !me.value && <div>It may become available if you <button class={link} onClick$={()=>{ app.y=400; app.tab='signin'}}>sign in</button></div> }
+          { me.value && <><div>You are logged in as {me.value.name}</div><div>. It may become available if you sign in with a different account </div></> }
+        </div>
     }
-    return <div >Can't open {query.type}</div>
+    switch (query.type) {
+      case 'newestTop': return <PostStream query={query} />
+      case 'oldestTop': return <PostStream query={query} oldestTop />
+    }
+    return <div >Can't open ({query.type})</div>
   }
 
-  const pickTool = useSignal("")
-   const ToolDialog = component$(() => {
+
+  const ToolDialog = component$(() => {
     // do not require login.
-    switch (pickTool.value) {
-        case "": return null
-        case "search": return <Search />
-        case "cart": return <Cart />
-        case "more": return <More />        
+    switch (app.tab) {
+      case "": return null
+      case "search": return <Search />
+      case "cart": return <Cart />
+      case "more": return <More />
+      case "signin": return <Signin2 />
     }
 
     // requires login.
-    if (!me.value) {
+    if (null==app.me) {
       return <Signin2/>
     }
-    switch (pickTool.value) {
-        case "edit": return <Edit />
-
-        // case "files": return <FileBrowser />
-        // case "propose": return <Propose />
-        // case "review": return <Review />
-        // case "account": return <Account />
+    switch (app.tab) {
+      case "edit": return <Edit />
+      case "share": return <DmList/>
+      // case "files": return <FileBrowser />
+      // case "propose": return <Propose />
+      // case "review": return <Review />
+      // case "account": return <Account />
     }
     return <div />
-})
-
-  // should tools be part of the url? should we be able to link to edit mode for example? not needed. why even pick tools here then, other than as configuration?
-  const sproc = useResource$(async ({track,cleanup}) => {
-        // queries need to be async. query starts in loading state.
-        track(() => loc)
-        await messageQuery(query, { id: loc.id }, cleanup)
   })
 
-  return <PageTool tool={tool} pickTool={pickTool}>
-    <div q:slot='tools'><ToolDialog/></div>
+  // should tools be part of the url? should we be able to link to edit mode for example? not needed. why even pick tools here then, other than as configuration?
+  const sproc = useResource$(async ({ track, cleanup }) => {
+    // queries need to be async. query starts in loading state.
+    track(() => loc)
+    await messageQuery('newestTop', query, { id: loc.id }, cleanup)
+    //query.error = 'login'
+  })
 
-            <Resource 
-              value={sproc }
-              onPending={() => <>Loading...</>}
-              onRejected={(error) => <>Error: {error.message}</>}
-              onResolved={() => <ContentPage/>} />
-    </PageTool>
+  return <PageTool >
+    <div q:slot='tools'><ToolDialog /></div>
+    <Resource
+      value={sproc}
+      onPending={() => <>Loading...</>}
+      onRejected={(error) => <>Error: {error.message}</>}
+      onResolved={() => <ContentPage />} />
+  </PageTool>
 })
-
-
 
 
 
@@ -135,30 +159,30 @@ const Outlet = component$((props) => {
 // we need to resolve the database fetch so to include the base html
 // that html can have QRLs in it. A challenge is to build it all together, as the QRL's may change. Publish implies an SSG step. A challenge is then to allow some changes incrementally patching the underlying site, perhaps these are only loaded from json? sanitizing the json is easier than sanitizing html, although clients that can write pages are trusted? How do we authorize roots for the various database slices?
 const o1 = component$(() => {
-  useVisibleTask$(()=>{
+  useVisibleTask$(() => {
     makeShared()
   })
   return <>
-      <head >
-        <meta charSet="utf-8" />
-        <ThemeBootstrap />
-      </head>
-      <body lang="en" class=' dark:bg-black dark:text-white'>
-       <Router>
+    <head >
+      <meta charSet="utf-8" />
+      <ThemeBootstrap />
+    </head>
+    <body lang="en" class=' dark:bg-black dark:text-white'>
+      <Router>
         <LocaleProvider>
           <SigninProvider>
-            <Outlet/>
+            <Outlet />
           </SigninProvider>
         </LocaleProvider>
-        </Router>
-        
-      </body>    
+      </Router>
+
+    </body>
   </>
 })
 
-const o2  = component$(() => {
+const o2 = component$(() => {
   const x = useSignal(true)
-  useVisibleTask$(()=> {
+  useVisibleTask$(() => {
     x.value = window.crossOriginIsolated
   })
 
@@ -169,7 +193,7 @@ const o2  = component$(() => {
         <title>Qwik Blank App</title>
       </head>
       <body>
-        sab { x.value.toString() }
+        sab {x.value.toString()}
       </body>
     </>
   );
@@ -210,16 +234,16 @@ export default o1
 // we might be going directly to a subdomain
 // 1. if subdomain is taken, then we should go to that page with whatever login we have
 // 2. if subdomain is not taken, then we should default that into the website name.
-  // urls are content and optional tool
-  // should I use ?tool= 
+// urls are content and optional tool
+// should I use ?tool=
 
-  // logged in:
-  // if / then pick the language based on the browser or stored.
-  // /en/ = timeline
-  // /es/t/{id} = topic  # note that this can't be cached, it should be live.
-  // 
+// logged in:
+// if / then pick the language based on the browser or stored.
+// /en/ = timeline
+// /es/t/{id} = topic  # note that this can't be cached, it should be live.
+//
 
-  // maybe we should redirect a route? dns should matter?
-  // only get to this root from datagrove.com?
-  // in back of login we should see a list of linked sites? (each site then in a sandbox)
-  // the content and the tool have 
+// maybe we should redirect a route? dns should matter?
+// only get to this root from datagrove.com?
+// in back of login we should see a list of linked sites? (each site then in a sandbox)
+// the content and the tool have 

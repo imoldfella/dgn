@@ -9,7 +9,7 @@ export const TextDivider = component$((props: TextDividerProps) => {
             <div class="w-full border-t border-gray-300"></div>
         </div>
         <div class="relative flex justify-center text-sm w-full">
-            <span class="bg-white dark:bg-black px-2 text-gray-500">
+            <span class="bg-white dark:bg-neutral-900 px-2 text-gray-500">
                 <Slot/>
             </span>
         </div>

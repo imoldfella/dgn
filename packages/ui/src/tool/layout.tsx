@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, $, QwikMouseEvent, Signal, useTask$, Slot, useVisibleTask$ } from "@builder.io/qwik";
 import { Icon } from "../headless";
-import { bars_3 } from "../theme";
-import { xCircle } from "../i18n";
+import { DarkButton, bars_3 } from "../theme";
+import { LanguageSelect, useLocale, xCircle } from "../i18n";
 import { useLocation, useNavigate, useSignin } from "../provider";
 import { renderJson } from "./render";
+import { Signin } from "../login";
 
 const startApp = ''
 
 
-const AppContext = createContextId<AppStore>("LAYOUT");
+export const AppContext = createContextId<AppStore>("LAYOUT");
 export function useApp() { return useContext<AppStore>(AppContext); }
 
 
@@ -20,7 +21,8 @@ export interface Tool {
     href?: string
 }
 export interface AppStore {
-    tab: Signal<string>
+    me: Signal<Signin|null>
+    tab: string
     y: number
     branch: string
     tool: Tool[]
@@ -78,18 +80,12 @@ export const Render = component$(() => {
 // when loading statically we can assume 1 wide. We don't need to decide 1-2-3 wide until a menu is requested.
 // splitters should not download on mobile, only lazy load on desktop
 // we need to store locally for each tab?
-export const PageTool = component$<{ tool: Tool[], pickTool: Signal<string> }>((props) => {
+export const PageTool = component$<{}>((props) => {
     const width = useSignal(0)
     const height = useSignal(0)
     const desktop = useSignal(true)
 
-    const app = useStore<AppStore>({
-        tab: props.pickTool,
-        y: 46,
-        branch: "First draft",
-        tool: props.tool
-    })
-    useContextProvider(AppContext, app);
+
 
     useVisibleTask$(() => {
         const update = () => {
@@ -136,10 +132,10 @@ const Desktop = component$(() => {
 
     const toggle = $((x: string) => {
         console.log("toggle", x, app.tab)
-        if (x == app.tab.value)
-            app.tab.value = ""
+        if (x == app.tab)
+            app.tab = ""
         else {
-            app.tab.value = x
+            app.tab = x
         }
     })
     const VRailText = component$(() => {
@@ -152,14 +148,14 @@ const Desktop = component$(() => {
                 <Icon svg={props.svg} class='w-8 h-8  flex-1' /></div>
         }
         return <div class=' w-12 flex flex-col items-center h-full   bg-neutral-900'>
-            {app.tool.map((x, i) => <VRailIcon key={x.name} selected={app.tab.value == x.name} svg={x.svg} onClick$={() => toggle(x.name)} />)}
+            {app.tool.map((x, i) => <VRailIcon key={x.name} selected={app.tab == x.name} svg={x.svg} onClick$={() => toggle(x.name)} />)}
         </div>
     })
 
     return <div class='w-screen h-screen flex '>
         <VRail />
 
-        {app.tab.value != "" && <>
+        {app.tab != "" && <>
             <div class='bg-neutral-900 border-l-[1px] border-neutral-800' style={{
                 width: x.value + "px"
             }}><Slot name='tools' /></div><div
@@ -177,11 +173,11 @@ const Mobile = component$(() => {
     const app = useApp()
     const nav = useNavigate()
     const toggle = $((x: string) => {
-        console.log("toggle", x, app.tab.value)
-        if (x == app.tab.value)
-            app.tab.value = ""
+        console.log("toggle", x, app.tab)
+        if (x == app.tab)
+            app.tab = ""
         else {
-            app.tab.value = x
+            app.tab = x
             app.y = Math.max(app.y, 400)
         }
     })
@@ -206,7 +202,7 @@ const Mobile = component$(() => {
             <div class='w-full flex items-center py-1'>
                 {app.tool.map((x, i) =>
                     <div key={x.name} class='flex flex-1 flex-col text-neutral-500 hover:text-blue-700 items-center ' style={{
-                        "color": app.tab.value == x.name ? "white" : undefined
+                        "color": app.tab == x.name ? "white" : undefined
                     }}
                         onClick$={() => {
                             if (x.href) {
@@ -231,8 +227,8 @@ const Mobile = component$(() => {
                 <div class='hidden h-4  justify-center'>
                     <button class='bg-neutral-800 rounded-full w-16 h-2 my-1' />
                 </div>
-                {app.tab.value == "" && <HRail />}
-                {app.tab.value != "" && <Slot name='tools' /> }
+                {app.tab == "" && <HRail />}
+                {app.tab != "" && <Slot name='tools' /> }
             </div>
         </div>
     </div>
@@ -251,12 +247,33 @@ const MessageEditor = component$(() => {
 })
 
 function close(app: AppStore) {
-    app.tab.value = ""
+    app.tab = ""
     app.y = 46
 }
 
 export const Close = component$(() => {
     const app = useApp()
 
-    return <Icon svg={xCircle} class='h-8 w-8 text-blue-500 hover:text-blue-700' onClick$={() => close(app)} />
+    return <Icon svg={xCircle} class='absolute top-2 right-2 h-8 w-8 text-blue-500 hover:text-blue-700' onClick$={() => close(app)} />
+})
+
+
+export const languageBar = component$(() => {
+    const ln = useLocale()
+    return <div dir={ln.dir} class='px-2 space-x-1 my-2  w-full flex flex-row items-center'>
+    <div><Slot name='top-left' /></div>
+    <div class='flex-1 ' />
+    <div class='w-48 '><LanguageSelect /></div>
+    <DarkButton />
+</div>
+})
+
+export const SimpleDialog = component$(() => {
+    return <>
+        <div class="relative flex items-center justify-center w-full h-full p-2">
+            <div class='w-96'>
+                <Slot />
+            </div>
+        </div>
+    </>
 })
