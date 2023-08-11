@@ -5,6 +5,7 @@ import { Query , QueryBody, QueryResult, SimpleQueryBody, VirtualItem, newQuery}
 import { UserBasic } from "../login"
 import { CleanupFn } from "../post/post"
 import { Icon } from "../headless"
+import { timeAgo } from "../post"
 
 const input = 'dark:text-white dark:bg-black'
 interface Group {
@@ -16,14 +17,14 @@ export function userList(g: Group) {
     return g.user.map((u,index)=> u.name).join(', ')
 }
 export function handleList(g: Group) {
-    return g.user.map((u,index)=> u.).join(', ')
+    return g.user.map((u,index)=> u.handle).join(', ')
 }
 
 
 export function dmQuery(app: AppStore, qr: QueryResult<Group>,cleanup: CleanupFn ){
     for (let i = 0; i<20; i++) {
         qr.cache.push({user: [
-            {name: 'joe', id: 2, avatar: personIcon},
+            {name: 'joe', id: 2, avatar: personIcon, handle: 'joe'},
         ], lastMessage: 'hello'
         , lastMessageTime: Date.now()})
     }
@@ -63,7 +64,7 @@ export const DmList = component$(()=>{
                     return <div key={index} class='flex items-center'>
                     <Icon class='block h-8 w-8' svg={personIcon}/>
                     <div class='flex flex-col w-full pl-1'>
-                        <div class='text-lg'>{userList(item)} </div>
+                        <div class='text-lg'>{userList(item)} {handleList(item)} {timeAgo(new Date(item.lastMessageTime))}</div>
                         <div class='text-sm'>{item.lastMessage}</div>
                     </div>
                     </div>

@@ -7,6 +7,7 @@
 
 export interface UserBasic {
     name: string
+    handle: string
     id: number
     avatar: string   // data url for pngs, should we use data urls for everything?
 }

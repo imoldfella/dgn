@@ -66,7 +66,8 @@ const Outlet = component$((props) => {
 
   const me = useSignal<Signin|null>({
     id: 1,
-    name: 'test',
+    name: 'test', 
+    handle: 'test',
     avatar: '',
   })
 
@@ -83,6 +84,7 @@ const Outlet = component$((props) => {
     me.value = {
       id: 1,
       name: 'test',
+      handle: 'test',
       avatar: personIcon
     }
   })
