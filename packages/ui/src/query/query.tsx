@@ -7,7 +7,7 @@
 // tool/id  # tool=status 
 //  we can have "load more" top and bottom.
 
-import { $, JSXNode, QRL, Signal, Slot, component$, createContextId, useComputed$, useContext, useContextProvider, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik"
+import { $, JSXNode, Slot, component$, createContextId, useContext, useContextProvider, useSignal, useVisibleTask$ } from "@builder.io/qwik"
 import { DivProps } from "../tool/modal"
 import { UserPost } from "../post/post"
 import { useResizeObserver } from "../post/resize"
@@ -145,8 +145,10 @@ export const QueryBody = component$<Qbp>((props) => {
         for (let i = 0; i < query.item.length; i++) {
           query.item[i].start = start
           const el = runway.value!.children[i] as HTMLElement
-          start +=  el.offsetHeight
-          mh += el.offsetHeight
+          if (el) {
+            start +=  el.offsetHeight
+            mh += el.offsetHeight
+          }
         }
         query.measuredHeight = mh
         query.totalHeight = query.measuredHeight + (query.length - query.cache.length)*query.averageHeight

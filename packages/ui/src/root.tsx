@@ -75,7 +75,8 @@ const Outlet = component$((props) => {
     tab: "",
     y: 46,
     branch: "First draft",
-    tool: tool
+    tool: tool,
+    mobile: false,
   })
 
   useTask$(async () => {
