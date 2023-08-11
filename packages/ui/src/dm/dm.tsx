@@ -1,23 +1,31 @@
-import { $,component$, useStore, useVisibleTask$ } from "@builder.io/qwik"
+import { $,component$, useComputed$, useStore, useVisibleTask$ } from "@builder.io/qwik"
 import { SimpleDialog, Close, useApp, AppStore } from "../tool"
 import { H2, personIcon } from "../theme"
-import { Query , QueryBody, QueryResult, VirtualItem, newQuery} from "../query"
+import { Query , QueryBody, QueryResult, SimpleQueryBody, VirtualItem, newQuery} from "../query"
 import { UserBasic } from "../login"
 import { CleanupFn } from "../post/post"
+import { Icon } from "../headless"
 
 const input = 'dark:text-white dark:bg-black'
 interface Group {
     user: UserBasic[]
     lastMessage: string
+    lastMessageTime: number
 }
-
+export function userList(g: Group) {
+    return g.user.map((u,index)=> u.name).join(', ')
+}
+export function handleList(g: Group) {
+    return g.user.map((u,index)=> u.).join(', ')
+}
 
 
 export function dmQuery(app: AppStore, qr: QueryResult<Group>,cleanup: CleanupFn ){
     for (let i = 0; i<20; i++) {
         qr.cache.push({user: [
             {name: 'joe', id: 2, avatar: personIcon},
-        ], lastMessage: 'hello'})
+        ], lastMessage: 'hello'
+        , lastMessageTime: Date.now()})
     }
     qr.length = 20
 
@@ -42,16 +50,25 @@ export const DmList = component$(()=>{
         // we don't need to track anything here? maybe we should track a login state? should we converge all the logins into this query or is that a security issue? allow user to decide?
         dmQuery(app, q,cleanup)
     })
-    const f = $((index: number)=>{
-        return <div class='flex items-center'>yo</div>
 
-    })
+
     return <SimpleDialog>
         <Close/>
         <input class={input} type="text" placeholder="To"/>
 
         <Query query={q}>
-            <QueryBody for={f} />
+            <SimpleQueryBody >
+                {q.cache.map((item,index)=>{
+
+                    return <div key={index} class='flex items-center'>
+                    <Icon class='block h-8 w-8' svg={personIcon}/>
+                    <div class='flex flex-col w-full pl-1'>
+                        <div class='text-lg'>{userList(item)} </div>
+                        <div class='text-sm'>{item.lastMessage}</div>
+                    </div>
+                    </div>
+                })}
+            </SimpleQueryBody>
         </Query>
         </SimpleDialog>
 })

@@ -114,7 +114,9 @@ export const Query = component$<{
     query: QueryResult<any>
 }>((props) => {
     useContextProvider(QueryContext, props.query)
-    return <Slot/>
+    return <>
+      <Slot/>
+      </>
 
 })
 
@@ -124,6 +126,13 @@ type TItemElement = HTMLElement;
 type Qbp = {
     for: (index: number) => JSXNode
 }
+
+// the simple query body renders the entire list and doesn't virtulize it.
+// match it with a simple query?
+export const SimpleQueryBody = component$((props) => {
+  return <Slot/>
+})
+
 export const QueryBody = component$<Qbp>((props) => {
     const query = useContext<QueryResult<UserPost>>(QueryContext)
     const parentRef = useSignal<HTMLDivElement>()
@@ -156,6 +165,7 @@ export const QueryBody = component$<Qbp>((props) => {
       })
  
         return <div id='wtf' class='h-full w-full overflow-auto' ref={parentRef}>
+            WTF{ query.item.length }
                         {/* <button class='fixed right-0 bg-neutral-800 z-50' onClick$={()=>{parentRef.value!.scrollTop = 400}}> click me </button> */}
 
         <div ref={runway} style={{
