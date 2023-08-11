@@ -1,11 +1,12 @@
 import { $,component$, useComputed$, useStore, useVisibleTask$ } from "@builder.io/qwik"
 import { SimpleDialog, Close, useApp, AppStore } from "../tool"
-import { H2, personIcon } from "../theme"
+import { H2, elipsis, personIcon } from "../theme"
 import { Query , QueryBody, QueryResult, SimpleQueryBody, VirtualItem, newQuery} from "../query"
 import { UserBasic } from "../login"
 import { CleanupFn } from "../post/post"
 import { Icon } from "../headless"
 import { timeAgo } from "../post"
+import { $localize } from "../i18n"
 
 const input = 'dark:text-white dark:bg-black'
 interface Group {
@@ -17,7 +18,7 @@ export function userList(g: Group) {
     return g.user.map((u,index)=> u.name).join(', ')
 }
 export function handleList(g: Group) {
-    return g.user.map((u,index)=> u.handle).join(', ')
+    return g.user.map((u,index)=> '@'+u.handle).join(', ')
 }
 
 
@@ -44,6 +45,25 @@ export function dmQuery(app: AppStore, qr: QueryResult<Group>,cleanup: CleanupFn
     })
 }
 
+
+// this should use group
+function ContextMenu() {
+
+    const Menu = ({pinned}: {pinned: boolean})=>{
+
+        return <ul>
+            <li class='hover:bg-neutral-800'>{pinned?$localize`Unpin`:$localize`Pin`}</li>
+            <li class='hover:bg-neutral-800'>{$localize`Delete`}</li>
+            </ul>
+    }
+
+    return <div class='absolute right-1 top-1 lg:hidden group-hover:block'>
+        <Icon class='hover:text-blue-700 rounded-full hover:bg-neutral-500 block h-8 w-8' svg={elipsis}/>
+        </div>
+
+        
+}
+
 export const DmList = component$(()=>{
     const app = useApp()
     const q: QueryResult<Group> = useStore(newQuery())
@@ -61,13 +81,17 @@ export const DmList = component$(()=>{
             <SimpleQueryBody >
                 {q.cache.map((item,index)=>{
 
-                    return <div key={index} class='flex items-center'>
+                    return <>
+                    <div key={index} class='hover:bg-neutral-800 flex items-center relative group'>
+                        <ContextMenu/>
                     <Icon class='block h-8 w-8' svg={personIcon}/>
                     <div class='flex flex-col w-full pl-1'>
-                        <div class='text-lg'>{userList(item)} {handleList(item)} {timeAgo(new Date(item.lastMessageTime))}</div>
+                        <div class='mr-12 text-lg font:semi-bold'>{userList(item)} &nbsp;
+                         <span class='text-stone-500 dark:text-gray-400'>{handleList(item)} {timeAgo(new Date(item.lastMessageTime))}</span></div>
                         <div class='text-sm'>{item.lastMessage}</div>
                     </div>
                     </div>
+                    </>
                 })}
             </SimpleQueryBody>
         </Query>
