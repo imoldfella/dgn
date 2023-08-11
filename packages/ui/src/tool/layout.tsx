@@ -26,6 +26,7 @@ export interface AppStore {
     y: number
     branch: string
     tool: Tool[]
+    mobile: boolean
 }
 
 
@@ -251,10 +252,10 @@ function close(app: AppStore) {
     app.y = 46
 }
 
-export const Close = component$(() => {
+export const Close = component$(({float}:{float?:boolean}) => {
     const app = useApp()
 
-    return <Icon svg={xCircle} class='absolute top-2 right-2 h-8 w-8 text-blue-500 hover:text-blue-700' onClick$={() => close(app)} />
+    return <>{app.mobile && <Icon svg={xCircle} class={`${float?'absolute top-2 right-2':''} h-8 w-8 text-blue-500 hover:text-blue-700`} onClick$={() => close(app)} />}</>
 })
 
 
