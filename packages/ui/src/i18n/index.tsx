@@ -184,7 +184,7 @@ export const LanguageSelect = component$((props: SelectProps) => {
                 const newlang = target.value;
                 const rest = new URL(loc.url).pathname.split('/').slice(2).join('/')
                 console.log("onInput", newlang, rest)
-                nav("/" + newlang + "/" + rest, {reload: true})
+                nav("/" + newlang + "/" + rest, {forceReload: true})
             }}       
         >
 

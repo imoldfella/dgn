@@ -1,6 +1,6 @@
 import { component$, Slot } from '@builder.io/qwik';
 import { Icon } from '../headless';
-import { xCircle } from '../i18n';
+import { xCircle } from './icon';
 
 // why not a signal here?
 export interface ModalStore {

@@ -2,9 +2,9 @@
 import { component$, useSignal, $, Slot } from '@builder.io/qwik';
 import { $localize, LanguageSelect, useLocale } from '../i18n';
 import { DarkButton, Email, H2, Password, Username, blueButton } from '../theme';
-import { TextDivider } from '../theme/form';
+import { TextDivider } from '../theme';
 
-import { Link, link } from '../provider';
+import { Link } from '../provider';
 import { Close, SimpleDialog } from '../dg';
 
 
