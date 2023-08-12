@@ -2,7 +2,7 @@ import Icon from "../headless/icon";
 import { moon, sun } from "../i18n";
 import { $, useSignal, useVisibleTask$ } from "@builder.io/qwik";
 import { component$} from "@builder.io/qwik";
-import { DivProps } from "../tool/modal";
+import { DivProps } from "../dg/modal";
 
 export const DarkButton = component$<DivProps>((props) => {
   const dark = useSignal(false);

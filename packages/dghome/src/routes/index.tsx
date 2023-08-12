@@ -1,7 +1,15 @@
-import { component$ } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import { component$, useVisibleTask$ } from "@builder.io/qwik";
+import { useLocation, useNavigate, type DocumentHead } from "@builder.io/qwik-city";
 
 export default component$(() => {
+  const nav = useNavigate()
+  const loc = useLocation()
+  useVisibleTask$(() => {
+    if (loc.url.pathname === '/') {
+      nav('/en/tool/org/slice/querypath')
+    }
+  })
+
   return (
     <>
       <h1>Hi 👋</h1>

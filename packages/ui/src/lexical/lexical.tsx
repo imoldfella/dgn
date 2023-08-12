@@ -2,7 +2,7 @@ import { NoSerialize, Signal, component$, createContextId, noSerialize, useConte
 
 import { $createParagraphNode, $createTextNode, $getRoot, $getSelection, $isRangeSelection, COMMAND_PRIORITY_EDITOR, EditorState, LexicalCommand, LexicalEditor, REDO_COMMAND, RangeSelection, UNDO_COMMAND, createCommand, createEditor } from 'lexical';
 import { $localize } from "../i18n";
-import { DivProps } from "../tool/modal";
+import { DivProps } from "../dg/modal";
 import { Icon } from "../headless";
 import { bars_3, mic, plus, redo, sparkles, undo } from "../theme";
 import { onChange } from "./plugin";

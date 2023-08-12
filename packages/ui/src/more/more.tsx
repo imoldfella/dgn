@@ -1,6 +1,6 @@
 import { component$ } from "@builder.io/qwik"
 import { Dialog } from "../toc"
-import { Close } from "../tool"
+import { Close } from "../dg"
 import { useSignin } from "../provider"
 import { DarkButton, blueButton } from "../theme"
 import { SearchBox } from "../root"

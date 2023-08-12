@@ -4,7 +4,7 @@
 // probably use vscode way of explicit splittings
 
 import { component$ } from "@builder.io/qwik"
-import { useApp } from "../tool"
+import { useApp } from "../dg"
 
 
 //import { getUsage } from "../../db/range"

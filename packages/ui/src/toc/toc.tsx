@@ -10,7 +10,7 @@ import { component$, useComputed$, $, useStore, Slot, useSignal } from "@builder
 import { Segmented, chevronDown, chevronRight,personIcon,proposeIcon } from "../theme"
 import { useLocation, useNavigate } from "../provider"
 import { Icon } from "../headless"
-import { useApp } from "../tool"
+import { useApp } from "../dg"
 
 export interface TocData {
     name: string

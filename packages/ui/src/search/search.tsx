@@ -1,6 +1,6 @@
 import { component$ } from "@builder.io/qwik"
 import { Icon } from "../headless"
-import { Close, SimpleDialog } from "../tool/layout"
+import { Close, SimpleDialog } from "../dg/layout"
 import { search } from "../theme"
 
 // search background is a filterable/user-unique page. Generally this should have a sticky link to the drive root.

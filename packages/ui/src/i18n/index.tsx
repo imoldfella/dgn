@@ -4,9 +4,9 @@ import { useLocation, useNavigate } from '../provider'
 import { isServer } from '@builder.io/qwik/build'
 import localeInfo, { languages } from '../locale'
 import { Icon } from '../headless'
-import { language } from './heroicon'
+import { language } from '../theme'
 
-export * from './heroicon'
+
 interface LocaleContext {
     dir: 'ltr' | 'rtl'
     ln: string

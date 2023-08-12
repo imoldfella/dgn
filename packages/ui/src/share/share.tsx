@@ -1,11 +1,11 @@
 import { component$, useComputed$, useSignal } from "@builder.io/qwik"
 //import { RichEditor } from "../lexical/lexical";
 import { $localize } from "../i18n";
-import { DivProps } from "../tool/modal";
+import { DivProps } from "../dg/modal";
 import { Link, link, useNavigate, useSignin } from "../provider";
 import { Icon } from "../headless";
 import { paperClip, personIcon } from "../theme";
-import { Close } from "../tool";
+import { Close } from "../dg";
 
 
 export function hasContacts(): boolean {

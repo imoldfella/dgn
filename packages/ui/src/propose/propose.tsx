@@ -1,6 +1,6 @@
 import { component$ ,$} from "@builder.io/qwik"
 import { Dialog } from "../toc"
-import { useApp } from "../tool"
+import { useApp } from "../dg"
 import { Toggle, blueButton, chevronRight, personIcon, proposeIcon } from "../theme"
 import { Icon } from "../headless"
 import { JSX } from "@builder.io/qwik/jsx-runtime"

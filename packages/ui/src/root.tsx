@@ -7,7 +7,7 @@ import "./global.css";
 import { Resource, component$, useContextProvider, useResource$, useSignal, useStore, useTask$, useVisibleTask$, } from "@builder.io/qwik";
 import { PostStream } from "./post";
 import { $localize, LocaleProvider } from "./i18n";
-import { AppContext, AppStore, Edit, PageTool, Tool } from "./tool";
+import { AppContext, AppStore, Edit, PageTool, Tool } from "./dg";
 import { Signin2 } from "./post/signup";
 import { More } from "./more";
 import { Search } from "./search";
@@ -18,6 +18,7 @@ import { newQuery } from "./query/query";
 import { messageQuery } from "./post/post";
 import { DmList } from "./dm";
 import { Signin } from "./login";
+import { ThemeBootstrap } from "./theme/bootstrap";
 
 type RoutingConfig = RoutingConfigItem[];
 

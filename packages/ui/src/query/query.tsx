@@ -8,7 +8,7 @@
 //  we can have "load more" top and bottom.
 
 import { $, JSXNode, Slot, component$, createContextId, useContext, useContextProvider, useSignal, useVisibleTask$ } from "@builder.io/qwik"
-import { DivProps } from "../tool/modal"
+import { DivProps } from "../dg/modal"
 import { UserPost } from "../post/post"
 import { useResizeObserver } from "../post/resize"
 

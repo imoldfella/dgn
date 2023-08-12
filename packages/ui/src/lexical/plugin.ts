@@ -1,5 +1,5 @@
 import { COMMAND_PRIORITY_LOW, EditorState, LexicalCommand, LexicalEditor, createCommand } from "lexical";
-import { createEffect } from "../tool/cell";
+import { createEffect } from "../dg/cell";
 import {
     HistoryState,
     createEmptyHistoryState,

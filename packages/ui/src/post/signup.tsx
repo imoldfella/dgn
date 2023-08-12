@@ -5,7 +5,7 @@ import { DarkButton, Email, H2, Password, Username, blueButton } from '../theme'
 import { TextDivider } from '../theme/form';
 
 import { Link, link } from '../provider';
-import { Close, SimpleDialog } from '../tool';
+import { Close, SimpleDialog } from '../dg';
 
 
 export const ContinueWith = component$(() => {

@@ -1,5 +1,5 @@
 import { $,component$, useComputed$, useStore, useVisibleTask$ } from "@builder.io/qwik"
-import { SimpleDialog, Close, useApp, AppStore } from "../tool"
+import { SimpleDialog, Close, useApp, AppStore } from "../dg"
 import { H2, elipsis, personIcon } from "../theme"
 import { Query , QueryBody, QueryResult, SimpleQueryBody, VirtualItem, newQuery} from "../query"
 import { UserBasic } from "../login"

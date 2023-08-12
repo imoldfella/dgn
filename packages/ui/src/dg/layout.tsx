@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { component$, createContextId, useContext, useContextProvider, useSignal, useStore, $, QwikMouseEvent, Signal, useTask$, Slot, useVisibleTask$ } from "@builder.io/qwik";
 import { Icon } from "../headless";
-import { DarkButton, bars_3 } from "../theme";
-import { LanguageSelect, useLocale, xCircle } from "../i18n";
-import { useLocation, useNavigate, useSignin } from "../provider";
+import { DarkButton, bars_3, xCircle } from "../theme";
+import { LanguageSelect, useLocale } from "../i18n";
+import { useLocation, useNavigate } from "../provider";
 import { renderJson } from "./render";
 import { Signin } from "../login";
 
@@ -32,23 +32,7 @@ export interface AppStore {
 
 // creates the view of a particular tool
 // maybe put in toolData, but then it has to be noserialize?
-
-
-
-
-export const Review = component$(() => {
-    return <div>Review</div>
-})
-export const Edit = component$(() => {
-    return <div>Edit</div>
-})
-
-
 type TabKey = "menu" | "search" | "cart" | "share" | "edit" | "files" | "proposals" | "review" | "account" | "more"
-
-
-
-
 
 // this is going to be a recent at top infinite scroll for 
 // we should make this a slot for page tool

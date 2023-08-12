@@ -3,8 +3,10 @@ import {
   QwikCityProvider,
   RouterOutlet,
   ServiceWorkerRegister,
+
 } from "@builder.io/qwik-city";
 import { RouterHead } from "./components/router-head/router-head";
+import { ThemeBootstrap } from "@ui/theme2"
 
 import "./global.css";
 
@@ -22,8 +24,10 @@ export default component$(() => {
         <meta charSet="utf-8" />
         <link rel="manifest" href="/manifest.json" />
         <RouterHead />
+        <ThemeBootstrap />
       </head>
-      <body lang="en">
+      <body lang="en" class=' dark:bg-black dark:text-white'>
+        <ThemeBootstrap />
         <RouterOutlet />
         <ServiceWorkerRegister />
       </body>
