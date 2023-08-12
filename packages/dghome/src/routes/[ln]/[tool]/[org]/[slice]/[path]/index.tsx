@@ -2,15 +2,21 @@ import { Resource, component$, useContextProvider, useResource$, useSignal, useS
 import type { DocumentHead } from "@builder.io/qwik-city";
 import { routeLoader$, useLocation } from '@builder.io/qwik-city'
 
-import { Signin, } from '@ui/login'
+import { Signin, Signin2, } from '@ui/login'
 import { AppContext, AppStore, DmList, Edit, PageTool, PostStream, Search, Tool, messageQuery } from '@ui/dg'
 import { $localize } from '@ui/i18n'
-import { H2, bubble, cart, elipsis, link, pencil, personIcon, search } from '@ui/theme'
+import { H2, Icon, bubble, cart, elipsis, link, pencil, personIcon, search } from '@ui/theme'
 import { newQuery } from '@ui/query'
 
 
 const content = routeLoader$<string>(async ()=> {
     return "Hello World"
+})
+export const Cart = component$(() => {
+  return <Icon svg={cart} class='dark:text-white h-6 w-6' />
+})
+export const More = component$(() => {
+  return <Icon svg={cart} class='dark:text-white h-6 w-6' />
 })
 
 
@@ -40,7 +46,7 @@ const Outlet = component$(() => {
 
   const loc = useLocation() // should be signal?
 
-  const u = new URL(loc.url)
+  //const u = new URL(loc.url)
 
   const me = useSignal<Signin|null>({
     id: 1,
@@ -121,7 +127,7 @@ const Outlet = component$(() => {
   const sproc = useResource$(async ({ track, cleanup }) => {
     // queries need to be async. query starts in loading state.
     track(() => loc)
-    await messageQuery('newestTop', query, { id: loc.id }, cleanup)
+    await messageQuery('newestTop', query, { id: loc.url.pathname }, cleanup)
     //query.error = 'login'
   })
 

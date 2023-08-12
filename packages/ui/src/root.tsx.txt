@@ -30,9 +30,6 @@ export const SearchBox = component$(() => {
       placeholder={$localize`Search Datagrove`} type="search" /></div>
 })
 
-export const Cart = component$(() => {
-  return <Icon svg={cart} class='dark:text-white h-6 w-6' />
-})
 
 const tool: Tool[] = [
   // the menu is sync'd to the current page.
