@@ -1,5 +1,14 @@
-import { $, useOnWindow, createContextId, component$, useContextProvider, Slot, useContext, useServerData, useStore, useTask$, useSignal } from "@builder.io/qwik";
+import { $, useOnWindow, createContextId, component$, useContextProvider, Slot, useContext, useServerData, useStore, useTask$, useSignal, QwikIntrinsicElements, untrack } from "@builder.io/qwik";
 import { AnchorProps } from "../theme";
+
+type AnchorAttributes = QwikIntrinsicElements['a'];
+export interface LinkProps extends AnchorAttributes {
+  prefetch?: boolean;
+  reload?: boolean;
+  replaceState?: boolean;
+  scroll?: boolean;
+}
+//type LinkProps = AnchorProps&{href: string}
 
 // with the new approach the top route only becomes the default language.
 // we could override it in a lower context.
@@ -71,9 +80,33 @@ export const Router = component$(() => {
   return <Slot />
 })
 export const link = 'text-blue-500 hover:text-blue-700 hover:underline'
-export const Link = component$<AnchorProps&{href: string}>((props) => {
-  return <a {...props} href={props.href}><Slot/></a>
-})
+
+
+// export const Link = component$<LinkProps>((props) => {
+//   const nav = useNavigate();
+
+//   return (
+//     <a
+//       preventdefault:click
+//       onClick$={() => {
+//         // eslint-disable-next-line qwik/valid-lexical-scope
+//         nav(props.href);
+//       }}
+//       {...props}
+//     >
+//       <Slot />
+//     </a>
+//   );
+// });
+
+// export const Link = component$<>((props) => {
+//   const nav = useNavigate()
+//   const goto = $((e: Event) => {
+//     e.preventDefault()
+//     nav(props.href)
+//   })
+//   return <a {...props} onClick$={()=>nav(props.href)}><Slot/></a>
+// })
 // export declare interface FunctionComponent<P = Record<string, any>> {
 //   (props: P, key: string | null, flags: number, dev?: DevJSX): JSXNode | null;
 // }
@@ -123,18 +156,6 @@ export const RouterOutlet = component$<{ config: RoutingConfigItem[] }>((props) 
 
   return  props.config[which.value].component
 })
-// {props.config[which.value].component}
-export const ThemeBootstrap = component$(() => {
-  // how do we tell development mode?
-  const code = `if(localStorage.theme==="dark"){
-    document.documentElement.classList.add("dark");}
-  else if(typeof localStorage.theme==="undefined"){
-    if(window.matchMedia("(prefers-color-scheme: dark)").matches){
-      document.documentElement.classList.add("dark");}
-      localStorage.theme="dark";
-    }`
-  return <script dangerouslySetInnerHTML={code} />
-})
 
 
 /*
@@ -157,3 +178,49 @@ export const ThemeBootstrap = component$(() => {
       }
     })
   })*/
+
+
+  export const Link = component$<LinkProps>((props) => {
+    const nav = useNavigate();
+    const loc = useLocation();
+    const originalHref = props.href;
+    const { onClick$, reload, replaceState, scroll, ...linkProps } = (() => props)();
+    const clientNavPath = untrack(() => getClientNavPath(linkProps, loc));
+    const prefetchDataset = untrack(() => getPrefetchDataset(props, clientNavPath, loc));
+    linkProps['preventdefault:click'] = !!clientNavPath;
+    linkProps.href = clientNavPath || originalHref;
+    const onPrefetch =
+      prefetchDataset != null
+        ? event$((ev: any, elm: HTMLAnchorElement) =>
+            prefetchLinkResources(elm as HTMLAnchorElement, ev.type === 'qvisible')
+          )
+        : undefined;
+    const handleClick = event$(async (_: any, elm: HTMLAnchorElement) => {
+      if (!elm.hasAttribute('preventdefault:click')) {
+        // Do not enter the nav pipeline if this is not a clientNavPath.
+        return;
+      }
+  
+      if (elm.hasAttribute('q:nbs')) {
+        // Allow bootstrapping into useNavigate.
+        await nav(location.href, { type: 'popstate' });
+      } else if (elm.href) {
+        elm.setAttribute('aria-pressed', 'true');
+        await nav(elm.href, { forceReload: reload, replaceState, scroll });
+        elm.removeAttribute('aria-pressed');
+      }
+    });
+    return (
+      <a
+        {...linkProps}
+        onClick$={[onClick$, handleClick]}
+        data-prefetch={prefetchDataset}
+        onMouseOver$={onPrefetch}
+        onFocus$={onPrefetch}
+        onQVisible$={onPrefetch}
+      >
+        <Slot />
+      </a>
+    );
+  });
+  

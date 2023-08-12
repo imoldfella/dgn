@@ -1,7 +1,7 @@
 
 
-import { SigninProvider, ThemeBootstrap, useSignin } from "./provider";
-import { Router, RoutingConfigItem, link, useLocation } from "./provider/router";
+import { SigninProvider, useSignin } from "./provider";
+// import { Router, RoutingConfigItem, link, useLocation } from "./provider/router";
 
 import "./global.css";
 import { Resource, component$, useContextProvider, useResource$, useSignal, useStore, useTask$, useVisibleTask$, } from "@builder.io/qwik";

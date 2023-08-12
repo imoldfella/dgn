@@ -3,7 +3,7 @@ import { Icon } from "../headless"
 import { bubbleLeft, elipsis, heartOutline, heartSolid } from "../theme"
 import { Image } from "@unpic/qwik"
 import { timeAgo } from './dates'
-import { useNavigate } from "../provider"
+import { Link, useNavigate } from "../provider"
 import { Button } from "./toast"
 import { User, UserPost, fakeUser } from "./post"
 import { QueryBody, Query, QueryResult, } from "../query/query"
@@ -15,7 +15,7 @@ export const PostHeader = component$<{
 
     return (
         <section class="p-3">
-            <a class="flex w-fit" href={`/${user.username}`}>
+            <Link class="flex w-fit" href={`/${user.username}`}>
                 <Image
                     src={user.image}
                     alt="user avatar"
@@ -30,7 +30,7 @@ export const PostHeader = component$<{
                         @{user.username}
                     </span>
                 </div>
-            </a>
+            </Link>
         </section>
     )
 })
@@ -146,7 +146,7 @@ export const PostItem = component$(({ post, isInReplyTree }: any) => {
     })
 
     const Author = component$(() => {
-        return <a
+        return <Link
             href={`/${post.author?.username}`}
             class="absolute left-[4.75rem] top-3 z-[1] flex "
         >
@@ -160,11 +160,11 @@ export const PostItem = component$(({ post, isInReplyTree }: any) => {
             </span>
             <span class="dark:text-gray-400 px-1 text-stone-500">·</span>
             <span class="text-stone-500 dark:text-gray-400">{timeAgo(post.createdAt)}</span>
-        </a>
+        </Link>
     })
 
     const Avatar = component$(() => {
-        return <a href={`/${post.author?.username}`} class="absolute left-3 top-3 z-[2]">
+        return <Link href={`/${post.author?.username}`} class="absolute left-3 top-3 z-[2]">
             <img
                 src={post.author?.image ?? ''}
                 alt="user avatar"
@@ -172,7 +172,7 @@ export const PostItem = component$(({ post, isInReplyTree }: any) => {
                 width={48}
                 height={48}
                 class="z-0 rounded-full" />
-        </a>
+        </Link>
     })
     // border-b-[1px]
     return (
@@ -182,7 +182,7 @@ export const PostItem = component$(({ post, isInReplyTree }: any) => {
             <Avatar />
             <MoreButton />
             <Author />
-            <a
+            <Link
                 href={`/${post.author?.username}/status/${post.id}`}
                 class="flex w-full p-3 pb-[2.5rem]"
             >
@@ -204,7 +204,7 @@ export const PostItem = component$(({ post, isInReplyTree }: any) => {
                     </div>
                     <p class="w-full whitespace-pre-wrap break-words">{post.content}</p>
                 </div>
-            </a>
+            </Link>
             <Likes />
             <Replies />
         </article>

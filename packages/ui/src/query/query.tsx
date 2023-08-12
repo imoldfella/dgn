@@ -165,7 +165,7 @@ export const QueryBody = component$<Qbp>((props) => {
       })
  
         return <div id='wtf' class='h-full w-full overflow-auto' ref={parentRef}>
-            WTF{ query.item.length }
+            
                         {/* <button class='fixed right-0 bg-neutral-800 z-50' onClick$={()=>{parentRef.value!.scrollTop = 400}}> click me </button> */}
 
         <div ref={runway} style={{
