@@ -9,9 +9,7 @@ import { H2, Icon, bubble, cart, elipsis, link, pencil, personIcon, search } fro
 import { newQuery } from '@ui/query'
 
 
-const content = routeLoader$<string>(async ()=> {
-    return "Hello World"
-})
+
 export const Cart = component$(() => {
   return <Icon svg={cart} class='dark:text-white h-6 w-6' />
 })
@@ -141,18 +139,8 @@ const Outlet = component$(() => {
   </PageTool>
 })
 
-
-export default component$(() => {
-    const loc = useLocation()
-    const c = content()
-  return (
-    <>
-        {loc.params.ln} {loc.params.tool} {loc.params.slice} {loc.params.path} { c }
-        <Outlet />
-        
-    </>
-  );
-});
+//         {loc.params.ln} {loc.params.tool} {loc.params.slice} {loc.params.path} { c }
+export default Outlet
 
 export const head: DocumentHead = {
   title: "Welcome to Qwik",
