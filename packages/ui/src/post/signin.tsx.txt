@@ -3,8 +3,8 @@
 // this needs to provide a way to connect to the go server with the login api
 
 import { component$, useVisibleTask$,  noSerialize} from "@builder.io/qwik"
-import { useSignin } from "../provider"
-import { LoginApi, ChallengeNotify, SimplePage, SimpleLogin, LoginResponse } from "../login"
+
+import { LoginApi, ChallengeNotify,  LoginResponse } from "../login"
 import { H2 } from "../theme"
 import { $localize, useLocale, L } from "../i18n"
 // import { Peer, WsChannel, apiCall } from "../abc"

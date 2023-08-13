@@ -6,8 +6,7 @@ import {
     parseRequestOptionsFromJSON,
 } from "@github/webauthn-json/browser-ponyfill";
 
-import { Signin } from "../provider"
-import { LoginApi, LoginInfo } from "./api"
+import { LoginApi, Signin,  } from "./api"
 
 
 // only instantiated on the client, only during login (lazy load all the things)

@@ -33,12 +33,12 @@ export const TocTabbed = component$<{ toc: TocData[] }>((props) => {
     const app = useApp()
 
     const changeTab = $((index: number) => {
-        const base = pathx.url.split("/").slice(0, 2).join("/")
+        const base = pathx.url.pathname.split("/").slice(0, 2).join("/")
         nav(base + props.toc[index].path ?? "/")
     })
 
     const tabn = useComputed$<[number, string]>(() => {
-        const path = pathx.url.split("/")
+        const path = pathx.url.pathname.split("/")
         for (let i = 0; i < props.toc.length; i++) {
             if (props.toc[i].path === path[2]) return [i, path.slice(1).join("/")]
         }

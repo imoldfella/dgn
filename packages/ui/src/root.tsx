@@ -1,6 +1,6 @@
 
 
-import { SigninProvider, useSignin } from "./provider";
+import {  useLocation } from "./provider";
 // import { Router, RoutingConfigItem, link, useLocation } from "./provider/router";
 
 import "./global.css";
@@ -8,19 +8,21 @@ import { Resource, component$, useContextProvider, useResource$, useSignal, useS
 import { PostStream } from "./post";
 import { $localize, LocaleProvider } from "./i18n";
 import { AppContext, AppStore, Edit, PageTool, Tool } from "./dg";
-import { Signin2 } from "./post/signup";
+
 import { More } from "./more";
 import { Search } from "./search";
-import { H2, bubble, cart, elipsis, pencil, personIcon, search } from "./theme";
+import { H2, bubble, cart, elipsis, link, pencil, personIcon, search } from "./theme";
 import { Icon } from "./headless";
-import { makeShared } from "./opfs";
+//import { makeShared } from "./opfs";
 import { newQuery } from "./query/query";
 import { messageQuery } from "./post/post";
 import { DmList } from "./dm";
-import { Signin } from "./login";
-import { ThemeBootstrap } from "./theme/bootstrap";
+import { Signin, Signin2 } from "./login";
+import { Cart } from "./dg/cart";
+import { ThemeBootstrap } from "./theme2";
 
-type RoutingConfig = RoutingConfigItem[];
+
+//type RoutingConfig = RoutingConfigItem[];
 
 export const SearchBox = component$(() => {
   return <div class='flex-1 m-2 flex items-center shadow  bg-neutral-800  rounded-lg px-1'
@@ -142,7 +144,7 @@ const Outlet = component$((props) => {
   const sproc = useResource$(async ({ track, cleanup }) => {
     // queries need to be async. query starts in loading state.
     track(() => loc)
-    await messageQuery('newestTop', query, { id: loc.id }, cleanup)
+    await messageQuery('newestTop', query, { id: '' }, cleanup)
     //query.error = 'login'
   })
 
@@ -163,7 +165,7 @@ const Outlet = component$((props) => {
 // that html can have QRLs in it. A challenge is to build it all together, as the QRL's may change. Publish implies an SSG step. A challenge is then to allow some changes incrementally patching the underlying site, perhaps these are only loaded from json? sanitizing the json is easier than sanitizing html, although clients that can write pages are trusted? How do we authorize roots for the various database slices?
 const o1 = component$(() => {
   useVisibleTask$(() => {
-    makeShared()
+    //makeShared()
   })
   return <>
     <head >
@@ -171,13 +173,13 @@ const o1 = component$(() => {
       <ThemeBootstrap />
     </head>
     <body lang="en" class=' dark:bg-black dark:text-white'>
-      <Router>
+
         <LocaleProvider>
-          <SigninProvider>
+   
             <Outlet />
-          </SigninProvider>
+       
         </LocaleProvider>
-      </Router>
+
 
     </body>
   </>

@@ -2,10 +2,10 @@ import { component$, useComputed$, useSignal } from "@builder.io/qwik"
 //import { RichEditor } from "../lexical/lexical";
 import { $localize } from "../i18n";
 import { DivProps } from "../dg/modal";
-import { Link, link, useNavigate, useSignin } from "../provider";
+import { Link,  useNavigate } from "../provider";
 import { Icon } from "../headless";
-import { paperClip, personIcon } from "../theme";
-import { Close } from "../dg";
+import { link, paperClip, personIcon } from "../theme";
+import { Close, useApp } from "../dg";
 
 
 export function hasContacts(): boolean {
@@ -54,9 +54,9 @@ export const Avatar = component$(({ user,  }: { user: any }) => {
 })
 
 export const Share = component$(() => {
-    const me = useSignin()
+    const me = useApp()
     const nav = useNavigate()
-    if (!me.value?.info) {
+    if (!me.me.value) {
         nav('/signin')
         return null
     }
@@ -72,7 +72,7 @@ export const Share = component$(() => {
     return <form class='p-2'>
         <div class='flex'>
             <Close/>
-            <div class='w-16'><Avatar user={me.value!.info} /></div>
+            <div class='w-16'><Avatar user={me.me.value!.avatar} /></div>
             <div class='flex-1'>
                 <div class='w-full'>{name.value}</div>
                 <div id='to' class='w-full' ref={editorRef} contentEditable='true' >Share to location</div>

@@ -6,6 +6,7 @@ import { TextDivider } from '../theme';
 
 import { Link } from '../provider';
 import { Close, SimpleDialog } from '../dg';
+import { link } from '../theme';
 
 
 export const ContinueWith = component$(() => {

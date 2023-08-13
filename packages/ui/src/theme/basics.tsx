@@ -21,7 +21,7 @@ export const Ab = component$((props: LinkProps) => {
   </a>
   } catch (e) {
     console.log("bad href", o, loc.url)
-    return <span>{loc.url}</span>
+    return <span>{loc.url.pathname}</span>
   }
 })
 

@@ -38,11 +38,11 @@ export const Propose = component$(() => {
     })
     return <Dialog>
                <div class='mb-2 flex w-full  hover:underline'>
-            <Icon svg={personIcon} class='mr-1' /><div class='flex-1'>{app.user.value}</div><Icon  svg={chevronRight} class='h-5 w-5 block' /></div>
+            <Icon svg={personIcon} class='mr-1' /><div class='flex-1'>{app.me.value!.name}</div><Icon  svg={chevronRight} class='h-5 w-5 block' /></div>
 
         <div class='mb-2 flex w-full  hover:underline'>
             <Icon svg={proposeIcon} class='mr-1'/>
-            <div class='flex-1'>{app.branch.value}</div><Icon  svg={chevronRight} class='h-5 w-5 block' /></div>
+            <div class='flex-1'>{app.branch}</div><Icon  svg={chevronRight} class='h-5 w-5 block' /></div>
 
         <div class='mb-2 flex w-full  hover:underline'>
             <Icon svg={proposeIcon} class='mr-1'/>

@@ -1,8 +1,9 @@
 import { component$, useSignal, useVisibleTask$,useTask$,$ } from "@builder.io/qwik"
 import { blueButton } from "../theme"
-import { Button, Spinner, CircularProgress, Toast } from "./toast"
+import { Button, Spinner, CircularProgress } from "./button"
 import { useCSSTransition } from "./transition"
-import { User } from "./message"
+import { User } from "./post"
+
 
 export interface GetManyPosts { }
 export interface DefaultSession { }
@@ -127,11 +128,11 @@ return (
                 </div>
             ) : null}
         </div>
-        <Toast
+        {/* <Toast
             stage={stage}
             message={errorMessage.value}
             onClose={$(() => (toastVisible.value = false))}
-        />
+        /> */}
     </form>
 )
 })

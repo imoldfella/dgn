@@ -11,7 +11,7 @@ async function verify(encoded: string) {
     // to make sure we're the intended recipient of this UCAN
     audience: myDID,
     // A callback for figuring out whether a UCAN is known to be revoked
-    isRevoked: async ucan => false, // as a stub. Should look up the UCAN CID in a DB.
+    isRevoked: async (ucan: any)=> false, // as a stub. Should look up the UCAN CID in a DB.
     // capabilities required for this invocation & which owner we expect for each capability
     requiredCapabilities: [
       {

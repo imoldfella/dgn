@@ -4,7 +4,7 @@ import { bubbleLeft, elipsis, heartOutline, heartSolid } from "../theme"
 import { Image } from "@unpic/qwik"
 import { timeAgo } from './dates'
 import { Link, useNavigate } from "../provider"
-import { Button } from "./toast"
+import { Button } from "./button"
 import { User, UserPost, fakeUser } from "./post"
 import { QueryBody, Query, QueryResult, } from "../query/query"
 
