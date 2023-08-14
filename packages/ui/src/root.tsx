@@ -6,7 +6,7 @@ import {  useLocation } from "./provider";
 import "./global.css";
 import { Resource, component$, useContextProvider, useResource$, useSignal, useStore, useTask$, useVisibleTask$, } from "@builder.io/qwik";
 import { PostStream } from "./post";
-import { $localize, LocaleProvider } from "./i18n";
+import { $localize } from "./i18n";
 import { AppContext, AppStore, Edit, PageTool, Tool } from "./dg";
 
 import { More } from "./more";
@@ -173,12 +173,8 @@ const o1 = component$(() => {
       <ThemeBootstrap />
     </head>
     <body lang="en" class=' dark:bg-black dark:text-white'>
-
-        <LocaleProvider>
    
             <Outlet />
-       
-        </LocaleProvider>
 
 
     </body>

@@ -165,7 +165,7 @@ const _ = (keys: TemplateStringsArray, ...args: any[]): string => {
     }
 }
 
-export default _
+
 
 
 // in development we have to trigger a load translations.
