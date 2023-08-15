@@ -86,7 +86,6 @@ func main() {
 
 // return list of errors
 func Load() []string {
-
 	sched := gocron.NewScheduler(time.UTC)
 	errs := []string{}
 
@@ -160,34 +159,20 @@ func Load() []string {
 		}
 	}
 
+	// everything parses.
+	if len(errs) == 0 {
+		sched.StartAsync()
+
+		if running != nil {
+			running.Stop()
+		}
+		running = sched
+
+		// start running a new schedule; old one will finish then stop.
+		sched.StartAsync()
+	}
 	return errs
 }
-
-/*
-	var tl TaskList
-	// load the schedule
-	err := json.Unmarshal(config, &tl)
-	if err != nil {
-		return err
-	}
-
-	for _, t := range tl.Tasks {
-
-	}
-
-	// everything parses.
-	s.StartAsync()
-
-	if running != nil {
-		running.Stop()
-	}
-	running = s
-
-	// start running a new schedule; old one will finish then stop.
-	s.StartAsync()
-	return nil
-}
-*/
 
 // each task can take a configuration file as an argument and returns a string.
 
