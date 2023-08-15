@@ -23,11 +23,11 @@ import (
 
 type Task = func(arg []byte) string
 
-var taskmap map[string]Task
-var compilerMap map[string]func(arg []byte) (Task, error)
-var running *gocron.Scheduler
+var taskmap map[string]Task = map[string]Task{}
+var compilerMap map[string]func(arg []byte) (Task, error) = map[string]func(arg []byte) (Task, error){}
+var running *gocron.Scheduler = nil
 var home string = "."
-var schema map[string]*gojsonschema.Schema
+var schema map[string]*gojsonschema.Schema = map[string]*gojsonschema.Schema{}
 
 type TestUser struct {
 	Scheme      string                 `json:"$scheme,omitempty"`
@@ -71,6 +71,8 @@ func main() {
 
 	if len(os.Args) > 1 {
 		home = os.Args[1]
+	} else {
+		home, _ = os.Getwd()
 	}
 
 	f := Load()
@@ -97,7 +99,7 @@ func Load() []string {
 
 	for _, f := range files {
 		if !f.IsDir() {
-			schemaLoader := gojsonschema.NewReferenceLoader(path.Join(home, f.Name()))
+			schemaLoader := gojsonschema.NewReferenceLoader("file://" + path.Join(home, "schema/"+f.Name()))
 			sch, e := gojsonschema.NewSchema(schemaLoader)
 			if e != nil {
 				errs = append(errs, e.Error())
@@ -113,16 +115,18 @@ func Load() []string {
 	for _, f := range tasks {
 		if !f.IsDir() {
 			// documentLoader := gojsonschema.NewReferenceLoader(path.Join(home, f.Name()))
-			b, e := os.ReadFile(path.Join(home, f.Name()))
+			b, e := os.ReadFile(path.Join(home, "task/"+f.Name()))
 			if e != nil {
 				errs = append(errs, e.Error())
 				continue
 			}
 			var v BasicTask
 			_ = json.Unmarshal(b, &v)
-			a := strings.Split(v.Scheme, "/")
-			name := a[len(a)-1]
-			compiler := compilerMap[name]
+			//a := strings.Split(v.Scheme, "/")
+			//name := a[len(a)-1]
+			stem := strings.TrimSuffix(f.Name(), path.Ext(f.Name()))
+			compiler := compilerMap[stem]
+
 			if compiler == nil {
 				errs = append(errs, fmt.Sprintf("unknown scheme %s for %s", v.Scheme, f.Name()))
 			} else {
@@ -131,7 +135,7 @@ func Load() []string {
 					errs = append(errs, e.Error())
 					continue
 				}
-				stem := strings.TrimSuffix(f.Name(), path.Ext(f.Name()))
+
 				taskmap[stem] = task
 				// add it to the schedule
 				for _, t := range v.Run {
@@ -150,9 +154,13 @@ func Load() []string {
 
 					switch unit {
 					case "day":
-						sched.Every(ev).Day().At(at).Do(func() { task(nil) })
+						sched.Every(ev).Day().At(at).Do(func() {
+							log.Printf("%s,%s", f.Name(), task(nil))
+						})
 					case "second":
-						sched.Every(ev).Seconds().Do(func() { task(nil) })
+						sched.Every(ev).Seconds().Do(func() {
+							log.Printf("%s,%s", f.Name(), task(nil))
+						})
 					}
 				}
 			}

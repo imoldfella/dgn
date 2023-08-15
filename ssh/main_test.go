@@ -9,10 +9,12 @@ import (
 )
 
 func Test_one(t *testing.T) {
+	os.Args = []string{""}
 	main()
 }
 
 func Test_generate(t *testing.T) {
+
 	s := jsonschema.Reflect(&TestUser{})
 	data, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
