@@ -7,8 +7,11 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"sync/atomic"
+	"time"
 
 	"github.com/gliderlabs/ssh"
+	"github.com/go-co-op/gocron"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/sftp"
 	"golang.org/x/term"
@@ -16,6 +19,24 @@ import (
 
 func main() {
 	SshStart()
+}
+
+var version int64
+
+func RunChrone() {
+	s := gocron.NewScheduler(time.UTC)
+	for {
+		v := atomic.LoadInt64(&version)
+		for version == v {
+
+		}
+	}
+}
+
+// load is a command that replaces the current schedule with a new one.
+// it fails, leaving the current schedule in place, if the new schedule is invalid.
+func LoadChron() {
+
 }
 
 // ideally this will give us access to both the r2 html store and to the log store.
