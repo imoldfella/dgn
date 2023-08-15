@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"os/signal"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/gliderlabs/ssh"
 	"github.com/go-co-op/gocron"
@@ -19,27 +21,54 @@ import (
 
 // the arg can correspond to additional arguments on the command line that can be used to override and spread to the task. Can we have a generic Partial in golang like typescript?
 
-var taskmap map[string]func(arg string) string
+type Task = func(arg []byte) string
 
+var taskmap map[string]Task
+var compilerMap map[string]func(arg []byte) (Task, error)
 var running *gocron.Scheduler
 var home string = "."
+var schema map[string]*gojsonschema.Schema
+
+type TestUser struct {
+	Scheme      string                 `json:"$scheme,omitempty"`
+	Run         []RunTask              `json:"run,omitempty"`
+	ID          int                    `json:"id"`
+	Name        string                 `json:"name" jsonschema:"title=the name,description=The name of a friend,example=joe,example=lucy,default=alex"`
+	Friends     []int                  `json:"friends,omitempty" jsonschema_description:"The list of IDs, omitted when empty"`
+	Tags        map[string]interface{} `json:"tags,omitempty" jsonschema_extras:"a=b,foo=bar,foo=bar1"`
+	BirthDate   time.Time              `json:"birth_date,omitempty" jsonschema:"oneof_required=date"`
+	YearOfBirth string                 `json:"year_of_birth,omitempty" jsonschema:"oneof_required=year"`
+	Metadata    interface{}            `json:"metadata,omitempty" jsonschema:"oneof_type=string;array"`
+	FavColor    string                 `json:"fav_color,omitempty" jsonschema:"enum=red,enum=green,enum=blue"`
+}
 
 // every task will have a task list "run": [{ "at": "7:30am" }]
-type Task struct {
+type RunTask struct {
 	Every int    `json:"every,omitempty"`
 	Unit  string `json:"unit,omitempty"`
 	At    string `json:"at,omitempty"`
 }
 
-type Schedule struct {
-	Run []Task `json:"run,omitempty"`
-}
-type Sample struct {
-	Schedule
+type BasicTask struct {
+	Scheme string    `json:"$scheme,omitempty"`
+	Run    []RunTask `json:"run,omitempty"`
 }
 
 func main() {
 	// each task corresponds to a json file in the task directory.
+	compilerMap = map[string]func(arg []byte) (Task, error){
+		"user": func(config []byte) (Task, error) {
+			var tu TestUser
+			e := json.Unmarshal(config, &tu)
+			if e != nil {
+				return nil, e
+			}
+			return func(arg []byte) string {
+				return string(config)
+			}, nil
+		},
+	}
+
 	if len(os.Args) > 1 {
 		home = os.Args[1]
 	}
@@ -57,39 +86,81 @@ func main() {
 
 // return list of errors
 func Load() []string {
-	err := []string{}
-	sl := gojsonschema.NewSchemaLoader()
-	
+
+	sched := gocron.NewScheduler(time.UTC)
+	errs := []string{}
+
 	files, e := os.ReadDir(path.Join(home, "schema"))
 	if e != nil {
-		err = append(err, e.Error())
-	} else {
-		for _, f := range files {
-			if !f.IsDir() {
-				schemaLoader := gojsonschema.NewReferenceLoader(path.Join(home, f.Name()))
-				schema, err := gojsonschema.NewSchema(schemaLoader)
-				if err != nil {
-					err = append(err, err.Error())
-				schema[f.Name()] = schema
+		errs = append(errs, e.Error())
+		return errs
+	}
+
+	for _, f := range files {
+		if !f.IsDir() {
+			schemaLoader := gojsonschema.NewReferenceLoader(path.Join(home, f.Name()))
+			sch, e := gojsonschema.NewSchema(schemaLoader)
+			if e != nil {
+				errs = append(errs, e.Error())
+				schema[f.Name()] = sch
 			}
 		}
 	}
 
 	tasks, e := os.ReadDir(path.Join(home, "task"))
 	if e != nil {
-		return nil, e
+		return []string{e.Error()}
 	}
 	for _, f := range tasks {
 		if !f.IsDir() {
 			// documentLoader := gojsonschema.NewReferenceLoader(path.Join(home, f.Name()))
-			// result, err := gojsonschema.Validate(schemaLoader, documentLoader)
-			// if err != nil {
-			// 	return f.Name(), err
-			// }
-			
+			b, e := os.ReadFile(path.Join(home, f.Name()))
+			if e != nil {
+				errs = append(errs, e.Error())
+				continue
+			}
+			var v BasicTask
+			_ = json.Unmarshal(b, &v)
+			a := strings.Split(v.Scheme, "/")
+			name := a[len(a)-1]
+			compiler := compilerMap[name]
+			if compiler == nil {
+				errs = append(errs, fmt.Sprintf("unknown scheme %s for %s", v.Scheme, f.Name()))
+			} else {
+				task, e := compiler(b)
+				if e != nil {
+					errs = append(errs, e.Error())
+					continue
+				}
+				stem := strings.TrimSuffix(f.Name(), path.Ext(f.Name()))
+				taskmap[stem] = task
+				// add it to the schedule
+				for _, t := range v.Run {
+					ev := t.Every
+					if ev < 1 {
+						ev = 1
+					}
+					at := t.At
+					if at == "" {
+						at = "00:00"
+					}
+					unit := t.Unit
+					if unit == "" {
+						unit = "day"
+					}
+
+					switch unit {
+					case "day":
+						sched.Every(ev).Day().At(at).Do(func() { task(nil) })
+					case "second":
+						sched.Every(ev).Seconds().Do(func() { task(nil) })
+					}
+				}
+			}
 		}
 	}
-	return nil, nil
+
+	return errs
 }
 
 /*
@@ -100,30 +171,8 @@ func Load() []string {
 		return err
 	}
 
-	s := gocron.NewScheduler(time.UTC)
 	for _, t := range tl.Tasks {
-		if taskmap[t.Do] == nil {
-			return fmt.Errorf("unknown task %s", t.Do)
-		}
-		ev := t.Every
-		if ev < 1 {
-			ev = 1
-		}
-		at := t.At
-		if at == "" {
-			at = "00:00"
-		}
-		unit := t.Unit
-		if unit == "" {
-			unit = "day"
-		}
 
-		switch unit {
-		case "day":
-			s.Every(ev).Day().At(at).Do(taskmap[t.Do])
-		case "second":
-			s.Every(ev).Seconds().Do(taskmap[t.Do])
-		}
 	}
 
 	// everything parses.

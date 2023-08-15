@@ -2,6 +2,21 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$ref": "#/$defs/TestUser",
   "$defs": {
+    "RunTask": {
+      "properties": {
+        "every": {
+          "type": "integer"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "TestUser": {
       "oneOf": [
         {
@@ -18,6 +33,15 @@
         }
       ],
       "properties": {
+        "$scheme": {
+          "type": "string"
+        },
+        "run": {
+          "items": {
+            "$ref": "#/$defs/RunTask"
+          },
+          "type": "array"
+        },
         "id": {
           "type": "integer"
         },
