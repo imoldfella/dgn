@@ -57,27 +57,36 @@ func main() {
 
 // return list of errors
 func Load() []string {
+	err := []string{}
+	sl := gojsonschema.NewSchemaLoader()
+	
 	files, e := os.ReadDir(path.Join(home, "schema"))
 	if e != nil {
-		return []string{e.Error()}
-	}
-	for _, f := range files {
-		if !f.IsDir() {
-			schemaLoader := gojsonschema.NewReferenceLoader(path.Join(home, f.Name()))
-			schema[f.Name()] = schemaLoader
+		err = append(err, e.Error())
+	} else {
+		for _, f := range files {
+			if !f.IsDir() {
+				schemaLoader := gojsonschema.NewReferenceLoader(path.Join(home, f.Name()))
+				schema, err := gojsonschema.NewSchema(schemaLoader)
+				if err != nil {
+					err = append(err, err.Error())
+				schema[f.Name()] = schema
+			}
 		}
 	}
+
 	tasks, e := os.ReadDir(path.Join(home, "task"))
 	if e != nil {
 		return nil, e
 	}
 	for _, f := range tasks {
 		if !f.IsDir() {
-			documentLoader := gojsonschema.NewReferenceLoader(path.Join(home, f.Name()))
-			result, err := gojsonschema.Validate(schemaLoader, documentLoader)
-			if err != nil {
-				return f.Name(), err
-			}
+			// documentLoader := gojsonschema.NewReferenceLoader(path.Join(home, f.Name()))
+			// result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+			// if err != nil {
+			// 	return f.Name(), err
+			// }
+			
 		}
 	}
 	return nil, nil
