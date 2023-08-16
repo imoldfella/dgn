@@ -1,0 +1,8 @@
+{
+    "$scheme": "../schema/user.json",
+    "run": [
+        { "unit": "second", "every": 3}
+    ],
+    "ID": 1,
+    "Name": "John Doe"
+}
