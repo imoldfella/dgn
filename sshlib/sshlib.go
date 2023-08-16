@@ -26,10 +26,11 @@ import (
 // Note that in either case this is more of a proxy. There's no way for an sftp interface on the server to function because it wouldn't/shouldn't have the encryption key. so this only some client/proxy magic?
 type Config struct {
 	Banner      string
-	Sftp        string
+	Url         string
 	Key         string
 	CompilerMap CompilerMap
 	Home        string
+	Data        string
 }
 
 var config *Config
@@ -60,6 +61,7 @@ type LoadState struct {
 	sched *gocron.Scheduler
 	// potentially generated, but also loaded from schema directory
 	schema map[string]*gojsonschema.Schema
+	Keys   map[string]bool
 }
 
 var running *LoadState
@@ -90,7 +92,29 @@ func Load() []string {
 		taskmap: tm,
 		sched:   &gocron.Scheduler{},
 		schema:  map[string]*gojsonschema.Schema{},
+		Keys:    map[string]bool{},
 	}
+
+	fd, e := os.ReadDir(path.Join(config.Home, "keys"))
+	if e != nil {
+		return []string{e.Error()}
+	}
+	for _, f := range fd {
+		if !f.IsDir() {
+			o, e := os.ReadFile(path.Join(config.Home, "keys/"+f.Name()))
+			if e != nil {
+				continue
+			}
+
+			pk, _, _, _, err := ssh.ParseAuthorizedKey(o)
+			if err != nil {
+				continue
+			}
+
+			st.Keys[string(pk.Marshal())] = true
+		}
+	}
+
 	sched := gocron.NewScheduler(time.UTC)
 	errs := []string{}
 
@@ -246,9 +270,10 @@ func Start(configx *Config) {
 		})
 		if true {
 			ssh_server := ssh.Server{
-				Addr: config.Sftp,
+				Addr: config.Url,
 				PublicKeyHandler: func(ctx ssh.Context, key ssh.PublicKey) bool {
-					return true
+					_, ok := running.Keys[string(key.Marshal())]
+					return ok
 				},
 				SubsystemHandlers: map[string]ssh.SubsystemHandler{
 					"sftp": SftpHandlerx,
@@ -258,14 +283,6 @@ func Start(configx *Config) {
 			kf := ssh.HostKeyFile(config.Key)
 			kf(&ssh_server)
 			log.Fatal(ssh_server.ListenAndServe())
-		} else {
-			// without sftp
-			log.Fatal(ssh.ListenAndServe(config.Sftp, nil,
-				ssh.HostKeyFile(config.Key),
-				ssh.PublicKeyAuth(func(ctx ssh.Context, key ssh.PublicKey) bool {
-					return true
-				}),
-			))
 		}
 
 	}()
@@ -281,7 +298,9 @@ func SshHandler(sess ssh.Session) {
 }
 
 // SftpHandler handler for SFTP subsystem
+// we need to change the directory to the data directory.
 func SftpHandlerx(sess ssh.Session) {
+	os.Chdir(config.Data)
 	debugStream := io.Discard
 	serverOptions := []sftp.ServerOption{
 		sftp.WithDebug(debugStream),

@@ -3,6 +3,7 @@ package sshlib
 import (
 	"encoding/json"
 	"os"
+	"path"
 	"testing"
 	"time"
 
@@ -17,6 +18,7 @@ func Test_main(t *testing.T) {
 		home = os.Args[1]
 	} else {
 		home, _ = os.Getwd()
+		home = path.Join(home, "home")
 	}
 
 	// each task corresponds to a json file in the task directory.
@@ -35,9 +37,10 @@ func Test_main(t *testing.T) {
 
 	sx := &Config{
 		Banner:      "Sshlib test",
-		Sftp:        ":2022",
+		Url:         ":2022",
 		CompilerMap: compilerMap,
 		Home:        home,
+		Data:        "/Users/jim/dev",
 	}
 	Start(sx)
 }

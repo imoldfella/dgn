@@ -8,3 +8,4 @@ zig-out/
 /docgen_tmp/
 *.wasm
 *.o
+__*
