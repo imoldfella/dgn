@@ -1,25 +1,17 @@
-import { component$ } from "@builder.io/qwik";
-import { type DocumentHead } from "@builder.io/qwik-city";
-import { Logo } from '@dg/dg'
+import { component$, useVisibleTask$ } from "@builder.io/qwik";
+import { useNavigate, type DocumentHead, useLocation } from "@builder.io/qwik-city";
+
 export default component$(() => {
-  // const nav = useNavigate()
-  // const loc = useLocation()
-  // useVisibleTask$(() => {
-  //   if (loc.url.pathname === '/') {
-  //     nav('/en/tool/org/slice/querypath')
-  //   }
-  // })
+  const nav = useNavigate()
+  const loc = useLocation()
+  useVisibleTask$(() => {
+    if (loc.url.pathname === '/') {
+      nav('/en/tool/org/slice/querypath')
+    }
+  })
 
   return (
     <>
-      <h1>Hi 👋</h1>
-      <p>
-        Can't wait to see what you build with qwik!
-        <br />
-        Happy coding.
-        
-      </p>
-      <Logo/>
     </>
   );
 });
