@@ -9,12 +9,9 @@ import (
 	"github.com/invopop/jsonschema"
 )
 
-func Test_one(t *testing.T) {
+func Test_main(t *testing.T) {
 	os.Args = []string{""}
-	main()
-}
 
-func main() {
 	var home string
 	if len(os.Args) > 1 {
 		home = os.Args[1]

@@ -185,7 +185,8 @@ func Load() []string {
 	return errs
 }
 
-func Start(config *Config) {
+func Start(configx *Config) {
+	config = configx
 	e := Load()
 	if len(e) > 0 {
 		log.Fatal(strings.Join(e, "\n"))
