@@ -1,17 +1,18 @@
-import { component$, useVisibleTask$ } from "@builder.io/qwik";
-import { useNavigate, type DocumentHead, useLocation } from "@builder.io/qwik-city";
+import { component$ } from "@builder.io/qwik";
+import { type DocumentHead } from "@builder.io/qwik-city";
 
 export default component$(() => {
-  const nav = useNavigate()
-  const loc = useLocation()
-  useVisibleTask$(() => {
-    if (loc.url.pathname === '/') {
-      nav('/en/tool/org/slice/querypath')
-    }
-  })
+  // const nav = useNavigate()
+  // const loc = useLocation()
+  // useVisibleTask$(() => {
+  //   if (loc.url.pathname === '/') {
+  //     nav('/en/tool/org/slice/querypath')
+  //   }
+  // })
 
   return (
     <>
+    hello, world
     </>
   );
 });
