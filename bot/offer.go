@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 // pion-to-pion is an example of two pion instances communicating directly!
-package main
+package bot
 
 import (
 	"bytes"
@@ -16,20 +16,19 @@ import (
 	"time"
 
 	"github.com/pion/webrtc/v3"
-	"github.com/pion/webrtc/v3/examples/internal/signal"
 )
 
-func signalCandidate(addr string, c *webrtc.ICECandidate) error {
-	payload := []byte(c.ToJSON().Candidate)
-	resp, err := http.Post(fmt.Sprintf("http://%s/candidate", addr), "application/json; charset=utf-8", bytes.NewReader(payload)) //nolint:noctx
-	if err != nil {
-		return err
+func offerMain() { //nolint:gocognit
+	signalCandidate := func(addr string, c *webrtc.ICECandidate) error {
+		payload := []byte(c.ToJSON().Candidate)
+		resp, err := http.Post(fmt.Sprintf("http://%s/candidate", addr), "application/json; charset=utf-8", bytes.NewReader(payload)) //nolint:noctx
+		if err != nil {
+			return err
+		}
+
+		return resp.Body.Close()
 	}
 
-	return resp.Body.Close()
-}
-
-func main() { //nolint:gocognit
 	offerAddr := flag.String("offer-address", ":50000", "Address that the Offer HTTP server is hosted on.")
 	answerAddr := flag.String("answer-address", "127.0.0.1:60000", "Address that the Answer HTTP server is hosted on.")
 	flag.Parse()
@@ -139,7 +138,7 @@ func main() { //nolint:gocognit
 		fmt.Printf("Data channel '%s'-'%d' open. Random messages will now be sent to any connected DataChannels every 5 seconds\n", dataChannel.Label(), dataChannel.ID())
 
 		for range time.NewTicker(5 * time.Second).C {
-			message := signal.RandSeq(15)
+			message := RandSeq(15)
 			fmt.Printf("Sending '%s'\n", message)
 
 			// Send the message as text
