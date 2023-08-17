@@ -24,20 +24,27 @@ import (
 
 // ideally this will give us access to both the r2 html store and to the log store.
 // Note that in either case this is more of a proxy. There's no way for an sftp interface on the server to function because it wouldn't/shouldn't have the encryption key. so this only some client/proxy magic?
+
 type Config struct {
-	Banner      string
-	Url         string
-	Key         string
-	CompilerMap CompilerMap
 	Home        string
-	Data        string
+	CompilerMap CompilerMap
+	// these are the serializable options
+	Options
+}
+type Options struct {
+	Banner string
+	Url    string
+	Key    string
+	Data   string
 }
 
 var config *Config
 
 // the arg can correspond to additional arguments on the command line that can be used to override and spread to the task. Can we have a generic Partial in golang like typescript?
 
-type Task = func(arg []byte) string
+type TaskContext struct {
+}
+type Task = func(context *TaskContext) string
 type CompilerMap = map[string]func(arg []byte) (Task, error)
 
 // every task will have a task list "run": [{ "at": "7:30am" }]
@@ -76,11 +83,11 @@ func Load() []string {
 	defer mu.Unlock()
 
 	tm := map[string]Task{
-		"load": func(arg []byte) string {
+		"load": func(a *TaskContext) string {
 			e := Load()
 			return strings.Join(e, "\n")
 		},
-		"help": func(arg []byte) string {
+		"help": func(a *TaskContext) string {
 			s := ""
 			for k := range running.taskmap {
 				s += k + "\n"
@@ -234,16 +241,7 @@ func Start(configx *Config) {
 			fmt.Fprintf(t, "unknown command %s\n", s[0])
 			return
 		}
-		var b []byte = nil
-		if len(s) > 1 {
-			bx, e := os.ReadFile(s[1])
-			if e != nil {
-				fmt.Fprintf(t, "error reading %s: %s\n", s[1], e)
-				return
-			}
-			b = bx
-		}
-		response := task(b)
+		response := task(nil)
 		io.WriteString(t, response+"\n")
 	}
 

@@ -29,18 +29,20 @@ func Test_main(t *testing.T) {
 			if e != nil {
 				return nil, e
 			}
-			return func(arg []byte) string {
+			return func(context *TaskContext) string {
 				return string(config)
 			}, nil
 		},
 	}
 
 	sx := &Config{
-		Banner:      "Sshlib test",
-		Url:         ":2022",
+		Options: Options{
+			Banner: "Sshlib test",
+			Url:    ":2022",
+			Data:   "/Users/jim/dev",
+		},
 		CompilerMap: compilerMap,
 		Home:        home,
-		Data:        "/Users/jim/dev",
 	}
 	Start(sx)
 }
