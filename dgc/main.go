@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/pion/webrtc/v3"
@@ -29,11 +30,13 @@ func Decode(in string, obj interface{}) {
 }
 
 func main() {
+	var wg sync.WaitGroup
+	wg.Add(1)
 	dgdUrl := "x.localhost.direct:8082"
 	config := webrtc.Configuration{
 		ICEServers: []webrtc.ICEServer{
 			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
+				//URLs: []string{"stun:stun.l.google.com:19302"},
 			},
 		},
 	}
@@ -113,6 +116,7 @@ func main() {
 	// Register text message handling
 	dataChannel.OnMessage(func(msg webrtc.DataChannelMessage) {
 		fmt.Printf("Message from DataChannel '%s': '%s'\n", dataChannel.Label(), string(msg.Data))
+		wg.Done()
 	})
 
 	// Create an offer to send to the other process
@@ -132,12 +136,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// resp, err := http.Post(fmt.Sprintf("https://%s/sdp", dgdUrl), "application/json; charset=utf-8", bytes.NewReader(payload)) // nolint:noctx
-	// if err != nil {
-	// 	panic(err)
-	// } else if err := resp.Body.Close(); err != nil {
-	// 	panic(err)
-	// }
 
 	requestURL := fmt.Sprintf("https://%s/sdp", dgdUrl)
 	req, err := http.NewRequest(http.MethodPut, requestURL, bytes.NewReader(payload))
@@ -153,9 +151,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("client: got response!\n")
-	fmt.Printf("client: status code: %d\n", res.StatusCode)
-
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Printf("client: could not read response body: %s\n", err)
@@ -164,10 +159,14 @@ func main() {
 	fmt.Printf("client: response body: %s\n", resBody)
 
 	var sdp webrtc.SessionDescription
+	// sdp.Type = webrtc.SDPTypeAnswer
+	// sdp.SDP = string(resBody)
 	json.Unmarshal(resBody, &sdp)
 	if sdpErr := peerConnection.SetRemoteDescription(sdp); sdpErr != nil {
 		panic(sdpErr)
 	}
+
+	//peerConnection.
 
 	// 	for _, c := range pendingCandidates {
 	// 		if onICECandidateErr := signalCandidate(*answerAddr, c); onICECandidateErr != nil {
@@ -176,7 +175,7 @@ func main() {
 	// 	}
 	// }
 	// Register data channel creation handling
-	select {}
+	wg.Wait()
 }
 
 /*

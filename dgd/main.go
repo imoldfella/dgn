@@ -26,7 +26,7 @@ func main() {
 	config := webrtc.Configuration{
 		ICEServers: []webrtc.ICEServer{
 			{
-				URLs: []string{"stun:stun.l.google.com:19302"},
+				//URLs: []string{"stun:stun.l.google.com:19302"},
 			},
 		},
 	}
@@ -65,6 +65,7 @@ func main() {
 	http.HandleFunc("/api/sse/", corsHandler(dgrtc.WhepServerSentEventsHandler))
 	http.HandleFunc("/api/layer/", corsHandler(dgrtc.WhepLayerHandler))
 	http.HandleFunc("/sdp", func(w http.ResponseWriter, r *http.Request) {
+
 		sdp := webrtc.SessionDescription{}
 		if err := json.NewDecoder(r.Body).Decode(&sdp); err != nil {
 			panic(err)
@@ -73,42 +74,46 @@ func main() {
 		if err := peerConnection.SetRemoteDescription(sdp); err != nil {
 			panic(err)
 		}
+		peerConnection.OnConnectionStateChange(func(s webrtc.PeerConnectionState) {
+			fmt.Printf("Peer Connection State has changed: %s\n", s.String())
+			if s == webrtc.PeerConnectionStateFailed {
+				fmt.Println("Peer Connection has gone to failed exiting")
+			}
+		})
+		gatherComplete := webrtc.GatheringCompletePromise(peerConnection)
 
+		peerConnection.OnDataChannel(func(d *webrtc.DataChannel) {
+			d.OnOpen(func() {
+				log.Printf("Data channel '%s'-'%d' open.\n", d.Label(), d.ID())
+			})
+			d.OnMessage(func(msg webrtc.DataChannelMessage) {
+				log.Printf("Message from DataChannel '%s': '%s'\n", d.Label(), string(msg.Data))
+			})
+			d.SendText("Hello World!")
+			d.OnClose(func() {
+				log.Println("Data channel closed")
+			})
+			d.OnError(func(err error) {
+				log.Println("Data channel error", err)
+			})
+		})
 		// Create an answer to send to the other process
 		answer, err := peerConnection.CreateAnswer(nil)
 		if err != nil {
 			panic(err)
+		} else if err = peerConnection.SetLocalDescription(answer); err != nil {
+			panic(err)
 		}
+		<-gatherComplete
 
 		// Send our answer to the HTTP server listening in the other process
-		payload, err := json.Marshal(answer)
+		payload, err := json.Marshal(peerConnection.LocalDescription())
 		if err != nil {
 			panic(err)
 		}
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/sdp")
 		w.Write(payload)
-		w.WriteHeader(200)
-		// resp, err := http.Post(fmt.Sprintf("http://%s/sdp", *offerAddr), "application/json; charset=utf-8", bytes.NewReader(payload)) // nolint:noctx
-		// if err != nil {
-		// 	panic(err)
-		// } else if closeErr := resp.Body.Close(); closeErr != nil {
-		// 	panic(closeErr)
-		// }
-
-		// Sets the LocalDescription, and starts our UDP listeners
-		err = peerConnection.SetLocalDescription(answer)
-		if err != nil {
-			panic(err)
-		}
-
-		// candidatesMux.Lock()
-		// for _, c := range pendingCandidates {
-		// 	onICECandidateErr := signalCandidate(*offerAddr, c)
-		// 	if onICECandidateErr != nil {
-		// 		panic(onICECandidateErr)
-		// 	}
-		// }
-		// candidatesMux.Unlock()
+		w.WriteHeader(201)
 	})
 
 	log.Println("Running HTTP Server at `" + addr + "`")
