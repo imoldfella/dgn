@@ -1,5 +1,5 @@
 
-import "./index.css"
+
 
 
 export class RtcPeer {
@@ -19,8 +19,8 @@ export class RtcPeer {
         const ch = lc.createDataChannel('label');
         ch.onopen = () => { }
         ch.onclose = () => { }
-        ch.onmessage = (e: MessageEvent) => { }
-        ch.onerror = (e: any) => { }
+        ch.onmessage = (e: MessageEvent) => { console.log( e)}
+        ch.onerror = (e: any) => { console.log( e) }
 
         lc.onicecandidate = (e: RTCPeerConnectionIceEvent) => {
             if (e.candidate) {
@@ -73,7 +73,7 @@ export class RtcPeer {
 
 //const ws = new WebSocket("ws://localhost:8080")
 
-const connect = () => {
+export const connect = () => {
     const peerConnection = new RTCPeerConnection() // eslint-disable-line
     const ch = peerConnection.createDataChannel('dataChannel')
     ch.onopen = () => {

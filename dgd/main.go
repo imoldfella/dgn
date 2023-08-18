@@ -13,27 +13,20 @@ import (
 	"github.com/joho/godotenv"
 )
 
-//go:embed ui/dist/**
+//go:embed ui/dist
 var ui embed.FS
 
 func main() {
-	godotenv.Load()
 
-	startWeb := func() {
+	startWeb := func(addr string) {
 		_ = mime.AddExtensionType(".js", "text/javascript")
-
 		http.HandleFunc("/api/whap", corsHandler(webrtc.WhapHandler))
 		http.HandleFunc("/api/whep", corsHandler(webrtc.WhepHandler))
-
 		http.HandleFunc("/api/whip", corsHandler(webrtc.WhipHandler))
 		http.HandleFunc("/api/status", corsHandler(webrtc.StatusHandler))
 		http.HandleFunc("/api/sse/", corsHandler(webrtc.WhepServerSentEventsHandler))
 		http.HandleFunc("/api/layer/", corsHandler(webrtc.WhepLayerHandler))
 
-		addr := os.Getenv("HTTP_ADDRESS")
-		if len(addr) == 0 {
-			addr = ":8082"
-		}
 		log.Println("Running HTTP Server at `" + addr + "`")
 
 		htmlContent, err := fs.Sub(ui, "ui/dist")
@@ -49,7 +42,12 @@ func main() {
 	}
 
 	// can I use webrtc only for an api? Use any static file server to deliver
-	startWeb()
+	godotenv.Load()
+	addr := os.Getenv("HTTP_ADDRESS")
+	if len(addr) == 0 {
+		addr = ":8082"
+	}
+	startWeb(addr)
 
 	var home string
 	if len(os.Args) > 1 {

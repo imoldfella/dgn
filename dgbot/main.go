@@ -7,6 +7,9 @@ import (
 	"path"
 )
 
+// the basic structure of a bot is something that responds to events (eg time) and generates data.
+// the events can also be commands from authorized users. so service + cli.
+
 // Json structure of options for the 1199 job.
 // compose of normal things like directories etc.
 type Daily1199 struct {
