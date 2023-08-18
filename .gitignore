@@ -9,3 +9,4 @@ zig-out/
 *.wasm
 *.o
 __*
+.DS_Store

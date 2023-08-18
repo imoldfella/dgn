@@ -1,6 +1,7 @@
 package main
 
 import (
+	"datagrove/webrtc"
 	"fmt"
 	"io"
 	"log"
@@ -19,7 +20,14 @@ import (
 func main() {
 	// cobra cli?
 	// connect to dgd for signaling.
+	lobby := "localhost:8082"
 	addr := ":2022"
+
+	// our proxy keeps a channel to the lobby as long as its running
+	ch, e := webrtc.NewDataChannel(lobby, "ssh")
+	defer ch.Close()
+	o := NewSshApi(ch)
+
 	var keyfile string
 	if keyfile == "" {
 		// the exact key doesn't matter here, only that we don't keep changing it.
@@ -61,11 +69,39 @@ func main() {
 				Addr: addr,
 				PublicKeyHandler: func(ctx ssh.Context, key ssh.PublicKey) bool {
 					// this needs to connect to the bot so the bot can decide. should we cache a connection to the bot for this sort of thing?
+					// we need to sign the request, so that the bot can verify that the proxy is trusted as well as the client (another approach might be to configure as a bastion/jump server?) filezilla does not support jump servers though.
+					// if this looks like
 					//_, ok := running.Keys[string(key.Marshal())]
-					return true
+					// datachannel should be established already in the auth phase.
+
+					// we can ask the lobby to connect us, the lobby has a channel with the bot already, it can ask the bot if it wants to talk to us. We will make a channel directly to the bot eventually.
+
+					if e != nil {
+						return false
+					}
+
+					// we don't need to sign,
+					// a problem with this is there's no way to return an error? maybe we should always allow and disconnect, but how would we error to an sftp client like filezilla?
+					e := o.Allows(ctx.User(), key)
+					return e != nil
 				},
 				SubsystemHandlers: map[string]ssh.SubsystemHandler{
-					"sftp": SftpHandlerx,
+					"sftp": func(sess ssh.Session) {
+						// at this point create a new data channel directly to the bot.
+						ch, e := webrtc.NewDataChannel(lobby, sess.User())
+						if e != nil {
+							return
+						}
+						defer ch.Close()
+						sess.PublicKey()
+
+						// note that this is only efficient if the ssh proxy is local and there is no turn server. potentially the local server could use various routing strategies?
+						go func() {
+							for {
+
+							}
+						}()
+					},
 				},
 			}
 
@@ -84,11 +120,11 @@ func main() {
 
 // SftpHandler handler for SFTP subsystem
 // we need to change the directory to the data directory.
+
 func SftpHandlerx(sess ssh.Session) {
 	// we only have user to identify the target bot
 	sess.User()
 
-	//os.Chdir(config.Data)
 	debugStream := io.Discard
 	serverOptions := []sftp.ServerOption{
 		sftp.WithDebug(debugStream),

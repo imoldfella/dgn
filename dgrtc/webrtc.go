@@ -1,4 +1,4 @@
-package webrtc
+package dgrtc
 
 import (
 	"encoding/json"
