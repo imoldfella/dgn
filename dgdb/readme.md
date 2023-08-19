@@ -16,3 +16,9 @@ how can we handle trees that are shared on groves (retweets)?
 each tree needs a single writer, although grove may aggregate the authority to write to those trees.
 a tree may be multiple tables.
 
+
+Bots
+
+1. Tasks; these are configurations of the bot that repeat on a time schedule 
+2. Attach
+3. Connect

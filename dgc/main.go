@@ -29,7 +29,21 @@ func Decode(in string, obj interface{}) {
 	}
 }
 
+// connecting to a bot might entail us becoming the bot if the bot is down.
+// how do we indicate our willingness to become the bot?
+// ConnectOrBecome("bot")
+
 func main() {
+	// get a socketlike connection over webrtc.
+	dgd, e := dgd.Connect("x.localhost.direct:8082")
+
+	// connect to a bot using dgd.
+	bot, e := dgd.Connect("testBot")
+
+	//
+}
+
+func main1() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	dgdUrl := "x.localhost.direct:8082"

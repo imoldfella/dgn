@@ -19,16 +19,15 @@ type UpdateDatabase struct {
 	Table []TableOp
 }
 type TableOp struct {
-	Table uint32
-	Op    []Op
+	TableId uint32
+	Op      []Op
 }
 type Op struct {
 	Op   uint32 // 0 = insert, 1 = delete, 2 = update, 3+ = custom
 	Args []byte
 }
 
-// a tx is logically a +/- tuple, but for compression we can also add an update that is a delta from a previous value.
-// only transactional locally; there is not way to enforce atomicity across different trees.
+// only transactional locally; there is not way to enforce atomicity across different Schemas.
 type Tx struct {
 	Database []UpdateDatabase
 }

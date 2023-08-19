@@ -1,5 +1,8 @@
 package dgdb
 
+// this test connects to a dgd, then we can use ssh proxy to execute
+// this requires dgdb (the bot), dgd (the cluster) and dgc (the client/proxy) and potentially other ssh based tools like ssh and sftp.
+
 // Samplebot can be configured, creating more than a single bot based on flags.
 type SampleBot struct {
 	Snark int `json:"snark,omitempty"`
@@ -37,6 +40,7 @@ func (*SampleBot) Connect(a *Connection) error {
 }
 
 // start with the path to the configuration
+// the configuration file can also specify time based bot tasks
 func SampleBotMain(path string) error {
 	// Write a schema for the bot configuration
 
