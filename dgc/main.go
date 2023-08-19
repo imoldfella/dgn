@@ -5,10 +5,12 @@ import (
 	"datagrove/bot"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -33,17 +35,67 @@ func Decode(in string, obj interface{}) {
 // how do we indicate our willingness to become the bot?
 // ConnectOrBecome("bot")
 
-func main() {
+func RemoteCommand(target string, cmd []string) error {
+	v := strings.Split(target, "@")
+	if len(v) != 2 {
+		return fmt.Errorf("invalid target")
+	}
+	botname := v[0]
+	host := v[1]
 	// get a socketlike connection over webrtc.
-	dgd, e := dgd.Connect("x.localhost.direct:8082")
+	dgd, e := Connect(host)
+	if e != nil {
+		return e
+	}
 
 	// connect to a bot using dgd. Fails if bot is not online
-	bot, e := dgd.Connect("testBot")
-
-	//
+	bot, e := dgd.Connect(botname)
+	// ideally we should be able to connect a stream to the bot, to act like a terminal. this lets the bot have some more display options?
+	fmt.Println()
+	_ = bot
+	return nil
 }
 
-func main1() {
+func SshProxy(target string) error {
+
+	return nil
+}
+
+type Datagrove struct {
+}
+
+func (d *Datagrove) Connect(botname string) (*BotConnection, error) {
+	return nil, nil
+}
+func (d *BotConnection) Session() (*Session, error) {
+	return nil, nil
+}
+
+type BotConnection struct {
+}
+
+type Session struct {
+	Stdout io.Writer
+}
+
+func (d *Session) Run(cmd string) error {
+	return nil
+}
+func (s *Session) Output(cmd string) ([]byte, error) {
+	if s.Stdout != nil {
+		return nil, errors.New("ssh: Stdout already set")
+	}
+	var b bytes.Buffer
+	s.Stdout = &b
+	err := s.Run(cmd)
+	return b.Bytes(), err
+}
+
+func Connect(host string) (*Datagrove, error) {
+	// use cobra to allow dgc to directly act as a substitute for ssh, or to act as a proxy for sftp.
+
+	//
+
 	var wg sync.WaitGroup
 	wg.Add(1)
 	dgdUrl := "x.localhost.direct:8082"
