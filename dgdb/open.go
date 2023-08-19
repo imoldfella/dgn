@@ -2,21 +2,7 @@ package dgdb
 
 import "io"
 
-// bots exist the in the context of a local database
-// bots are authors.
-
-// deal with the credential in database before calling
-type Bot interface {
-	Attach(url string) error
-	Detach(url string) error
-}
-type BotOption struct {
-}
-
 type Credential []byte
-type BotCredential struct {
-	Url string
-}
 
 type LocalServer struct {
 	grove map[uint32]*Datagrove
@@ -32,9 +18,6 @@ func NewLocalServer() (*LocalServer, error) {
 
 type Committer interface {
 	Commit() error
-}
-
-type Tx struct {
 }
 
 type Txi struct {
@@ -75,12 +58,6 @@ func (s *SampleStatement) Exec(tx *Tx) error {
 	return nil
 }
 
-// a Subscription can be a statement that we execute to subscribe to a channel
-
-type Signal interface {
-	addListener(f func()) func()
-	removeListener(f func()) error
-}
 type SampleSub struct {
 	Signal
 }

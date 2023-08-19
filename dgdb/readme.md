@@ -8,3 +8,6 @@ Deletions must be signed by a deletion key. (only deleters can confirm this)
 The top level name -> label is maintained in certificate transparency logs
 
 pages group tuple with identical secuurity.
+
+
+Connections are made to coalesce writes and to reduce latency of reads.
