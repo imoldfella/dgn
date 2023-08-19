@@ -37,7 +37,7 @@ func main() {
 	// get a socketlike connection over webrtc.
 	dgd, e := dgd.Connect("x.localhost.direct:8082")
 
-	// connect to a bot using dgd.
+	// connect to a bot using dgd. Fails if bot is not online
 	bot, e := dgd.Connect("testBot")
 
 	//
