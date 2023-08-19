@@ -3,12 +3,31 @@ package dgdb
 import "io"
 
 // bots exist the in the context of a local database
+// bots are authors.
 
-type Server interface {
-	Send(follower Follower, data []byte) error
+// deal with the credential in database before calling
+type Bot interface {
+	Attach(url string) error
+	Detach(url string) error
+}
+type BotOption struct {
+}
+
+type Credential []byte
+type BotCredential struct {
+	Url string
 }
 
 type LocalServer struct {
+	grove map[uint32]*Datagrove
+}
+
+func (s *LocalServer) RegisterBot(bot Bot, opt ...BotOption) error {
+	return nil
+}
+
+func NewLocalServer() (*LocalServer, error) {
+	return nil, nil
 }
 
 type Committer interface {
@@ -32,27 +51,6 @@ func (tx *Tx) Close() error {
 
 func NewTx(db *LocalServer) *Tx {
 	return nil
-}
-
-type Datagrove interface {
-	Connect(did string, cb Callback)
-	Publish(data []byte) error
-	AcceptFollow(follower Follower) error
-	RequestFollow(follower Follower) error
-}
-type Callback interface {
-	RequestFollow(follower Follower) error
-}
-
-type BasicDatagrove struct {
-}
-
-func NewServer() (*Datagrove, error) {
-	return nil, nil
-}
-
-type Follower struct {
-	Handle int
 }
 
 type Statement interface {
