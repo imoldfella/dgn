@@ -17,8 +17,65 @@ import (
 	"github.com/pion/webrtc/v3"
 )
 
+type Datagrove interface {
+	// There can only be one primary writer per schema. Other writers should delegate to the primary writer. They can outbid the primary writer to become writers themselves, the lease must expire though.
+	LeaseSchema(desc SchemaRequest) (Writer, error)
+	RequestFollow(follower FollowRequest) error
+}
+type SchemaRequest struct {
+}
+type FollowRequest struct {
+}
+
+// calls from datagrove back to the database
+// this is wrapper around a webrtc offer?
+type DatagroveCallback interface {
+	RequestConnection(cn ConnectionRequest) error
+}
+
+// writers connect to be able to write, read only may get lower latency if they connect.
+type ConnectionRequest struct {
+}
+
+// webrtc to accept followers from a datagrove cluster
+
+// returns a writer to the schema. Writing is done by the database as a result of commiting transactions first to the local database, then replicating to the remote schema.
+type Writer interface {
+}
+
+type Callback interface {
+	RequestFollow(follower Author) error
+}
+type Author struct {
+	Handle int
+}
+
+type BasicDatagrove struct {
+}
+
+func (d *BasicDatagrove) ClaimAuthor(did string) (Author, error) {
+	return Author{}, nil
+}
+
+func NewServer(did string) (*Datagrove, error) {
+	return nil, nil
+}
+
 type DatagroveClient struct {
 }
+
+// ClaimAuthor implements Datagrove.
+func (*DatagroveClient) LeaseSchema(did SchemaRequest) (Writer, error) {
+	panic("unimplemented")
+}
+
+// RequestFollow implements Datagrove.
+func (*DatagroveClient) RequestFollow(follower FollowRequest) error {
+	panic("unimplemented")
+}
+
+var _ Datagrove = &DatagroveClient{}
+
 type BotConnection struct {
 }
 

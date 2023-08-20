@@ -1,5 +1,11 @@
 package dgdb
 
+import (
+	"encoding/json"
+	"log"
+	"os"
+)
+
 type Credential []byte
 
 type LocalServer struct {
@@ -12,12 +18,25 @@ func (s *LocalServer) RegisterBot(bot Bot, opt ...BotOption) error {
 
 type Plugin func(db *LocalServer)
 
+type Config struct {
+}
+
 func NewLocalServer(home string, opt ...Plugin) {
+	var cfg Config
+	b, e := os.ReadFile(home + "/config.json")
+	if e != nil {
+		log.Fatal(e)
+	}
+	json.Unmarshal(b, &cfg)
+
 	r := &LocalServer{}
 	for _, p := range opt {
 		p(r)
 	}
-	// start the server.
+	// start the server. create a datachannel to datagrove. Listen for incoming chats.
+	for {
+
+	}
 }
 
 func (s *LocalServer) Watch(tx chan Tx) {
