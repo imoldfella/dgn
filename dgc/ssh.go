@@ -1,7 +1,7 @@
 package main
 
 import (
-	"datagrove/webrtc"
+	"datagrove/dgdb"
 	"fmt"
 	"io"
 	"log"
@@ -16,17 +16,20 @@ import (
 	"golang.org/x/term"
 )
 
-// authorization here is pass through, so we need very little configuration.
-func main() {
-	// cobra cli?
-	// connect to dgd for signaling.
-	lobby := "localhost:8082"
-	addr := ":2022"
+// maybe this is like drop box? we can upload and browse even offline, with a file system that mirrors connected databases?
+// is webdav any better than sftp for anything?
 
-	// our proxy keeps a channel to the lobby as long as its running
-	ch, e := webrtc.NewDataChannel(lobby, "ssh")
-	defer ch.Close()
-	o := NewSshApi(ch)
+// we can mount boturl if its not already mounted.
+// func ProxySsh(boturl string, port string) {
+// 	bot, e := ConnectBot(boturl)
+// 	if e != nil {
+// 		log.Fatal(e)
+// 	}
+// 	_ = bot
+// }
+
+// we are browsing a merged file system
+func ProxySsh(o *dgdb.LocalServer, addr string) {
 
 	var keyfile string
 	if keyfile == "" {
@@ -75,10 +78,6 @@ func main() {
 					// datachannel should be established already in the auth phase.
 
 					// we can ask the lobby to connect us, the lobby has a channel with the bot already, it can ask the bot if it wants to talk to us. We will make a channel directly to the bot eventually.
-
-					if e != nil {
-						return false
-					}
 
 					// we don't need to sign,
 					// a problem with this is there's no way to return an error? maybe we should always allow and disconnect, but how would we error to an sftp client like filezilla?

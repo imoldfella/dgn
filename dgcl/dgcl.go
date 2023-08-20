@@ -33,16 +33,6 @@ func Decode(in string, obj interface{}) {
 // this is the dg client library that allows remote access to the dgdb
 // without necessarily running a dgdb server locally
 
-func RemoteCommand(target string, cmd []string) error {
-
-	// connect to a bot using dgd. Fails if bot is not online
-	bot, e := dgd.Connect(botname)
-	// ideally we should be able to connect a stream to the bot, to act like a terminal. this lets the bot have some more display options?
-	fmt.Println()
-	_ = bot
-	return nil
-}
-
 func SshProxy(target string) error {
 
 	return nil
