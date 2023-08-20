@@ -22,3 +22,9 @@ Bots
 1. Tasks; these are configurations of the bot that repeat on a time schedule 
 2. Attach
 3. Connect
+
+
+The local server can be accessed in-process (mobile requires this) or inter-process.
+Interprocess will be fastest by using
+1. Shared memory 
+2. domain sockets.

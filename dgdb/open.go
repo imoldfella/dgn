@@ -1,7 +1,5 @@
 package dgdb
 
-import "io"
-
 type Credential []byte
 
 type LocalServer struct {
@@ -12,28 +10,23 @@ func (s *LocalServer) RegisterBot(bot Bot, opt ...BotOption) error {
 	return nil
 }
 
-func NewLocalServer(home string) (*LocalServer, error) {
-	return nil, nil
+type Plugin func(db *LocalServer)
+
+func NewLocalServer(home string, opt ...Plugin) {
+	r := &LocalServer{}
+	for _, p := range opt {
+		p(r)
+	}
+	// start the server.
 }
 
-type Committer interface {
-	Commit() error
+func (s *LocalServer) Watch(tx chan Tx) {
 }
 
-type Txi struct {
-	Committer
-	io.Closer
-}
-
-func (tx *Tx) Commit() error {
-	return nil
-}
-func (tx *Tx) Close() error {
-	return nil
-}
-
-func NewTx(db *LocalServer) *Tx {
-	return nil
+func (db *LocalServer) Begin() *Tx {
+	return &Tx{
+		LocalServer: db,
+	}
 }
 
 type Statement interface {

@@ -26,7 +26,7 @@ import (
 // }
 
 // we are browsing a merged file system
-func ProxySftp(o *dgdb.LocalServer, addr string) {
+func ProxySftp(o *LocalServer, addr string) {
 	var keyfile string
 	if keyfile == "" {
 		// the exact key doesn't matter here, only that we don't keep changing it.

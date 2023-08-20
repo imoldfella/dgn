@@ -2,14 +2,6 @@ package dgdb
 
 // an author is like a twitter user, issuer is like twitter vs bluesky
 
-// page hea
-type PageHeader struct {
-	DbId          uint32 //
-	SchemaId      uint32 // each grove issues unique tree ids.
-	SchemaVersion uint32 // version is used to regress the key to decrypt
-	TableId       uint32 // each grove issues unique tree ids.
-}
-
 // data in this case is only the ke
 type UpdateDatabase struct {
 	DbId     uint32
@@ -23,11 +15,23 @@ type TableOp struct {
 	Op      []Op
 }
 type Op struct {
+	// ops are defined in the schema. they can be webassembly routines.
 	Op   uint32 // 0 = insert, 1 = delete, 2 = update, 3+ = custom
 	Args []byte
 }
+type Committer interface {
+	Commit() error
+}
 
-// only transactional locally; there is not way to enforce atomicity across different Schemas.
+// only transactional locally; there is no way to enforce atomicity across different Schemas.
 type Tx struct {
+	*LocalServer
 	Database []UpdateDatabase
+}
+
+func (tx *Tx) Commit() error {
+	return nil
+}
+func (tx *Tx) Close() error {
+	return nil
 }

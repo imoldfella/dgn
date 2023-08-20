@@ -1,13 +1,17 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"datagrove/dgdb"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 // connecting to a bot might entail us becoming the bot if the bot is down.
@@ -29,9 +33,46 @@ func main() {
 
 	// if the first argument has @ then this is a remote command
 	// otherwise use normal command processing.
-	if len(os.Args) == 3 && strings.Contains(os.Args[1], "@") {
+	if strings.Contains(os.Args[1], "@") {
 		// remote execution of commands, then exit.
-		remote(os.Args[1], os.Args[2])
+		if len(os.Args) == 3 {
+			dgdb.Remote(os.Args[1], os.Args[2])
+		} else {
+			// start a terminal
+			bot, e := dgdb.ConnectBot(os.Args[1])
+			if e != nil {
+				log.Fatal(e)
+			}
+			stdin_reader, _ := io.Pipe()
+			reader := bufio.NewReader(stdin_reader)
+
+			stdout_writer := bytes.Buffer{}
+			writer := bufio.NewWriter(&stdout_writer)
+
+			rw := bufio.NewReadWriter(reader, writer)
+			t := term.NewTerminal(rw, "> ")
+
+			// constantly be reading lines
+			go func() {
+				for {
+					line, err := t.ReadLine()
+					if err == io.EOF {
+						log.Printf("got EOF")
+					}
+					if err != nil {
+						log.Printf("got err")
+					}
+					if line == "" {
+						continue
+					}
+					s, e := bot.Output(line)
+					if e != nil {
+						log.Fatal(e)
+					}
+					fmt.Printf(string(s))
+				}
+			}()
+		}
 		return
 	}
 
@@ -51,22 +92,9 @@ func main() {
 			if len(args) > 0 {
 				home = args[0]
 			}
-			Start(home)
+			dgdb.NewLocalServer(home)
 		},
 	}
 	rootCmd.AddCommand(start)
 	rootCmd.Execute()
-}
-
-func Start(home string) {
-	if len(os.Args) < 3 {
-		fmt.Println("usage: dgc ssh target [dir]")
-		return
-	}
-	db, e := dgdb.NewLocalServer(home)
-	if e != nil {
-		log.Fatal(e)
-	}
-	ProxySftp(db)
-	return
 }
