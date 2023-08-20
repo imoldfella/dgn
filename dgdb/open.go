@@ -12,7 +12,7 @@ func (s *LocalServer) RegisterBot(bot Bot, opt ...BotOption) error {
 	return nil
 }
 
-func NewLocalServer() (*LocalServer, error) {
+func NewLocalServer(home string) (*LocalServer, error) {
 	return nil, nil
 }
 

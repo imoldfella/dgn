@@ -1,16 +1,13 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
+	"datagrove/dgdb"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/term"
 )
 
 // connecting to a bot might entail us becoming the bot if the bot is down.
@@ -48,66 +45,28 @@ func main() {
 	// the second non-flag argument is the commands to send, or if none then set up a terminal
 	var start = &cobra.Command{
 		Use:   "start",
-		Short: "start cluster",
-		Args:  cobra.ExactArgs(1),
+		Short: "start dir",
 		Run: func(cmd *cobra.Command, args []string) {
+			home := "."
+			if len(args) > 0 {
+				home = args[0]
+			}
+			Start(home)
 		},
 	}
 	rootCmd.AddCommand(start)
 	rootCmd.Execute()
+}
 
-	if os.Args[1] == "sftp" {
-		if len(os.Args) < 3 {
-			fmt.Println("usage: dgc ssh target [dir]")
-			return
-		}
-		v := strings.Split(os.Args[2], ":")
-		bot := v[0]
-		port := "2022"
-		if len(v) > 1 {
-			port = v[1]
-		}
-		ProxySsh(bot, port)
+func Start(home string) {
+	if len(os.Args) < 3 {
+		fmt.Println("usage: dgc ssh target [dir]")
 		return
 	}
-
-	if len(os.Args) >= 2 {
-
-		return
-	}
-
-	// start a terminal
-	bot, e := ConnectBot(os.Args[1])
+	db, e := dgdb.NewLocalServer(home)
 	if e != nil {
 		log.Fatal(e)
 	}
-	stdin_reader, _ := io.Pipe()
-	reader := bufio.NewReader(stdin_reader)
-
-	stdout_writer := bytes.Buffer{}
-	writer := bufio.NewWriter(&stdout_writer)
-
-	rw := bufio.NewReadWriter(reader, writer)
-	t := term.NewTerminal(rw, "> ")
-
-	// constantly be reading lines
-	go func() {
-		for {
-			line, err := t.ReadLine()
-			if err == io.EOF {
-				log.Printf("got EOF")
-			}
-			if err != nil {
-				log.Printf("got err")
-			}
-			if line == "" {
-				continue
-			}
-			s, e := bot.Output(line)
-			if e != nil {
-				log.Fatal(e)
-			}
-			fmt.Printf(string(s))
-		}
-	}()
+	ProxySftp(db)
+	return
 }
