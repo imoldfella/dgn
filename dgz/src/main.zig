@@ -15,7 +15,6 @@ export fn submit(id: u32, tx: [*]const u8, sz: u64) i8 {
     const d: cbor.DataItem = cbor.DataItem.new(tx[0..sz]) catch {
         return -1;
     };
-    // why is this failing at runtime?
     const x: Txx = cbor.parse(Txx, d, .{
         .allocator = allocator,
     }) catch {
