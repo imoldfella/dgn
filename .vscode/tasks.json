@@ -1,0 +1,18 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "dgz",
+            "type": "shell",
+            "command": "zig",
+            "options": {
+                "cwd": "${workspaceFolder}/dgz",
+            },
+            "args": ["build"], // add -Drelease-safe=true or -Drelease-fast=true to optimize
+            "problemMatcher": [],
+            "group": "build",
+        },
+    ]
+}

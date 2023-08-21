@@ -41,7 +41,7 @@ export fn submit(id: u32, tx: [*]const u8, sz: u64) i8 {
 fn onComplete2(id: u32, result: []const u8) void {
     const stdout = std.io.getStdOut().writer();
 
-    stdout.print("result: {},{}\n", .{ result, id }) catch {
+    stdout.print("result: {any},{any}\n", .{ result, id }) catch {
         return;
     };
 }
@@ -90,11 +90,20 @@ pub fn commit(db: *Db, tx: *Tx) !void {
 // }
 
 pub fn main() void {
+    const allocator = std.heap.page_allocator;
+    var str = std.ArrayList(u8).init(allocator);
+    defer str.deinit();
     finish = onComplete2;
     var tx = Txx{ .sql = "select * from something" };
-    _ = tx;
 
-    //submit(0, tx), tx.sql.;
+    cbor.stringify(tx, .{}, str.writer()) catch {
+        return;
+    };
+    const err = submit(0, str.items.ptr, str.items.len);
+    const stdout = std.io.getStdOut().writer();
+    stdout.print("err: {d}\n", .{err}) catch {
+        return;
+    };
 }
 
 // pub fn main() !void {
