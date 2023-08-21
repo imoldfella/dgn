@@ -92,7 +92,9 @@ pub fn commit(db: *Db, tx: *Tx) !void {
 pub fn main() void {
     finish = onComplete2;
     var tx = Txx{ .sql = "select * from something" };
-    submit(0, tx);
+    _ = tx;
+
+    //submit(0, tx), tx.sql.;
 }
 
 // pub fn main() !void {
