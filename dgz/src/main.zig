@@ -1,41 +1,57 @@
 const std = @import("std");
-const cbor = @import("zbor/cbor.zig");
+const cbor = @import("zbor/main.zig");
+//const cborp = @import("zbor/parse.zig");
 
 extern "onComplete" fn onComplete(id: u32, result: [*]const u8) void;
+export fn allocUint8(length: u32) [*]const u8 {
+    const slice = std.heap.page_allocator.alloc(u8, length) catch
+        @panic("failed to allocate memory");
+    return slice.ptr;
+}
+export fn submit(id: u32, tx: [*]const u8, sz: u64) i8 {
+    const allocator = std.heap.page_allocator;
+    var str = std.ArrayList(u8).init(allocator);
+    defer str.deinit();
+
+    const d: cbor.DataItem = cbor.DataItem.new(tx[0..sz]) catch {
+        return -1;
+    };
+    const x = cbor.parse(Txx, d, .{}) catch {
+        return -1;
+    };
+
+    const Info = struct {
+        versions: []const []const u8,
+        sql: []const u8,
+    };
+
+    const i = Info{
+        .versions = &.{ "FIDO_2_0", "wtf" },
+        .sql = x.sql,
+    };
+
+    cbor.stringify(i, .{}, str.writer()) catch {
+        return -1;
+    };
+
+    finish(id, str.items);
+    return 0;
+}
 
 fn onComplete2(id: u32, result: []const u8) void {
     const stdout = std.io.getStdOut().writer();
 
-    try stdout.print("result: {},{}\n", .{ result, id });
+    stdout.print("result: {},{}\n", .{ result, id }) catch {
+        return;
+    };
 }
 
-var finish: fn (id: u32, result: []const u8) void = null;
+var finish: *const fn (id: u32, result: []const u8) void = onComplete2;
 
 const Txx = struct {
     sql: []const u8,
 };
 
-export fn submit(id: u32, tx: [*]const u8) void {
-    const allocator = std.heap.page_allocator;
-    var str = std.ArrayList(u8).init(allocator);
-    defer str.deinit();
-
-    const d = cbor.DataItem.new(tx);
-    const x = try cbor.parse(Txx, d, .{});
-
-    const Info = struct {
-        versions: []const []const u8,
-        sql: x.sql,
-    };
-
-    const i = Info{
-        .versions = &.{ "FIDO_2_0", "wtf" },
-    };
-
-    try cbor.stringify(i, .{}, str.writer());
-
-    onComplete(id, str.items);
-}
 // c style api's for portability.
 
 const Db = struct {
