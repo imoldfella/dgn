@@ -41,7 +41,7 @@ func NewLocalServer(home string, opt ...Plugin) {
 	}
 
 	// start the server. create a datachannel to datagrove. Listen for incoming chats.
-
+	// when incoming chat, then create a new datachannel directly to the chatter if 1-1. if
 	for {
 		//
 	}
