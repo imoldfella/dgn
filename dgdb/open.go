@@ -1,6 +1,7 @@
 package dgdb
 
 import (
+	"datagrove/dgrtc"
 	"encoding/json"
 	"log"
 	"os"
@@ -19,6 +20,11 @@ func (s *LocalServer) RegisterBot(bot Bot, opt ...BotOption) error {
 type Plugin func(db *LocalServer)
 
 type Config struct {
+	Datagrove []string
+}
+
+type State struct {
+	Datagrove []dgrtc.SocketLike
 }
 
 func NewLocalServer(home string, opt ...Plugin) {
@@ -33,9 +39,11 @@ func NewLocalServer(home string, opt ...Plugin) {
 	for _, p := range opt {
 		p(r)
 	}
-	// start the server. create a datachannel to datagrove. Listen for incoming chats.
-	for {
 
+	// start the server. create a datachannel to datagrove. Listen for incoming chats.
+
+	for {
+		//
 	}
 }
 
