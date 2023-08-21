@@ -1,6 +1,5 @@
 const std = @import("std");
 const cbor = @import("zbor/main.zig");
-//const cborp = @import("zbor/parse.zig");
 
 extern "onComplete" fn onComplete(id: u32, result: [*]const u8) void;
 export fn allocUint8(length: u32) [*]const u8 {
@@ -16,7 +15,10 @@ export fn submit(id: u32, tx: [*]const u8, sz: u64) i8 {
     const d: cbor.DataItem = cbor.DataItem.new(tx[0..sz]) catch {
         return -1;
     };
-    const x = cbor.parse(Txx, d, .{}) catch {
+    // why is this failing at runtime?
+    const x: Txx = cbor.parse(Txx, d, .{
+        .allocator = allocator,
+    }) catch {
         return -1;
     };
 
@@ -40,7 +42,9 @@ export fn submit(id: u32, tx: [*]const u8, sz: u64) i8 {
 
 fn onComplete2(id: u32, result: []const u8) void {
     const stdout = std.io.getStdOut().writer();
-
+    stdout.print("onComplete2", .{}) catch {
+        return;
+    };
     stdout.print("result: {any},{any}\n", .{ result, id }) catch {
         return;
     };
