@@ -6,28 +6,30 @@ export default component$(() => {
   const loc = useLocation()
   useVisibleTask$(() => {
     if (loc.url.pathname === '/') {
-      nav('/en/tool/org/slice/querypath')
+      // we should go to the users home page, 
+      // /en/query/user/home
+      // /en/query/~guest/home
+      // namespaces
+      //  human language
+      //  developer
+      //  user
+      //  user chosen
+      nav('/en/q/~guest/home')
     }
   })
 
   return (
     <>
-      <h1>Hi 👋</h1>
-      <p>
-        Can't wait to see what you build with qwik!
-        <br />
-        Happy coding.
-      </p>
     </>
   );
 });
 
 export const head: DocumentHead = {
-  title: "Welcome to Qwik",
+  title: "Datagrove",
   meta: [
     {
-      name: "description",
-      content: "Qwik site description",
+      name: "Datagrove",
+      content: "Datagrove",
     },
   ],
 };

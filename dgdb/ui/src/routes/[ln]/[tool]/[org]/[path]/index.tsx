@@ -1,9 +1,9 @@
 import { Resource, component$, useContextProvider, useResource$, useSignal, useStore, useTask$ } from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
-import { routeLoader$, useLocation } from '@builder.io/qwik-city'
+import {  useLocation } from '@builder.io/qwik-city'
 
-import { Signin, Signin2, } from '@ui/login'
-import { AppContext, AppStore, DmList, Edit, PageTool, PostStream, Search, Tool, messageQuery } from '@ui/dg'
+import { type Signin, Signin2, } from '@ui/login'
+import { AppContext, type AppStore, DmList, Edit, PageTool, PostStream, Search, type Tool, messageQuery } from '@ui/dg'
 import { $localize } from '@ui/i18n'
 import { H2, Icon, bubble, cart, elipsis, link, pencil, personIcon, search } from '@ui/theme'
 import { newQuery } from '@ui/query'
@@ -113,10 +113,6 @@ const Outlet = component$(() => {
     switch (app.tab) {
       case "edit": return <Edit />
       case "share": return <DmList/>
-      // case "files": return <FileBrowser />
-      // case "propose": return <Propose />
-      // case "review": return <Review />
-      // case "account": return <Account />
     }
     return <div />
   })
@@ -143,11 +139,11 @@ const Outlet = component$(() => {
 export default Outlet
 
 export const head: DocumentHead = {
-  title: "Welcome to Qwik",
+  title: "Datagrove",
   meta: [
     {
-      name: "description",
-      content: "Qwik site description",
+      name: "Datagrove",
+      content: "Datagrove",
     },
   ],
 };

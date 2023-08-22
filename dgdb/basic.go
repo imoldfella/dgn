@@ -19,6 +19,8 @@ import (
 var ui embed.FS
 
 func BasicServer(home string) {
+	// users on the basic server start by following a rollup of all the bots on the local server.
+
 	// var candidatesMux sync.Mutex
 	// pendingCandidates := make([]*webrtc.ICECandidate, 0)
 	// Create a new RTCPeerConnection

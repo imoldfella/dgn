@@ -15,10 +15,6 @@
             "environment": [],
             "preLaunchTask": "dgz",
             "osx": { "MIMode": "lldb" },
-            "windows": {
-                "type": "cppvsdbg",
-                "console": "integratedTerminal",
-            },
         },
     ],
 }
