@@ -27,6 +27,14 @@ type State struct {
 	Datagrove []dgrtc.SocketLike
 }
 
+func NewClusterServer(home string, opt ...Plugin) {
+
+}
+
+// we need to listen for incoming connections.
+// ideally we don't need datagrove to get connections from local clients
+// maybe we also provide some version of the client as well here.
+// maybe dgd gets all its functionality from here?
 func NewLocalServer(home string, opt ...Plugin) {
 	var cfg Config
 	b, e := os.ReadFile(home + "/config.json")

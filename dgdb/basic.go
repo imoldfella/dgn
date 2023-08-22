@@ -1,4 +1,4 @@
-package main
+package dgdb
 
 import (
 	"datagrove/dgrtc"
@@ -19,7 +19,7 @@ import (
 //go:embed ui/dist
 var ui embed.FS
 
-func main() {
+func BasicServer() {
 	// var candidatesMux sync.Mutex
 	// pendingCandidates := make([]*webrtc.ICECandidate, 0)
 	// Create a new RTCPeerConnection
