@@ -3,12 +3,14 @@ package main
 import (
 	"datagrove/dgdb"
 	"fmt"
+	"os"
 	"testing"
 
 	v8 "rogchap.com/v8go"
 )
 
-func Test_one(t *testing.T) {
+func Test_basic(t *testing.T) {
+	os.Args = []string{"dgc", "basic", "."}
 	main()
 }
 

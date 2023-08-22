@@ -1,7 +1,6 @@
-package main
+package bot
 
 import (
-	"datagrove/bot"
 	"encoding/json"
 	"os"
 	"path"
@@ -26,19 +25,19 @@ func main() {
 
 	// each task corresponds to a json file in the task directory.
 	// v2 will build the compiler map from golang scripts/git repos directly. this will require an extra level of indirection as we isolate the generated task in a process.
-	compilerMap := map[string]func(arg []byte) (bot.Task, error){
-		"1199": func(config []byte) (bot.Task, error) {
+	compilerMap := map[string]func(arg []byte) (Task, error){
+		"1199": func(config []byte) (Task, error) {
 			var tu Daily1199
 			e := json.Unmarshal(config, &tu)
 			if e != nil {
 				return nil, e
 			}
-			return func(_ *bot.TaskContext) string {
+			return func(_ *TaskContext) string {
 				return "daily 1199 processing"
 			}, nil
 		},
 	}
-	var sx bot.Config = bot.Config{
+	var sx Config = Config{
 		Home:        home,
 		CompilerMap: compilerMap,
 	}
@@ -56,7 +55,7 @@ func main() {
 		// we need to run this again whenever we update the executable.
 		WriteSchemas(home + "/schema")
 
-		sx.Options = bot.Options{
+		sx.Options = Options{
 			Banner: "Aetna-1199 Server",
 			Url:    ":2022",
 			// I need a way to load this from an existing config?
@@ -71,5 +70,5 @@ func main() {
 		panic(e.Error())
 	}
 
-	bot.Start(&sx)
+	Start(&sx)
 }

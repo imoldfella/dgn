@@ -2,7 +2,7 @@ package dgdb
 
 import (
 	"bytes"
-	"datagrove/bot"
+	"datagrove/dgdb/bot"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
