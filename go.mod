@@ -52,6 +52,7 @@ require (
 
 require (
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
+	github.com/fxamacker/cbor v1.5.1
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-co-op/gocron v1.31.1
 	github.com/go-webauthn/webauthn v0.8.6

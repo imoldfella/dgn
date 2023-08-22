@@ -79,10 +79,6 @@ var _ Datagrove = &DatagroveClient{}
 type BotConnection struct {
 }
 
-type Session struct {
-	Stdout io.Writer
-}
-
 func (d *DatagroveClient) Connect(botname string) (*BotConnection, error) {
 	return nil, nil
 }

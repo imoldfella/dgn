@@ -6,24 +6,48 @@ import {
     parseRequestOptionsFromJSON,
 } from "@github/webauthn-json/browser-ponyfill";
 
-import { LoginApi, Signin,  } from "./api"
+import { Signin  } from "./api"
+import { Peer, apiCall } from "../abc";
 
-
+export interface LoginInfo {
+    home: string,
+    email: string,
+    phone: string,
+    cookies: string[],
+    options: number
+}
+export interface ChallengeNotify {
+    challenge_type: number
+    challenge_sent_to: string
+    other_options: number
+    login_info?: LoginInfo
+}
+export interface LoginApi {
+    loginpassword: (user: string, password: string) => Promise<[ChallengeNotify,string]>
+    loginpassword2: (secret: string) => Promise<[LoginInfo,string]>
+    register(name: string): Promise<any>
+    registerb(cred: any): Promise<[string,string]>
+    addpasskey(): Promise<any>
+    addpasskey2(cred:any): Promise<[string,string]>
+    login2(cred: any): Promise<LoginInfo>
+    login(deviceId: string) : Promise<any>
+    recover(email: string, phone: string) : Promise<void>
+    recover2(otp: string) : Promise<void>
+}
+export function loginApi(ch: Peer): LoginApi {
+    return apiCall(ch,"loginpassword", "loginpassword2", "register", "registerb", "addpasskey", "addpasskey2", "login2", "login", "recover", "recover2")
+}
 // only instantiated on the client, only during login (lazy load all the things)
 export class ClientState {
     abort = new AbortController()
     error = ""
 
-    constructor(public login: Signin, public onLogin: (x: LoginInfo)=>void, public onError: (x: string)=>void) {
+    constructor(public api: LoginApi, public onLogin: (x: LoginInfo)=>void, public onError: (x: string)=>void) {
     }
     destroy() {
         this.abort.abort()
     }
 
-    get api() {
-        if (!this.login.api) throw new Error("no api")
-        return this.login.api
-    }
 
     // we need to abort the wait before we can register a new key.
     async webauthnLogin(crox: any) { // id: string, not needed?
@@ -74,9 +98,9 @@ export class ClientState {
         {
             try {
                 const o2 = await this.api.login(sec.deviceDid)
-                await ws.rpcj<any>("login", {
-                    device: sec.deviceDid,
-                })
+                // await ws.rpcj<any>("login", {
+                //     device: sec.deviceDid,
+                // })
 
                 const cro = parseRequestOptionsFromJSON(o2)
 
