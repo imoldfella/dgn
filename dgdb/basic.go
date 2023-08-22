@@ -10,7 +10,6 @@ import (
 	"mime"
 	"net/http"
 	"os"
-	"path"
 
 	"github.com/joho/godotenv"
 	"github.com/pion/webrtc/v3"
@@ -19,7 +18,7 @@ import (
 //go:embed ui/dist
 var ui embed.FS
 
-func BasicServer() {
+func BasicServer(home string) {
 	// var candidatesMux sync.Mutex
 	// pendingCandidates := make([]*webrtc.ICECandidate, 0)
 	// Create a new RTCPeerConnection
@@ -45,14 +44,6 @@ func BasicServer() {
 	addr := os.Getenv("HTTP_ADDRESS")
 	if len(addr) == 0 {
 		addr = ":8082"
-	}
-
-	var home string
-	if len(os.Args) > 1 {
-		home = os.Args[1]
-	} else {
-		home, _ = os.Getwd()
-		home = path.Join(home, "home")
 	}
 
 	// whap seems underspecified
