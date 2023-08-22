@@ -7,7 +7,7 @@ export fn allocUint8(length: u32) [*]const u8 {
         @panic("failed to allocate memory");
     return slice.ptr;
 }
-export fn submit(id: u32, tx: [*]const u8, sz: u64) i8 {
+export fn submit(id: u32, tx: [*]const u8, sz: usize) i8 {
     const allocator = std.heap.page_allocator;
     var str = std.ArrayList(u8).init(allocator);
     defer str.deinit();
