@@ -1,11 +1,11 @@
-import { Resource, component$, useContextProvider, useResource$, useSignal, useStore, useTask$, useVisibleTask$ } from "@builder.io/qwik";
+import { Resource, component$, useContextProvider, useResource$, useSignal, useStore, useVisibleTask$ } from "@builder.io/qwik";
 import type { DocumentHead } from "@builder.io/qwik-city";
 import {  useLocation } from '@builder.io/qwik-city'
 
 import { type Signin, Signin2, SigninBasic, } from '@ui/login'
 import { AppContext, type AppStore, DmList, Edit, PageTool, PostStream, Search, type Tool, messageQuery } from '@ui/dg'
 import { $localize } from '@ui/i18n'
-import { H2, Icon, bubble, cart, elipsis, link, pencil, personIcon, search } from '@ui/theme'
+import { H2, Icon, bubble, cart, elipsis, link, pencil, search } from '@ui/theme'
 import { newQuery } from '@ui/query'
 
 export const Cart = component$(() => {

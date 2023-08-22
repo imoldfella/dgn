@@ -30,7 +30,7 @@ export interface LoginApi {
     addpasskey(): Promise<any>
     addpasskey2(cred:any): Promise<[string,string]>
     login2(cred: any): Promise<LoginInfo>
-    login(deviceId: string) : Promise<any>
+    login() : Promise<any>
     recover(email: string, phone: string) : Promise<void>
     recover2(otp: string) : Promise<void>
 }
@@ -42,7 +42,10 @@ export class ClientState {
     abort = new AbortController()
     error = ""
 
-    constructor(public api: LoginApi, public onLogin: (x: LoginInfo)=>void, public onError: (x: string)=>void) {
+    constructor(
+        public api: LoginApi, 
+        public onLogin: (x: LoginInfo)=>void, 
+        public onError: (x: string)=>void) {
     }
     destroy() {
         this.abort.abort()
@@ -97,13 +100,8 @@ export class ClientState {
         // that doesn't seem right
         {
             try {
-                const o2 = await this.api.login(sec.deviceDid)
-                // await ws.rpcj<any>("login", {
-                //     device: sec.deviceDid,
-                // })
-
+                const o2 = await this.api.login()
                 const cro = parseRequestOptionsFromJSON(o2)
-
                 console.log("waiting for sign")
                 const o = await getPasskey({
                     publicKey: cro.publicKey,
@@ -122,7 +120,7 @@ export class ClientState {
                 // we need to get back the site store here, does it also keep a token?
                 // we will eventually write the store into opfs
                 // rejected if the key is not registered. loop back then to get another?
-                return await ws.rpcj<LoginInfo>("login2", o.toJSON())
+                return await this.api.login2(o.toJSON())
             } catch (e: any) {
                 // don't show error here, we probably just aborted the signal
                 console.log("error", e)

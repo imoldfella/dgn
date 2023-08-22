@@ -2,12 +2,11 @@ package dgdb
 
 import (
 	"bytes"
-	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 
-	"github.com/duo-labs/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 )
 
@@ -18,9 +17,9 @@ type Device struct {
 type PasskeyCredential struct {
 	ID string `json:"id"`
 	// Is there any point in storing these?
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-	Icon        string `json:"icon,omitempty"`
+	Name string `json:"name"`
+	// DisplayName string `json:"display_name"`
+	// Icon        string `json:"icon,omitempty"`
 	// is ID here different than ID in Credential?
 	Credential webauthn.Credential `json:"credentials,omitempty"`
 }
@@ -91,23 +90,69 @@ func Filter[T any](ss []T, test func(T) bool) (ret []T) {
 type Update struct {
 }
 
-func (s *Server) LoadWebauthnUser(sess *Session, id string) error {
+type Webauthn struct {
+	DisplayName     string
+	LoadPasskey     func(id string) (*PasskeyCredential, error)
+	RegisterPasskey func(c *PasskeyCredential) error
+}
 
-	a, e := s.Db.qu.SelectCredential(context.Background(), []byte("p:"+id))
-	sess.Oid = a.Oid
-	if e != nil {
-		return e
-	}
-	return json.Unmarshal([]byte(a.Value), &sess.PasskeyCredential)
+func LoadUser(sess *Session, id string) (*PasskeyCredential, error) {
+	var p PasskeyCredential
+	return &p, nil
 }
 
 // cbor messages can begin with 0 - that doesn't make sense for json
 // make into websockets?
-func WebauthnSocket(mg *Api) error {
+func WebauthnApi(mg *Api, wa Webauthn) error {
 	web, err := webauthn.New(mg.PasskeyConfig)
 	if err != nil {
 		return err
 	}
+
+	// user name, not unique. produce challenge
+	// change device id to be random, then don't use it that often.
+	mg.AddApij("register", false, func(r *Rpcpj) (any, error) {
+		var v struct {
+			Name string `json:"name"`
+		}
+		e := json.Unmarshal(r.Params, &v)
+		if e != nil {
+			return nil, e
+		}
+
+		var c PasskeyCredential
+		c.Name = v.Name
+		c.ID, e = GenerateRandomString(32)
+		if e != nil {
+			return nil, e
+		}
+
+		options, session, err := web.BeginRegistration(&c)
+		if err != nil {
+			return nil, err
+		}
+		r.Session.Data["webauthn"] = session
+		r.Session.Data["passkey"] = &c
+		return options, nil
+	})
+	// part 2 of register, create a unique user.
+	mg.AddApij("registerb", false, func(r *Rpcpj) (any, error) {
+		response, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(r.Params))
+		if err != nil {
+			return nil, err
+		}
+		// when we create this credential we need to also store it to the user file
+
+		user := r.Session.Data["passkey"].(*PasskeyCredential)
+		sess := *r.Session.Data["webauthn"].(*webauthn.SessionData)
+		credential, err := web.CreateCredential(user, sess, response)
+		if err != nil {
+			return nil, err
+		}
+		user.Credential = *credential
+		err = wa.RegisterPasskey(user)
+		return err == nil, err
+	})
 
 	mg.AddApij("login", false, func(r *Rpcpj) (any, error) {
 
@@ -127,21 +172,15 @@ func WebauthnSocket(mg *Api) error {
 		}
 
 		handler := func(rawID, userHandle []byte) (webauthn.User, error) {
-			e := mg.LoadWebauthnUser(r.Session, string(userHandle))
-			//e := mg.LoadDevice(&r.UserDevice, string(userHandle))
-			if e != nil {
-				return nil, e
-			} else {
-				return &r.PasskeyCredential, nil
-			}
+			return wa.LoadPasskey(string(userHandle))
 		}
-		credential, err := web.ValidateDiscoverableLogin(handler, *r.Session.data, response)
-		_ = credential
+		d := r.Session.Data["webauthn"].(*webauthn.SessionData)
+		credential, err := web.ValidateDiscoverableLogin(handler, *d, response)
 		if err != nil {
 			return nil, err
 		}
 
-		return mg.LoginInfoFromOid(r.Session, r.Oid)
+		return credential, nil //  mg.LoginInfoFromOid(r.Session, r.Oid)
 	})
 	return nil
 

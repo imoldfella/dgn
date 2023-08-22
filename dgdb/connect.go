@@ -5,7 +5,6 @@ import (
 	"datagrove/dgdb/bot"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -135,15 +134,16 @@ func SshProxy(target string) error {
 func (d *Session) Run(cmd string) error {
 	return nil
 }
-func (s *Session) Output(cmd string) ([]byte, error) {
-	if s.Stdout != nil {
-		return nil, errors.New("ssh: Stdout already set")
-	}
-	var b bytes.Buffer
-	s.Stdout = &b
-	err := s.Run(cmd)
-	return b.Bytes(), err
-}
+
+// func (s *Session) Output(cmd string) ([]byte, error) {
+// 	if s.Stdout != nil {
+// 		return nil, errors.New("ssh: Stdout already set")
+// 	}
+// 	var b bytes.Buffer
+// 	s.Stdout = &b
+// 	err := s.Run(cmd)
+// 	return b.Bytes(), err
+// }
 
 func Connect(host string) (*DatagroveClient, error) {
 	// use cobra to allow dgc to directly act as a substitute for ssh, or to act as a proxy for sftp.
