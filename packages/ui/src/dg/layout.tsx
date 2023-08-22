@@ -34,7 +34,7 @@ export interface AppStore {
 
 // creates the view of a particular tool
 // maybe put in toolData, but then it has to be noserialize?
-type TabKey = "menu" | "search" | "cart" | "share" | "edit" | "files" | "proposals" | "review" | "account" | "more"
+
 
 // this is going to be a recent at top infinite scroll for 
 // we should make this a slot for page tool
@@ -71,8 +71,6 @@ export const PageTool = component$<{}>((props) => {
     const width = useSignal(0)
     const height = useSignal(0)
     const desktop = useSignal(true)
-
-
 
     useVisibleTask$(() => {
         const update = () => {

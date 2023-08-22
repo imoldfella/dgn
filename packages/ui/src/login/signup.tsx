@@ -15,6 +15,19 @@ export const ContinueWith = component$(() => {
     <li> <button class={blueButton + ' w-full'}>Continue with Apple</button></li>            
 </ul>   
 })
+
+// login to basic server,
+export const SigninBasic = component$(() => {
+    return <SimpleDialog>
+        <Close/>
+        <H2>{$localize`Sign in`}</H2>
+        <form preventdefault:submit method='post' class='mt-2 space-y-4' >
+        <Email autoFocus />
+        <Password />
+        </form>
+        </SimpleDialog>
+})
+
 export const Signin2 = component$(() => {
     const signin = useSignal(true)
     const user = useSignal<string>('')

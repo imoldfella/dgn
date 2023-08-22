@@ -73,32 +73,32 @@ export class ClientState {
         // that doesn't seem right
         {
             try {
-                // const o2 = await this.api.login(sec.deviceDid)
-                // await ws.rpcj<any>("login", {
-                //     device: sec.deviceDid,
-                // })
+                const o2 = await this.api.login(sec.deviceDid)
+                await ws.rpcj<any>("login", {
+                    device: sec.deviceDid,
+                })
 
-                // const cro = parseRequestOptionsFromJSON(o2)
+                const cro = parseRequestOptionsFromJSON(o2)
 
-                // console.log("waiting for sign")
-                // const o = await getPasskey({
-                //     publicKey: cro.publicKey,
-                //     signal: this.abort.signal,
-                //     // @ts-ignore
-                //     mediation: 'conditional'
-                // })
-                // console.log("got sign")
-                // if (this.abort.signal.aborted) {
-                //     console.log("aborted")
-                //     return null
-                // }
+                console.log("waiting for sign")
+                const o = await getPasskey({
+                    publicKey: cro.publicKey,
+                    signal: this.abort.signal,
+                    // @ts-ignore
+                    mediation: 'conditional'
+                })
+                console.log("got sign")
+                if (this.abort.signal.aborted) {
+                    console.log("aborted")
+                    return null
+                }
 
 
                 // token is not the socket challenge, it can be shared across tabs.
                 // we need to get back the site store here, does it also keep a token?
                 // we will eventually write the store into opfs
                 // rejected if the key is not registered. loop back then to get another?
-                //return await ws.rpcj<LoginInfo>("login2", o.toJSON())
+                return await ws.rpcj<LoginInfo>("login2", o.toJSON())
             } catch (e: any) {
                 // don't show error here, we probably just aborted the signal
                 console.log("error", e)

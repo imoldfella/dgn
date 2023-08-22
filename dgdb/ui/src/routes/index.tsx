@@ -6,6 +6,9 @@ export default component$(() => {
   const loc = useLocation()
   useVisibleTask$(() => {
     if (loc.url.pathname === '/') {
+      const user = localStorage.getItem('user')??'~guest'
+      const o = navigator.language
+      const ln = localStorage.getItem('ln')??o
       // we should go to the users home page, 
       // /en/query/user/home
       // /en/query/~guest/home
@@ -14,7 +17,7 @@ export default component$(() => {
       //  developer
       //  user
       //  user chosen
-      nav('/en/q/~guest/home')
+      nav(`/${ln}/q/${user}/home`)
     }
   })
 
