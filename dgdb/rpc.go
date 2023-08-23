@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/fxamacker/cbor"
-	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 type Session struct {
@@ -29,7 +28,8 @@ type Rpcp struct {
 	*Session
 }
 type Api struct {
-	PasskeyConfig *webauthn.Config `json:"passkey_config,omitempty"`
+	Fn  map[string]func(r *Rpcp) (any, error)
+	Fnj map[string]func(r *Rpcpj) (any, error)
 }
 type Rpcpj struct {
 	Rpcj
@@ -37,6 +37,8 @@ type Rpcpj struct {
 }
 
 func (s *Api) AddApi(name string, auth bool, f func(r *Rpcp) (any, error)) {
+	s.Fn[name] = f
 }
 func (s *Api) AddApij(name string, auth bool, f func(r *Rpcpj) (any, error)) {
+	s.Fnj[name] = f
 }

@@ -10,15 +10,150 @@ import (
 	"mime"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/fxamacker/cbor/v2"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/joho/godotenv"
+	"github.com/lesismal/nbio/nbhttp"
+	"github.com/lesismal/nbio/nbhttp/websocket"
 	"github.com/pion/webrtc/v3"
 )
 
 //go:embed ui/dist
 var ui embed.FS
 
+var api = &Api{
+	Fn:  map[string]func(r *Rpcp) (any, error){},
+	Fnj: map[string]func(r *Rpcpj) (any, error){},
+}
+var u *websocket.Upgrader
+
+func WsHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := u.Upgrade(w, r, nil)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	// sock := &Socket{
+	// 	Svr:     svr,
+	// 	Session: nil,
+	// }
+	// sv, e := svr.NewSession(sock)
+	// if e != nil {
+	// 	return
+	// }
+	// sock.Session = sv
+	sv := &Session{
+		Stdout: os.Stdout,
+		Data:   make(map[string]interface{}),
+	}
+
+	u := websocket.NewUpgrader()
+	u.CheckOrigin = func(r *http.Request) bool { return true }
+	u.OnMessage(func(c *websocket.Conn, messageType websocket.MessageType, data []byte) {
+
+		if messageType != websocket.BinaryMessage {
+			var rpc Rpcpj
+
+			rpc.Session = sv
+			json.Unmarshal(data, &rpc.Rpcj)
+			r, ok := api.Fnj[rpc.Method]
+			if !ok {
+				log.Printf("bad method %s", rpc.Method)
+				return
+			}
+			rx, err := r(&rpc)
+			if err != nil {
+				var o struct {
+					Id    int64  `json:"id"`
+					Error string `json:"error"`
+				}
+				o.Id = rpc.Id
+				o.Error = err.Error()
+				b, _ := json.Marshal(&o)
+				conn.WriteMessage(websocket.TextMessage, b)
+			} else {
+				var o struct {
+					Id     int64       `json:"id"`
+					Result interface{} `json:"result"`
+				}
+				o.Id = rpc.Id
+				o.Result = rx
+				b, _ := json.Marshal(&o)
+				log.Printf("sending %s", string(b))
+				conn.WriteMessage(websocket.TextMessage, b)
+			}
+		} else {
+			var rpc Rpcp
+			rpc.Session = sv
+			cbor.Unmarshal(data, &rpc.Rpc)
+			r, ok := api.Fn[rpc.Method]
+			if !ok {
+				log.Printf("bad method %s", rpc.Method)
+				return
+			}
+			rx, err := r(&rpc)
+			if err != nil {
+				var o struct {
+					Id    int64  `json:"id"`
+					Error string `json:"error"`
+				}
+				o.Id = rpc.Id
+				o.Error = err.Error()
+				b, _ := cbor.Marshal(&o)
+				conn.WriteMessage(websocket.BinaryMessage, b)
+			} else {
+				var o struct {
+					Id     int64       `json:"id"`
+					Result interface{} `json:"result"`
+				}
+				o.Id = rpc.Id
+				o.Result = rx
+				bs, _ := json.MarshalIndent(o, "", "  ")
+				log.Printf("sending %s", string(bs))
+				b, _ := cbor.Marshal(&o)
+				conn.WriteMessage(websocket.BinaryMessage, b)
+			}
+		}
+		conn.SetReadDeadline(time.Now().Add(nbhttp.DefaultKeepaliveTime))
+	})
+}
+
 func BasicServer(home string) {
+	data := make(map[string]interface{})
+
+	u = websocket.NewUpgrader()
+	WebauthnApi(api, Webauthn{
+		PasskeyConfig: &webauthn.Config{
+			RPID:          "localhost.direct",
+			RPDisplayName: "Datagrove",
+			RPOrigins: []string{
+				"http://localhost:5173",
+			},
+			AttestationPreference:  "",
+			AuthenticatorSelection: protocol.AuthenticatorSelection{},
+			Debug:                  false,
+			EncodeUserIDAsString:   true,
+			Timeouts:               webauthn.TimeoutsConfig{},
+			RPIcon:                 "",
+			RPOrigin:               "datagrove.com",
+			Timeout:                0,
+		},
+		DisplayName: "",
+		LoadPasskey: func(id string) (*PasskeyCredential, error) {
+			x, ok := data[id]
+			if !ok {
+				return nil, fmt.Errorf("no such user")
+			}
+			return x.(*PasskeyCredential), nil
+		},
+		RegisterPasskey: func(c *PasskeyCredential) error {
+			data[c.ID] = c
+			return nil
+		},
+	})
 	// users on the basic server start by following a rollup of all the bots on the local server.
 
 	// var candidatesMux sync.Mutex
@@ -51,6 +186,9 @@ func BasicServer(home string) {
 	// whap seems underspecified
 
 	_ = mime.AddExtensionType(".js", "text/javascript")
+	http.HandleFunc("/wss", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+		WsHandler(w, r)
+	}))
 	http.HandleFunc("/api/whap", corsHandler(dgrtc.WhapHandler))
 	http.HandleFunc("/api/whep", corsHandler(dgrtc.WhepHandler))
 	http.HandleFunc("/api/whip", corsHandler(dgrtc.WhipHandler))

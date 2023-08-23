@@ -5,6 +5,14 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(() => {
   return {
+    proxy: { '/wss': {
+        target: 'https://localhost:8082/wss',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      }, 
+    },
+
     plugins: [qwikCity(), qwikVite(), tsconfigPaths()],
     preview: {
       headers: {

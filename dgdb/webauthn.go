@@ -91,6 +91,7 @@ type Update struct {
 }
 
 type Webauthn struct {
+	PasskeyConfig   *webauthn.Config `json:"passkey_config,omitempty"`
 	DisplayName     string
 	LoadPasskey     func(id string) (*PasskeyCredential, error)
 	RegisterPasskey func(c *PasskeyCredential) error
@@ -99,7 +100,7 @@ type Webauthn struct {
 // cbor messages can begin with 0 - that doesn't make sense for json
 // make into websockets?
 func WebauthnApi(mg *Api, wa Webauthn) error {
-	web, err := webauthn.New(mg.PasskeyConfig)
+	web, err := webauthn.New(wa.PasskeyConfig)
 	if err != nil {
 		return err
 	}

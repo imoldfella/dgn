@@ -3,7 +3,6 @@ package dgdb
 import (
 	"datagrove/dgrtc"
 	"encoding/json"
-	"log"
 	"os"
 )
 
@@ -39,9 +38,10 @@ func NewLocalServer(home string, opt ...Plugin) {
 	var cfg Config
 	b, e := os.ReadFile(home + "/config.json")
 	if e != nil {
-		log.Fatal(e)
+
+	} else {
+		json.Unmarshal(b, &cfg)
 	}
-	json.Unmarshal(b, &cfg)
 
 	r := &LocalServer{}
 	for _, p := range opt {
