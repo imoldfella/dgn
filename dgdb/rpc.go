@@ -2,13 +2,14 @@ package dgdb
 
 import (
 	"encoding/json"
+	"io"
 
 	"github.com/fxamacker/cbor"
 	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 type Session struct {
-	//Stdout io.Writer
+	Stdout io.Writer
 	Secret []byte
 	Data   map[string]interface{}
 }

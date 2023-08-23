@@ -10,7 +10,7 @@ import (
 type Credential []byte
 
 type LocalServer struct {
-	grove map[uint32]*Datagrove
+	grove map[uint32]*LeaseApi
 }
 
 func (s *LocalServer) RegisterBot(bot Bot, opt ...BotOption) error {

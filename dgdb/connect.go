@@ -5,6 +5,7 @@ import (
 	"datagrove/dgdb/bot"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,7 +17,7 @@ import (
 	"github.com/pion/webrtc/v3"
 )
 
-type Datagrove interface {
+type LeaseApi interface {
 	// There can only be one primary writer per schema. Other writers should delegate to the primary writer. They can outbid the primary writer to become writers themselves, the lease must expire though.
 	LeaseSchema(desc SchemaRequest) (Writer, error)
 	RequestFollow(follower FollowRequest) error
@@ -56,7 +57,7 @@ func (d *BasicDatagrove) ClaimAuthor(did string) (Author, error) {
 	return Author{}, nil
 }
 
-func NewServer(did string) (*Datagrove, error) {
+func NewServer(did string) (*LeaseApi, error) {
 	return nil, nil
 }
 
@@ -73,7 +74,7 @@ func (*DatagroveClient) RequestFollow(follower FollowRequest) error {
 	panic("unimplemented")
 }
 
-var _ Datagrove = &DatagroveClient{}
+var _ LeaseApi = &DatagroveClient{}
 
 type BotConnection struct {
 }
@@ -135,15 +136,15 @@ func (d *Session) Run(cmd string) error {
 	return nil
 }
 
-// func (s *Session) Output(cmd string) ([]byte, error) {
-// 	if s.Stdout != nil {
-// 		return nil, errors.New("ssh: Stdout already set")
-// 	}
-// 	var b bytes.Buffer
-// 	s.Stdout = &b
-// 	err := s.Run(cmd)
-// 	return b.Bytes(), err
-// }
+func (s *Session) Output(cmd string) ([]byte, error) {
+	if s.Stdout != nil {
+		return nil, errors.New("ssh: Stdout already set")
+	}
+	var b bytes.Buffer
+	s.Stdout = &b
+	err := s.Run(cmd)
+	return b.Bytes(), err
+}
 
 func Connect(host string) (*DatagroveClient, error) {
 	// use cobra to allow dgc to directly act as a substitute for ssh, or to act as a proxy for sftp.

@@ -96,11 +96,6 @@ type Webauthn struct {
 	RegisterPasskey func(c *PasskeyCredential) error
 }
 
-func LoadUser(sess *Session, id string) (*PasskeyCredential, error) {
-	var p PasskeyCredential
-	return &p, nil
-}
-
 // cbor messages can begin with 0 - that doesn't make sense for json
 // make into websockets?
 func WebauthnApi(mg *Api, wa Webauthn) error {
