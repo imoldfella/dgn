@@ -69,7 +69,8 @@ export class WsChannel implements Channel {
     recv?: (d: any) => void
     url: string
     constructor( url?: string) {
-        this.url = url ?? location.href
+        // default to /wss
+        this.url = url ?? `wss://${location.host}:${location.port}/wss`  //location.href
         this.connect()
     }
     status(x: string) {

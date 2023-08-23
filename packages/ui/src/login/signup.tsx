@@ -28,21 +28,7 @@ export const SigninBasic = component$(() => {
         </SimpleDialog>
 })
 
-const submit = async (ev: any) => {
-    ev.preventDefault()
-    const o = await props.api.register(data.user.value())
-    //await ws.rpcj<any>("register", { name: data.user.value() })
-    const cco = parseCreationOptionsFromJSON(o)
-    const cred = await create(cco)
-    const [token, err] = await props.api.registerb(cred.toJSON())
-    //await ws.rpcje<any>("registerb", cred.toJSON())
-    if (err) {
-        setError(err)
-    } else {
-        setCoreLogin({ did: "" })
-        nav('../home')
-    }
-}
+
 
 
 export const Signin2 = component$(() => {

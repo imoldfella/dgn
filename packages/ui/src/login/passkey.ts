@@ -7,7 +7,7 @@ import {
 } from "@github/webauthn-json/browser-ponyfill";
 
 import { Signin  } from "./api"
-import { Peer, apiCall } from "../abc";
+import { Peer, WsChannel, apiCall } from "../abc";
 
 export interface LoginInfo {
     home: string,
@@ -39,13 +39,16 @@ export function loginApi(ch: Peer): LoginApi {
 }
 // only instantiated on the client, only during login (lazy load all the things)
 export class ClientState {
+    api : LoginApi
     abort = new AbortController()
     error = ""
 
     constructor(
-        public api: LoginApi, 
+        //public api: LoginApi, 
         public onLogin: (x: LoginInfo)=>void, 
         public onError: (x: string)=>void) {
+            const  p = new Peer(new WsChannel())
+            this.api = loginApi(p)
     }
     destroy() {
         this.abort.abort()
