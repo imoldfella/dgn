@@ -130,7 +130,7 @@ func BasicServer(home string) {
 			RPID:          "localhost.direct",
 			RPDisplayName: "Datagrove",
 			RPOrigins: []string{
-				"http://localhost:5173",
+				"https://localhost:5173",
 			},
 			AttestationPreference:  "",
 			AuthenticatorSelection: protocol.AuthenticatorSelection{},
@@ -195,7 +195,11 @@ func BasicServer(home string) {
 	http.HandleFunc("/api/status", corsHandler(dgrtc.StatusHandler))
 	http.HandleFunc("/api/sse/", corsHandler(dgrtc.WhepServerSentEventsHandler))
 	http.HandleFunc("/api/layer/", corsHandler(dgrtc.WhepLayerHandler))
-	http.HandleFunc("/sdp", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/hello", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("hello"))
+	}))
+
+	http.HandleFunc("/sdp", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 
 		sdp := webrtc.SessionDescription{}
 		if err := json.NewDecoder(r.Body).Decode(&sdp); err != nil {
@@ -245,7 +249,7 @@ func BasicServer(home string) {
 		w.Header().Set("Content-Type", "application/sdp")
 		w.Write(payload)
 		w.WriteHeader(201)
-	})
+	}))
 
 	log.Println("Running HTTP Server at `" + addr + "`")
 

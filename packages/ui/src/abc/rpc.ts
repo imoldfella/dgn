@@ -70,7 +70,7 @@ export class WsChannel implements Channel {
     url: string
     constructor( url?: string) {
         // default to /wss
-        this.url = url ?? `wss://${location.host}:${location.port}/wss`  //location.href
+        this.url = url ?? `wss://${location.host}/wss`  //location.href
         this.connect()
     }
     status(x: string) {
