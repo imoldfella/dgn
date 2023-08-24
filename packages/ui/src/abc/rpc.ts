@@ -135,7 +135,8 @@ export class Wrtc implements Channel {
 }
 
 // imported into every worker? how do we register in every worker?
-// we might need 
+// import { is } from '../../../../dgdb/dghome/src/entry.preview';
+
 
 
 
@@ -170,15 +171,15 @@ export class Peer {
     }
 
     async rpc<T>(method: string, params: any[], transfer?: any[]): Promise<T> {
-        const w = this.ch as WorkerChannel
+        const w = this.ch // as WorkerChannel
         console.log("send", method, params, transfer)
         const id = this.nextId++
-        if (transfer) {
-            //console.log("transfer", transfer)
+        if (transfer && w instanceof WorkerChannel) {
             w.port.postMessage({ method, params, id: id }, transfer)
         } else {
-            w.port.postMessage({ method, params, id: id })
+            w.postMessage({ method, params, id: id })
         }
+        
         return new Promise<T>((resolve, reject) => {
             this.reply_.set(id, [resolve, reject])
         })
