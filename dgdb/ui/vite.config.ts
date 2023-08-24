@@ -8,11 +8,11 @@ import mkcert from'vite-plugin-mkcert'
 export default defineConfig(() => {
   return {
     server: { 
-      proxy: { '/hello': {
+      proxy: { '/wss': {
           target: 'https://localhost.direct:8082',
           changeOrigin: true,
           secure: false,
-          ws: false,
+          ws: true,
           configure: (proxy: { on: (arg0: string, arg1: { (err: any, _req: any, _res: any): void; (proxyReq: any, req: any, _res: any): void; (proxyRes: any, req: any, _res: any): void; }) => void; }, _options: any) => {
             proxy.on('error', (err: any, _req: any, _res: any) => {
               console.log('proxy error', err);

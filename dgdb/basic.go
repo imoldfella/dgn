@@ -122,9 +122,10 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func BasicServer(home string) {
+	u = websocket.NewUpgrader()
+	u.CheckOrigin = func(r *http.Request) bool { return true }
 	data := make(map[string]interface{})
 
-	u = websocket.NewUpgrader()
 	WebauthnApi(api, Webauthn{
 		PasskeyConfig: &webauthn.Config{
 			RPID:          "localhost.direct",
