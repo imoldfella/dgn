@@ -8,28 +8,29 @@ import {
 
 import { Signin  } from "./api"
 import { Peer, WsChannel, apiCall } from "../abc";
+import { Signal } from "@builder.io/qwik";
 
-export interface LoginInfo {
-    home: string,
-    email: string,
-    phone: string,
-    cookies: string[],
-    options: number
-}
+// export interface LoginInfo {
+//     home: string,
+//     email: string,
+//     phone: string,
+//     cookies: string[],
+//     options: number
+// }
 export interface ChallengeNotify {
     challenge_type: number
     challenge_sent_to: string
     other_options: number
-    login_info?: LoginInfo
+    login_info?: Signin
 }
 export interface LoginApi {
     loginpassword: (user: string, password: string) => Promise<[ChallengeNotify,string]>
-    loginpassword2: (secret: string) => Promise<[LoginInfo,string]>
+    loginpassword2: (secret: string) => Promise<[Signin,string]>
     register(name: string): Promise<any>
     registerb(cred: any): Promise<[string,string]>
     addpasskey(): Promise<any>
     addpasskey2(cred:any): Promise<[string,string]>
-    login2(cred: any): Promise<LoginInfo>
+    login2(cred: any): Promise<Signin>
     login() : Promise<any>
     recover(email: string, phone: string) : Promise<void>
     recover2(otp: string) : Promise<void>
@@ -38,17 +39,16 @@ export function loginApi(ch: Peer): LoginApi {
     return apiCall(ch,"loginpassword", "loginpassword2", "register", "registerb", "addpasskey", "addpasskey2", "login2", "login", "recover", "recover2")
 }
 // only instantiated on the client, only during login (lazy load all the things)
-export class ClientState {
+export class PasskeyState {
     api : LoginApi
     abort = new AbortController()
-    error = ""
 
     constructor(
-        //public api: LoginApi, 
-        public onLogin: (x: LoginInfo)=>void, 
-        public onError: (x: string)=>void) {
-            const  p = new Peer(new WsChannel())
-            this.api = loginApi(p)
+        public peer: Peer,
+        public error: Signal<string>,
+        public onLogin: (x: Signin)=>void
+    ){
+        this.api = loginApi(peer)
     }
     destroy() {
         this.abort.abort()
@@ -79,13 +79,13 @@ export class ClientState {
             else console.log("passkey watch cancelled")
         }
         catch (e) {
-            this.onError (e + "")
+            this.error.value =  (e + "")
         }
     }
 
 
     // returns null if the login is aborted
-    async initPasskey() {
+    async initPasskey() : Promise<Signin | null> {
         if (!window.PublicKeyCredential
             // @ts-ignore
             || !PublicKeyCredential.isConditionalMediationAvailable

@@ -73,6 +73,7 @@ const Outlet = component$(() => {
   useContextProvider(AppContext, app);  //const tool = u.searchParams.get('tool')??""
   const query = useStore(newQuery<any>())
 
+  return <div>wtf?</div>
 
   // this can't be a component?, because it is called from resource?.
   // apparently it can call components though?

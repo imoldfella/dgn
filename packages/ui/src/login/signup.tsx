@@ -1,12 +1,15 @@
 
-import { component$, useSignal, $, Slot } from '@builder.io/qwik';
+import { component$, useSignal, $, Slot, useVisibleTask$, NoSerialize, noSerialize } from '@builder.io/qwik';
 import { $localize, LanguageSelect, useLocale } from '../i18n';
 import { DarkButton, Email, H2, Password, Username, blueButton } from '../theme';
 import { TextDivider } from '../theme';
 
 import { Link } from '../provider';
-import { Close, SimpleDialog } from '../dg';
+import { Close, SimpleDialog, useApp } from '../dg';
 import { link } from '../theme';
+import { PasskeyState } from './passkey';
+import { Peer, WsChannel } from '../abc';
+import { Signin } from './api';
 
 
 export const ContinueWith = component$(() => {
@@ -18,9 +21,29 @@ export const ContinueWith = component$(() => {
 
 // login to basic server,
 export const SigninBasic = component$(() => {
+    // we should include a basic peer with useApp?
+    // you can have more peers, but you probably always need one with whatever is your server (or service worker)
+    const app = useApp()
+    
+    const lg = useSignal<NoSerialize<PasskeyState>|null>(null)
+    const error = useSignal<string>("")
+    useVisibleTask$(() => {
+        // maybe pass these in as signals? with login though we need to access nav. we probably don't with error.
+        console.log("connecting websocket")
+        const peer = new Peer(new WsChannel())
+        lg.value = noSerialize(new PasskeyState(
+            peer,error,
+            (li: Signin)=>{
+                app.me.value = li
+            },
+        ))
+        lg.value!.initPasskey().then((li)=>{
+            app.me.value = li
+        })
+    })
     return <SimpleDialog>
-        <Close/>
-        <H2>{$localize`Sign in`}</H2>
+        <div>{error.value}</div>
+        <H2>{$localize`Sign in2`}</H2>
         <form preventdefault:submit method='post' class='mt-2 space-y-4' >
         <Email autoFocus />
         <Password />
@@ -36,7 +59,9 @@ export const Signin2 = component$(() => {
     const user = useSignal<string>('')
     const password = useSignal<string>('')
     const submitLogin = $(async () => {
+
     })
+    
     return <SimpleDialog>
         <Close/>
         { signin.value && <><H2 class='whitespace-nowrap'>{$localize`Sign in`}</H2>
@@ -57,3 +82,7 @@ export const Signin2 = component$(() => {
         </form></>}
     </SimpleDialog>
 })
+function nonSerializable(arg0: PasskeyState): PasskeyState | null {
+    throw new Error('Function not implemented.');
+}
+
