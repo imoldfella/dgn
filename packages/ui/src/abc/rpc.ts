@@ -49,7 +49,7 @@ export class WorkerChannel implements Channel {
     }
     postMessage(data: any, transfer?: any[]): void {
         if (transfer) {
-        this.port.postMessage(data,transfer)
+            this.port.postMessage(data, transfer)
         } else {
             this.port.postMessage(data)
         }
@@ -68,15 +68,24 @@ export class WsChannel implements Channel {
     ws?: WebSocket
     recv?: (d: any) => void
     url: string
-    constructor( url?: string) {
+    constructor(url?: string) {
         // default to /wss
         this.url = url ?? `wss://${location.host}/wss`  //location.href
-        this.connect()
+        console.log("ws url", this.url)
+    }
+    static async create(url?: string) {
+        const r = new WsChannel(url)
+        return await r.connect()
     }
     status(x: string) {
         console.log("ws status", x)
     }
-    connect() {
+    async connect(): Promise<WsChannel> {
+        let open = (x: WsChannel) => { }
+        const r = new Promise<WsChannel>((resolve) => {
+            open = resolve
+        })
+        console.log("ws connect", this.url)
         this.ws = new WebSocket(this.url)
         this.status("connecting")
         this.ws.onclose = () => {
@@ -85,7 +94,10 @@ export class WsChannel implements Channel {
         this.ws.onerror = () => {
             this.status("error")
         }
-        this.ws.onopen = () => this.status("")
+        this.ws.onopen = () => {
+            console.log("ws open")
+            open(this)
+        }
         this.ws.onmessage = async (e: MessageEvent) => {
             if (typeof e.data === "string") {
                 const txt = await e.data
@@ -94,11 +106,13 @@ export class WsChannel implements Channel {
                 this.recv?.(decode(e.data))
             }
         }
+        return r
     }
     listen(fn: (d: any) => void): void {
         this.recv = fn
     }
     postMessage(data: any): void {
+        console.log("ws send", data)
         this.ws?.send(data)
     }
     close() {
@@ -111,7 +125,7 @@ export class WsChannel implements Channel {
 
 export class Wrtc implements Channel {
     pc?: RTCDataChannel
-    recv?: (d: any) => void 
+    recv?: (d: any) => void
     constructor() {
         const pc = new RTCPeerConnection()
         pc.ondatachannel = (e) => {
@@ -136,6 +150,7 @@ export class Wrtc implements Channel {
 
 // imported into every worker? how do we register in every worker?
 // import { is } from '../../../../dgdb/dghome/src/entry.preview';
+
 
 
 
@@ -179,7 +194,7 @@ export class Peer {
         } else {
             w.postMessage({ method, params, id: id })
         }
-        
+
         return new Promise<T>((resolve, reject) => {
             this.reply_.set(id, [resolve, reject])
         })
@@ -194,8 +209,8 @@ export class Peer {
                 if (!api) {
                     continue
                 }
-                try {                   
-                    const result = await api.apply(null,data.params)
+                try {
+                    const result = await api.apply(null, data.params)
                     if (result instanceof TransferableResult) {
                         //console.log("transfer", result.transfer)
                         this.ch?.postMessage({
@@ -203,15 +218,15 @@ export class Peer {
                             result: result.result
                         }, result.transfer)
                     } else {
-                    this.ch?.postMessage({
-                        id: data.id,
-                        result: result
-                    })
-                }
+                        this.ch?.postMessage({
+                            id: data.id,
+                            result: result
+                        })
+                    }
                     //console.log("returned",data.id,result)
                     return
                 } catch (e: any) {
-                    console.log("%c error "+e, "color:red")
+                    console.log("%c error " + e, "color:red")
                     this.ch?.postMessage({
                         id: data.id,
                         error: e.toString()

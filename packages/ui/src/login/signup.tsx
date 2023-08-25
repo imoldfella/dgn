@@ -27,10 +27,11 @@ export const SigninBasic = component$(() => {
     
     const lg = useSignal<NoSerialize<PasskeyState>|null>(null)
     const error = useSignal<string>("")
-    useVisibleTask$(() => {
+    useVisibleTask$(async () => {
         // maybe pass these in as signals? with login though we need to access nav. we probably don't with error.
         console.log("connecting websocket")
-        const peer = new Peer(new WsChannel())
+        const ch = await WsChannel.create("wss://localhost.direct:8082/wss")
+        const peer = new Peer(ch)
         lg.value = noSerialize(new PasskeyState(
             peer,error,
             (li: Signin)=>{

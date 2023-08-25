@@ -1,6 +1,7 @@
 package dgdb
 
 import (
+	"context"
 	"datagrove/dgrtc"
 	"embed"
 	"encoding/json"
@@ -10,12 +11,14 @@ import (
 	"mime"
 	"net/http"
 	"os"
+	"os/signal"
 	"time"
 
 	"github.com/fxamacker/cbor/v2"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/joho/godotenv"
+	"github.com/lesismal/llib/std/crypto/tls"
 	"github.com/lesismal/nbio/nbhttp"
 	"github.com/lesismal/nbio/nbhttp/websocket"
 	"github.com/pion/webrtc/v3"
@@ -52,6 +55,12 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 
 	u := websocket.NewUpgrader()
 	u.CheckOrigin = func(r *http.Request) bool { return true }
+	u.OnOpen(func(c *websocket.Conn) {
+		log.Printf("opened")
+	})
+	u.OnClose(func(c *websocket.Conn, err error) {
+		log.Printf("closed")
+	})
 	u.OnMessage(func(c *websocket.Conn, messageType websocket.MessageType, data []byte) {
 
 		if messageType != websocket.BinaryMessage {
@@ -122,6 +131,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func BasicServer(home string) {
+	mux := &http.ServeMux{}
 	u = websocket.NewUpgrader()
 	u.CheckOrigin = func(r *http.Request) bool { return true }
 	data := make(map[string]interface{})
@@ -187,20 +197,20 @@ func BasicServer(home string) {
 	// whap seems underspecified
 
 	_ = mime.AddExtensionType(".js", "text/javascript")
-	http.HandleFunc("/wss", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/wss", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		WsHandler(w, r)
 	}))
-	http.HandleFunc("/api/whap", corsHandler(dgrtc.WhapHandler))
-	http.HandleFunc("/api/whep", corsHandler(dgrtc.WhepHandler))
-	http.HandleFunc("/api/whip", corsHandler(dgrtc.WhipHandler))
-	http.HandleFunc("/api/status", corsHandler(dgrtc.StatusHandler))
-	http.HandleFunc("/api/sse/", corsHandler(dgrtc.WhepServerSentEventsHandler))
-	http.HandleFunc("/api/layer/", corsHandler(dgrtc.WhepLayerHandler))
-	http.HandleFunc("/hello", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/whap", corsHandler(dgrtc.WhapHandler))
+	mux.HandleFunc("/api/whep", corsHandler(dgrtc.WhepHandler))
+	mux.HandleFunc("/api/whip", corsHandler(dgrtc.WhipHandler))
+	mux.HandleFunc("/api/status", corsHandler(dgrtc.StatusHandler))
+	mux.HandleFunc("/api/sse/", corsHandler(dgrtc.WhepServerSentEventsHandler))
+	mux.HandleFunc("/api/layer/", corsHandler(dgrtc.WhepLayerHandler))
+	mux.HandleFunc("/hello", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("hello"))
 	}))
 
-	http.HandleFunc("/sdp", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/sdp", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 
 		sdp := webrtc.SessionDescription{}
 		if err := json.NewDecoder(r.Body).Decode(&sdp); err != nil {
@@ -261,10 +271,48 @@ func BasicServer(home string) {
 
 	// this is last, others should take priority.
 	fs := http.FileServer(&spaFileSystem{http.FS(htmlContent)})
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fs.ServeHTTP(w, r)
 	})
-	http.ListenAndServeTLS(addr, "localhost.direct.crt", "localhost.direct.key", nil)
+
+	//mux.HandleFunc("/ws", onWebsocket)
+	rsaCertPEM, err := os.ReadFile("localhost.direct.crt")
+	if err != nil {
+		log.Fatalf("os.ReadFile failed: %v", err)
+	}
+
+	rsaKeyPEM, err := os.ReadFile("localhost.direct.key")
+	if err != nil {
+		log.Fatalf("os.ReadFile failed: %v", err)
+	}
+	cert, err := tls.X509KeyPair(rsaCertPEM, rsaKeyPEM)
+	if err != nil {
+		log.Fatalf("tls.X509KeyPair failed: %v", err)
+	}
+	tlsConfig := &tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		InsecureSkipVerify: true,
+	}
+	svr := nbhttp.NewServer(nbhttp.Config{
+		Network:   "tcp",
+		AddrsTLS:  []string{"localhost.direct:8082"},
+		TLSConfig: tlsConfig,
+		Handler:   mux,
+	})
+
+	err = svr.Start()
+	if err != nil {
+		fmt.Printf("nbio.Start failed: %v\n", err)
+		return
+	}
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+	<-interrupt
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	svr.Shutdown(ctx)
+	//http.ListenAndServeTLS(addr, "localhost.direct.crt", "localhost.direct.key", nil)
 
 }
 
