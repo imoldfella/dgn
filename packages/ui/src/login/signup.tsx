@@ -1,10 +1,9 @@
 
-import { component$, useSignal, $, Slot, useVisibleTask$, NoSerialize, noSerialize } from '@builder.io/qwik';
-import { $localize, LanguageSelect, useLocale } from '../i18n';
-import { DarkButton, Email, H2, Password, Username, blueButton } from '../theme';
+import { component$, useSignal, $, useVisibleTask$, NoSerialize, noSerialize } from '@builder.io/qwik';
+import { $localize } from '../i18n';
+import { Email, H2, Password, blueButton } from '../theme';
 import { TextDivider } from '../theme';
 
-import { Link } from '../provider';
 import { Close, SimpleDialog, useApp } from '../dg';
 import { link } from '../theme';
 import { PasskeyState } from './passkey';

@@ -34,35 +34,12 @@ var api = &Api{
 var u *websocket.Upgrader
 
 func WsHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := u.Upgrade(w, r, nil)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	// sock := &Socket{
-	// 	Svr:     svr,
-	// 	Session: nil,
-	// }
-	// sv, e := svr.NewSession(sock)
-	// if e != nil {
-	// 	return
-	// }
-	// sock.Session = sv
+
 	sv := &Session{
 		Stdout: os.Stdout,
 		Data:   make(map[string]interface{}),
 	}
-
-	u := websocket.NewUpgrader()
-	u.CheckOrigin = func(r *http.Request) bool { return true }
-	u.OnOpen(func(c *websocket.Conn) {
-		log.Printf("opened")
-	})
-	u.OnClose(func(c *websocket.Conn, err error) {
-		log.Printf("closed")
-	})
-	u.OnMessage(func(c *websocket.Conn, messageType websocket.MessageType, data []byte) {
-
+	fn := func(c *websocket.Conn, messageType websocket.MessageType, data []byte) {
 		if messageType != websocket.BinaryMessage {
 			var rpc Rpcpj
 
@@ -82,7 +59,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 				o.Id = rpc.Id
 				o.Error = err.Error()
 				b, _ := json.Marshal(&o)
-				conn.WriteMessage(websocket.TextMessage, b)
+				c.WriteMessage(websocket.TextMessage, b)
 			} else {
 				var o struct {
 					Id     int64       `json:"id"`
@@ -92,7 +69,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 				o.Result = rx
 				b, _ := json.Marshal(&o)
 				log.Printf("sending %s", string(b))
-				conn.WriteMessage(websocket.TextMessage, b)
+				c.WriteMessage(websocket.TextMessage, b)
 			}
 		} else {
 			var rpc Rpcp
@@ -112,7 +89,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 				o.Id = rpc.Id
 				o.Error = err.Error()
 				b, _ := cbor.Marshal(&o)
-				conn.WriteMessage(websocket.BinaryMessage, b)
+				c.WriteMessage(websocket.BinaryMessage, b)
 			} else {
 				var o struct {
 					Id     int64       `json:"id"`
@@ -123,11 +100,29 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 				bs, _ := json.MarshalIndent(o, "", "  ")
 				log.Printf("sending %s", string(bs))
 				b, _ := cbor.Marshal(&o)
-				conn.WriteMessage(websocket.BinaryMessage, b)
+				c.WriteMessage(websocket.BinaryMessage, b)
 			}
 		}
-		conn.SetReadDeadline(time.Now().Add(nbhttp.DefaultKeepaliveTime))
+		c.SetReadDeadline(time.Now().Add(nbhttp.DefaultKeepaliveTime))
+	}
+	u := websocket.NewUpgrader()
+	u.CheckOrigin = func(r *http.Request) bool { return true }
+	u.OnOpen(func(c *websocket.Conn) {
+		log.Printf("opened")
 	})
+	u.OnClose(func(c *websocket.Conn, err error) {
+		log.Printf("closed")
+	})
+	u.OnMessage(fn)
+	conn, err := u.Upgrade(w, r, nil)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	_ = conn
+	//conn.SetReadDeadline(1 * time.Second)
+	// wsConn := conn.(*websocket.Conn)
+	// wsConn.SetReadDeadline(time.Now().Add(nbhttp.DefaultKeepaliveTime))
 }
 
 func BasicServer(home string) {
@@ -136,7 +131,7 @@ func BasicServer(home string) {
 	u.CheckOrigin = func(r *http.Request) bool { return true }
 	data := make(map[string]interface{})
 
-	WebauthnApi(api, Webauthn{
+	e := WebauthnApi(api, Webauthn{
 		PasskeyConfig: &webauthn.Config{
 			RPID:          "localhost.direct",
 			RPDisplayName: "Datagrove",
@@ -149,7 +144,6 @@ func BasicServer(home string) {
 			EncodeUserIDAsString:   true,
 			Timeouts:               webauthn.TimeoutsConfig{},
 			RPIcon:                 "",
-			RPOrigin:               "datagrove.com",
 			Timeout:                0,
 		},
 		DisplayName: "",
@@ -165,6 +159,9 @@ func BasicServer(home string) {
 			return nil
 		},
 	})
+	if e != nil {
+		log.Fatal(e)
+	}
 	// users on the basic server start by following a rollup of all the bots on the local server.
 
 	// var candidatesMux sync.Mutex

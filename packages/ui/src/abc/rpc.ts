@@ -63,7 +63,8 @@ export class WorkerChannel implements Channel {
 }
 
 
-
+// I need a better way for postMessage to know when it should be binary.
+// also I want to lazy load the cbor library and only load when needed.
 export class WsChannel implements Channel {
     ws?: WebSocket
     recv?: (d: any) => void
@@ -99,9 +100,9 @@ export class WsChannel implements Channel {
             open(this)
         }
         this.ws.onmessage = async (e: MessageEvent) => {
+            console.log("ws recv", e.data)
             if (typeof e.data === "string") {
-                const txt = await e.data
-                this.recv?.(JSON.parse(txt))
+                this.recv?.(JSON.parse(e.data))
             } else {
                 this.recv?.(decode(e.data))
             }
@@ -113,7 +114,7 @@ export class WsChannel implements Channel {
     }
     postMessage(data: any): void {
         console.log("ws send", data)
-        this.ws?.send(data)
+        this.ws?.send(JSON.stringify(data))
     }
     close() {
         this.ws?.close()
