@@ -133,7 +133,7 @@ func BasicServer(home string) {
 
 	e := WebauthnApi(api, Webauthn{
 		PasskeyConfig: &webauthn.Config{
-			RPID:          "localhost.direct",
+			RPID:          "localhost",
 			RPDisplayName: "Datagrove",
 			RPOrigins: []string{
 				"https://localhost:5173",

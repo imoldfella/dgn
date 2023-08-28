@@ -182,7 +182,7 @@ export class Peer {
 
     constructor(public ch: Channel) {
         ch.listen((d: any) => {
-            this.recv(d.data)
+            this.recv(d)
         })
     }
 
