@@ -100,11 +100,11 @@ export class WsChannel implements Channel {
             open(this)
         }
         this.ws.onmessage = async (e: MessageEvent) => {
-            console.log("ws recv", e.data)
+            console.log("ws recv", e.data, typeof e.data, JSON.parse(e.data))
             if (typeof e.data === "string") {
-                this.recv?.(JSON.parse(e.data))
+                this.recv!(JSON.parse(e.data))
             } else {
-                this.recv?.(decode(e.data))
+                this.recv!(decode(e.data))
             }
         }
         return r
@@ -202,7 +202,7 @@ export class Peer {
     }
 
     async recv(data: any) {
-        //console.log("recv", data)
+        console.log("recvxx", data)
         if (data.method) {
             console.log("listen ", data.method, data.params)
             for (const apix of this.api) {

@@ -107,16 +107,16 @@ export class PasskeyState {
         try {
             console.log("waiting for login")
             const o2 = await this.api.login()
-            console.log("got login")
+            console.log("got login",o2)
             const cro = parseRequestOptionsFromJSON(o2)
-            console.log("waiting for sign")
+            console.log("waiting for sign",cro)
             const o = await getPasskey({
                 publicKey: cro.publicKey,
                 signal: this.abort.signal,
                 // @ts-ignore
                 mediation: 'conditional'
             })
-            console.log("got sign")
+            console.log("got sign",o)
             if (this.abort.signal.aborted) {
                 console.log("aborted")
                 return null
