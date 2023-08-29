@@ -4,15 +4,14 @@ import { HTMLAttributes, Slot, component$, useSignal, useVisibleTask$ } from "@b
 
 export type TextDividerProps = HTMLAttributes<HTMLDivElement>
 export const TextDivider = component$((props: TextDividerProps) => {
-    return <div class={`${props.class} relative mt-4 w-full`}>
-        <div class="absolute inset-0 flex items-center w-full">
-            <div class="w-full border-t border-gray-300"></div>
-        </div>
+    return <div class={`${props.class} relative mt-4 w-full flex`}>
+
         <div class="relative flex justify-center text-sm w-full">
-            <span class="bg-white dark:bg-neutral-900 px-2 text-gray-500">
+            <span class=" px-2 text-gray-500">
                 <Slot/>
             </span>
         </div>
+
     </div>
 })
 

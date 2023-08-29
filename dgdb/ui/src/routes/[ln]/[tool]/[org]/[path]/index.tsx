@@ -119,7 +119,7 @@ const Outlet = component$(() => {
   })
 
 
-  return me.value==null? <SigninBasic/> :
+  return me.value==null? <Signin2/> :
     <PageTool >
     <div q:slot='tools'><ToolDialog /></div>
     <Resource
