@@ -7,7 +7,7 @@ import "./global.css";
 import { Resource, component$, useContextProvider, useResource$, useSignal, useStore, useTask$, useVisibleTask$, } from "@builder.io/qwik";
 import { PostStream } from "./post";
 import { $localize } from "./i18n";
-import { AppContext, AppStore, Edit, PageTool, Tool } from "./dg";
+import { AppContext, AppStore, AppConfigure, Edit, PageTool, Tool } from "./dg";
 
 import { More } from "./more";
 import { Search } from "./search";
@@ -17,7 +17,7 @@ import { Icon } from "./headless";
 import { newQuery } from "./query/query";
 import { messageQuery } from "./post/post";
 import { DmList } from "./dm";
-import { Signin, Signin2 } from "./login";
+import { Signin, SigninForm } from "./login";
 import { Cart } from "./dg/cart";
 import { ThemeBootstrap } from "./theme2";
 
@@ -72,6 +72,7 @@ const Outlet = component$((props) => {
   })
 
   const app = useStore<AppStore>({
+    config: config,
     me: me,
     tab: "",
     y: 46,
@@ -122,12 +123,12 @@ const Outlet = component$((props) => {
       case "search": return <Search />
       case "cart": return <Cart />
       case "more": return <More />
-      case "signin": return <Signin2 />
+      case "signin": return <SigninForm />
     }
 
     // requires login.
     if (null==app.me) {
-      return <Signin2/>
+      return <SigninForm/>
     }
     switch (app.tab) {
       case "edit": return <Edit />

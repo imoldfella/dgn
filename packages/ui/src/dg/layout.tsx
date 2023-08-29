@@ -22,7 +22,18 @@ export interface Tool {
     svg: string
     href?: string
 }
+
+export interface OauthProvider {
+    name: string
+}
+
+
+export interface AppConfigure {
+    oauth: OauthProvider[]
+    oauthMore: OauthProvider[]
+}
 export interface AppStore {
+    config: AppConfigure
     me: Signal<Signin|null>
     tab: string
     y: number
