@@ -41,7 +41,12 @@ func OauthHandlers(p *mux.Router,
 		}
 		done(res, req, user)
 	})
+	p.HandleFunc(prefix+"/{provider}/start", func(w http.ResponseWriter, req *http.Request) {
+		provider := mux.Vars(req)["provider"]
+		w.Header().Add("Content-Type", "text/html")
 
+		fmt.Fprintf(w, "<p><a href='%s/%s'>Log in with %s</a></p>", prefix, provider, provider)
+	})
 	// starts the process.
 	p.HandleFunc(prefix+"/{provider}", func(res http.ResponseWriter, req *http.Request) {
 		// try to get the user without re-authenticating

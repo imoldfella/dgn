@@ -17,10 +17,13 @@ import (
 	"github.com/fxamacker/cbor/v2"
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/lesismal/llib/std/crypto/tls"
 	"github.com/lesismal/nbio/nbhttp"
 	"github.com/lesismal/nbio/nbhttp/websocket"
+	"github.com/markbates/goth"
+	"github.com/markbates/goth/providers/google"
 	"github.com/pion/webrtc/v3"
 )
 
@@ -126,7 +129,23 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func BasicServer(home string) {
-	mux := &http.ServeMux{}
+	// we need some kind of pattern matching like gorilla mux to get the provider.
+	p := mux.NewRouter()
+
+	done := func(w http.ResponseWriter, r *http.Request, user goth.User) {
+		b, e := json.Marshal(&user)
+		if e != nil {
+			return
+		}
+		w.Write(b)
+	}
+
+	host := "https://localhost.direct:8082"
+	prefix := "/api"
+	prgoogle := google.New(os.Getenv("GOOGLE_KEY"), os.Getenv("GOOGLE_SECRET"), host+prefix+"/google/callback")
+
+	OauthHandlers(p, host, prefix, done, prgoogle)
+
 	u = websocket.NewUpgrader()
 	u.CheckOrigin = func(r *http.Request) bool { return true }
 	data := make(map[string]interface{})
@@ -194,20 +213,20 @@ func BasicServer(home string) {
 	// whap seems underspecified
 
 	_ = mime.AddExtensionType(".js", "text/javascript")
-	mux.HandleFunc("/wss", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+	p.HandleFunc("/wss", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		WsHandler(w, r)
 	}))
-	mux.HandleFunc("/api/whap", corsHandler(dgrtc.WhapHandler))
-	mux.HandleFunc("/api/whep", corsHandler(dgrtc.WhepHandler))
-	mux.HandleFunc("/api/whip", corsHandler(dgrtc.WhipHandler))
-	mux.HandleFunc("/api/status", corsHandler(dgrtc.StatusHandler))
-	mux.HandleFunc("/api/sse/", corsHandler(dgrtc.WhepServerSentEventsHandler))
-	mux.HandleFunc("/api/layer/", corsHandler(dgrtc.WhepLayerHandler))
-	mux.HandleFunc("/hello", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+	p.HandleFunc("/api/whap", corsHandler(dgrtc.WhapHandler))
+	p.HandleFunc("/api/whep", corsHandler(dgrtc.WhepHandler))
+	p.HandleFunc("/api/whip", corsHandler(dgrtc.WhipHandler))
+	p.HandleFunc("/api/status", corsHandler(dgrtc.StatusHandler))
+	p.HandleFunc("/api/sse/", corsHandler(dgrtc.WhepServerSentEventsHandler))
+	p.HandleFunc("/api/layer/", corsHandler(dgrtc.WhepLayerHandler))
+	p.HandleFunc("/hello", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("hello"))
 	}))
 
-	mux.HandleFunc("/sdp", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+	p.HandleFunc("/sdp", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 
 		sdp := webrtc.SessionDescription{}
 		if err := json.NewDecoder(r.Body).Decode(&sdp); err != nil {
@@ -268,11 +287,11 @@ func BasicServer(home string) {
 
 	// this is last, others should take priority.
 	fs := http.FileServer(&spaFileSystem{http.FS(htmlContent)})
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	p.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fs.ServeHTTP(w, r)
 	})
 
-	//mux.HandleFunc("/ws", onWebsocket)
+	//p.HandleFunc("/ws", onWebsocket)
 	rsaCertPEM, err := os.ReadFile("localhost.direct.crt")
 	if err != nil {
 		log.Fatalf("os.ReadFile failed: %v", err)
@@ -294,7 +313,7 @@ func BasicServer(home string) {
 		Network:   "tcp",
 		AddrsTLS:  []string{"localhost.direct:8082"},
 		TLSConfig: tlsConfig,
-		Handler:   mux,
+		Handler:   p,
 	})
 
 	err = svr.Start()

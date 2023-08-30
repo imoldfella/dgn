@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -83,6 +84,7 @@ func Terminal(cmd func(e Environment) error, opts Options) {
 // on mac and linux we can use /etc/datagrove to store a pointer to the directory
 // on windows we should use the registry?
 func main() {
+	godotenv.Load()
 	// note that this isn't quite right? flags should be allowed before the
 	// Args[1] does not contain @, so this is local command?
 	var rootCmd = &cobra.Command{
