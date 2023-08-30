@@ -8,7 +8,13 @@ import mkcert from'vite-plugin-mkcert'
 export default defineConfig(() => {
   return {
     server: { 
-      proxy: { '/wss': {
+      proxy: { 
+        '/api': {
+                  target: 'https://localhost.direct:8082',
+                  changeOrigin: true,
+                  secure: true,
+              },        
+        '/wss': {
           target: 'https://localhost.direct:8082',
           changeOrigin: true,
           secure: false,

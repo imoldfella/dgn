@@ -34,6 +34,9 @@ func OauthHandlers(p *mux.Router,
 	goth.UseProviders(providers...)
 
 	p.HandleFunc(prefix+"/{provider}/callback", func(res http.ResponseWriter, req *http.Request) {
+		// we need this to redirect to complete. This will be a proxy from vite in development. Then we need to do something to engage the client.
+		// we could catch this in the client and execute over a pipe?
+		// would this be safer for a datachannel server?
 		user, err := gothic.CompleteUserAuth(res, req)
 
 		if err != nil {
