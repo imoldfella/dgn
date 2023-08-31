@@ -128,7 +128,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	// wsConn.SetReadDeadline(time.Now().Add(nbhttp.DefaultKeepaliveTime))
 }
 
-func BasicServer(home string) {
+func ClusterServer(home string) {
 	// we need some kind of pattern matching like gorilla mux to get the provider.
 	p := mux.NewRouter()
 

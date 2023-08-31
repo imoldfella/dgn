@@ -8,6 +8,8 @@ import (
 
 type Credential []byte
 
+// a local server can allow different local clients to share data offline.
+// it is optional, the service worker can
 type LocalServer struct {
 	grove map[uint32]*LeaseApi
 }
@@ -24,10 +26,6 @@ type Config struct {
 
 type State struct {
 	Datagrove []dgrtc.SocketLike
-}
-
-func NewClusterServer(home string, opt ...Plugin) {
-
 }
 
 // we need to listen for incoming connections.

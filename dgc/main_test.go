@@ -9,9 +9,25 @@ import (
 	v8 "rogchap.com/v8go"
 )
 
+// start both the central server and a local server for testing
 func Test_basic(t *testing.T) {
+
+	// the central server
 	os.Args = []string{"dgc", "basic", "."}
 	main()
+}
+
+func Test_client(t *testing.T) {
+	home := "."
+
+	go dgdb.NewLocalServer(home)
+	go dgdb.ClusterServer(home)
+
+	// create a client that connects to the local server and accesses the BasicServer through the cluster server.
+	// how does oath work in this case though? Do we auth with the local server? how is the local server managed in a PWA?
+	// only the cluster server can do oauth (easily) because secrets.
+	// the local server needs to be replicated in a service worker, service worker being able to be the local server, or (somehow) delegating to a an installed local server.
+
 }
 
 // this is what we need to do to create a custom bot that processes files on a daily basis. It writes the files to a local database, backs them up to a remote database (encrypted) and it maintains a lease the right to process the files (to prevent a backup bot from running at the same time)
