@@ -28,3 +28,13 @@ The local server can be accessed in-process (mobile requires this) or inter-proc
 Interprocess will be fastest by using
 1. Shared memory 
 2. domain sockets.
+
+
+We could potentially use websocket proxy instead of turn. tradeoffs are not clear though.
+
+
+you should hit datagrove.com as a guest, no login?
+
+but if you go to someone.datagrove.com, that will be a different client (shared js files though? Cacheably?), and it might require login.
+
+

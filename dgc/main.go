@@ -132,15 +132,28 @@ func main() {
 		},
 	})
 
+	// the central server is like zeus directory servers, it regulates what cluster servers are live or dead.
 	rootCmd.AddCommand(&cobra.Command{
-		Use:   "basic",
-		Short: "basic dir",
+		Use:   "central",
+		Short: "central dir",
 		Run: func(cmd *cobra.Command, args []string) {
 			home := "."
 			if len(args) > 0 {
 				home = args[0]
 			}
-			dgdb.ClusterServer(home)
+			dgdb.CentralServer(home)
+		},
+	})
+
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "core",
+		Short: "core dir",
+		Run: func(cmd *cobra.Command, args []string) {
+			home := "."
+			if len(args) > 0 {
+				home = args[0]
+			}
+			dgdb.CoreServer(home)
 		},
 	})
 

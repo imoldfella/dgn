@@ -13,7 +13,7 @@ import (
 func Test_basic(t *testing.T) {
 
 	// the central server
-	os.Args = []string{"dgc", "basic", "."}
+	os.Args = []string{"dgc", "core", "."}
 	main()
 }
 

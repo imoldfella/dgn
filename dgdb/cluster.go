@@ -12,6 +12,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
+	"strings"
 	"time"
 
 	"github.com/fxamacker/cbor/v2"
@@ -24,6 +26,7 @@ import (
 	"github.com/lesismal/nbio/nbhttp/websocket"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/google"
+	cmap "github.com/orcaman/concurrent-map/v2"
 	"github.com/pion/webrtc/v3"
 )
 
@@ -128,6 +131,139 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	// wsConn.SetReadDeadline(time.Now().Add(nbhttp.DefaultKeepaliveTime))
 }
 
+// the cluster server runs on public internet, like ovh
+// it is the root for CDN's, and can host multiple clients using wildcard domain.
+
+func CentralServer(home string) {
+
+}
+
+// we probably want to read the config from a central server when we start up. central server should be VSR ring. Or maybe better start with a cache? r2 could be canonical storage. (It's not atomic though). Can we just redirect to a r2 bucket? It's not clear that we can because of wildcard. How long live can we make clients?  forever, and use a seperate channel to upgrade? Caddy has special mechanisms to serve files faster.
+// caddy does not use sendFile for Tls, and compression on the fly. kTls is a thing, but may not be safe.
+
+// /domain/version/...
+// if version is v1, then we can redirect to the latest version.
+type CoreServerConfig struct {
+	Home    string
+	Version cmap.ConcurrentMap[string, string]
+}
+
+func AddHandlers(p *mux.Router, c *CoreServerConfig) {
+	cl, e := NewS3Client()
+	if e != nil {
+		panic(e)
+	}
+
+	// here we need to serve files based on the path from our cache, or if necessary retrieve them from R2.
+	// we need a version that is "current", and redirect the client there. Redirect is safer because it would be atomic.
+
+	p.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		subdomain := strings.Split(r.Host, ".")[0]
+		ver, ok := c.Version.Get(subdomain)
+		if !ok {
+			// domain not recognized, maybe we need to refresh from central
+			fmt.Fprintf(w, "404 not found %s", subdomain)
+			return
+		}
+
+		pv := strings.Split(r.URL.Path, "/")
+		v := pv[1]
+
+		if v == "v" || v == "" {
+			pth := path.Join(r.Host, ver, strings.Join(pv[2:], "/"))
+			http.Redirect(w, r, pth, http.StatusMovedPermanently)
+			return
+		}
+		cp := r.URL.Path
+		x := path.Ext(r.URL.Path)
+		if x == "" {
+			cp = path.Join(cp, "index.html")
+		}
+		n := path.Join(c.Home, path.Join(subdomain, cp))
+		// here we could find it in our cache to see what the hash of the file is, and then serve that. our service worker could do this? maybe this should only bootstrap a service worker and its initial database.
+		// service worker could then request the exact hash of the file it wanted, this would have good cache properties?
+
+		_, e := os.Stat(n)
+		if e != nil {
+			// try to get it from R2
+			// is there a benefit in trying to sha hash to deduplicate?
+			b, e := cl.Get(n)
+			if e != nil {
+				// 404
+				fmt.Fprintf(w, "404 not found")
+				return
+			}
+			os.WriteFile(n, b, 0644)
+			http.ServeFile(w, r, n)
+		}
+		http.ServeFile(w, r, n)
+
+		// fmt.Fprintf(w, "Hello, %q %q", html.EscapeString(r.URL.Path), html.EscapeString(r.Host))
+	})
+}
+
+// all the core server does is look at the subdomain and serve it from a directory
+// it can atomically switch this directory. unknown subdomain is 404
+func CoreServer(home string) {
+	m := cmap.New[string]()
+	m.Set("x", "2")
+	m.Set("y", "1")
+
+	//c *CoreServerConfig
+	// faster router here?
+	// we need some kind of pattern matching like gorilla mux to get the provider.
+	p := mux.NewRouter()
+	AddHandlers(p, &CoreServerConfig{
+		Home:    "./home",
+		Version: m,
+	})
+
+	// somehow this needs to get switched to ACME
+	// or potentially we use caddy in front of us?
+
+	//p.HandleFunc("/ws", onWebsocket)
+	rsaCertPEM, err := os.ReadFile("localhost.direct.crt")
+	if err != nil {
+		log.Fatalf("os.ReadFile failed: %v", err)
+	}
+
+	rsaKeyPEM, err := os.ReadFile("localhost.direct.key")
+	if err != nil {
+		log.Fatalf("os.ReadFile failed: %v", err)
+	}
+	cert, err := tls.X509KeyPair(rsaCertPEM, rsaKeyPEM)
+	if err != nil {
+		log.Fatalf("tls.X509KeyPair failed: %v", err)
+	}
+	tlsConfig := &tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		InsecureSkipVerify: true,
+	}
+	svr := nbhttp.NewServer(nbhttp.Config{
+		Network:   "tcp",
+		AddrsTLS:  []string{"localhost.direct:8083"},
+		TLSConfig: tlsConfig,
+		Handler:   p,
+	})
+
+	err = svr.Start()
+	if err != nil {
+		fmt.Printf("nbio.Start failed: %v\n", err)
+		return
+	}
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+	<-interrupt
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	svr.Shutdown(ctx)
+	//http.ListenAndServeTLS(addr, "localhost.direct.crt", "localhost.direct.key", nil)
+}
+
+// cluster server can't serve clients from embedded, because we need multiple client versions and variations mapped to the wildcard domains.
+// when a user logs in, how do we know what client to give them? should we always give them the newest client, downgrade if necessary?
+// in this case as well we can start them as a guest with the newest client, then can then login as necessary.
 func ClusterServer(home string) {
 	// we need some kind of pattern matching like gorilla mux to get the provider.
 	p := mux.NewRouter()
