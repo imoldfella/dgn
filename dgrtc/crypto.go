@@ -1,4 +1,4 @@
-package bot
+package dgrtc
 
 import (
 	crand "crypto/rand"

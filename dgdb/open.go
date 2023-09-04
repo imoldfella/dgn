@@ -28,11 +28,9 @@ type State struct {
 	Datagrove []dgrtc.SocketLike
 }
 
-// we need to listen for incoming connections.
+// we need to listen for incoming webrtc connections.
 // ideally we don't need datagrove to get connections from local clients
-// maybe we also provide some version of the client as well here.
-// maybe dgd gets all its functionality from here?
-func NewLocalServer(home string, opt ...Plugin) {
+func NewService(home string, opt ...Plugin) {
 	var cfg Config
 	b, e := os.ReadFile(home + "/config.json")
 	if e != nil {
@@ -48,9 +46,9 @@ func NewLocalServer(home string, opt ...Plugin) {
 
 	// start the server. create a datachannel to datagrove. Listen for incoming chats.
 	// when incoming chat, then create a new datachannel directly to the chatter if 1-1. if
-	for {
-		//
-	}
+
+	// connect to the lobby and wait for datachannel requests.
+
 }
 
 func (s *LocalServer) Watch(tx chan Tx) {

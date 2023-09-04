@@ -20,8 +20,11 @@ func Test_basic(t *testing.T) {
 func Test_client(t *testing.T) {
 	home := "."
 
-	go dgdb.NewLocalServer(home)
+	// a cluster server serves the http pages.
+	// it's unclear if webrtc or websockets is better here (or newer webtransport). webrtc doesn't require kernel changes, but websockets is more mature.
 	go dgdb.ClusterServer(home)
+	// a local server offers api over webrtc
+	dgdb.NewService(home)
 
 	// create a client that connects to the local server and accesses the BasicServer through the cluster server.
 	// how does oath work in this case though? Do we auth with the local server? how is the local server managed in a PWA?
@@ -81,7 +84,7 @@ func Test_two(t *testing.T) {
 
 	tx := make(chan dgdb.Tx, 256)
 
-	dgdb.NewLocalServer(".", func(db *dgdb.LocalServer) {
+	dgdb.NewService(".", func(db *dgdb.LocalServer) {
 		db.RegisterBot(&SampleBot{})
 		db.Watch(tx)
 

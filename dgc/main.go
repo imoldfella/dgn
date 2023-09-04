@@ -128,7 +128,7 @@ func main() {
 			if len(args) > 0 {
 				home = args[0]
 			}
-			dgdb.NewLocalServer(home)
+			dgdb.NewService(home)
 		},
 	})
 
