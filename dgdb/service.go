@@ -4,6 +4,7 @@ import (
 	"datagrove/dgrtc"
 	"encoding/json"
 	"os"
+	"strings"
 )
 
 type Credential []byte
@@ -30,7 +31,7 @@ type State struct {
 
 // we need to listen for incoming webrtc connections.
 // ideally we don't need datagrove to get connections from local clients
-func NewService(home string, opt ...Plugin) {
+func NewService(home string, opt ...Plugin) error {
 	var cfg ServiceConfig
 	b, e := os.ReadFile(home + "/config.json")
 	if e != nil {
@@ -48,7 +49,20 @@ func NewService(home string, opt ...Plugin) {
 	// when incoming chat, then create a new datachannel directly to the chatter if 1-1. if
 
 	// connect to the lobby and wait for datachannel requests.
+	v := strings.Split(boturl, "@")
 
+	botname := v[0]
+	host := v[1]
+	cn, e := dgrtc.Connect(dgrtc.DefaultClient(host))
+	if e != nil {
+		return nil, e
+	}
+	bot, e := cn.Connect(botname)
+	if e != nil {
+		return nil, e
+	}
+	sess, e := bot.Session()
+	return e
 }
 
 func (s *LocalServer) Watch(tx chan Tx) {

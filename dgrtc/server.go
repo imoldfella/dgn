@@ -16,6 +16,31 @@ type (
 	}
 )
 
+func corsHandler(next func(w http.ResponseWriter, r *http.Request)) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Access-Control-Allow-Origin", "*")
+		res.Header().Set("Access-Control-Allow-Methods", "*")
+		res.Header().Set("Access-Control-Allow-Headers", "*")
+		res.Header().Set("Access-Control-Expose-Headers", "*")
+
+		if req.Method != http.MethodOptions {
+			next(res, req)
+		}
+	}
+}
+
+func AddHandlers(p *http.ServeMux) {
+	p.HandleFunc("/api/whap", corsHandler(WhapHandler))
+	p.HandleFunc("/api/whep", corsHandler(WhepHandler))
+	p.HandleFunc("/api/whip", corsHandler(WhipHandler))
+	p.HandleFunc("/api/status", corsHandler(StatusHandler))
+	p.HandleFunc("/api/sse/", corsHandler(WhepServerSentEventsHandler))
+	p.HandleFunc("/api/layer/", corsHandler(WhepLayerHandler))
+	p.HandleFunc("/hello", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("hello"))
+	}))
+}
+
 func logHTTPError(w http.ResponseWriter, err string, code int) {
 	log.Println(err)
 	http.Error(w, err, code)

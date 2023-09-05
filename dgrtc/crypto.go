@@ -39,3 +39,13 @@ func RandSeq(n int) string {
 
 	return val
 }
+
+type KeyPair struct {
+}
+
+// browsers can only use 256; can we allow multiple keys like alg:key?
+//	kp, e := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+
+func NewKeyPair() (*KeyPair, error) {
+	return &KeyPair{}, nil
+}

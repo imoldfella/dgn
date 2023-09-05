@@ -28,8 +28,14 @@ func (*DataChannel) Send([]byte) error {
 
 var _ SocketLike = (*DataChannel)(nil)
 
-// take an address of the signaling server and a handle to identify the intended target.
-func NewDataChannel(lobby string, target string) (*DataChannel, error) {
+type ChannelOption func(*DataChannel)
+
+func Authenticator(kp *KeyPair) ChannelOption {
+	return nil
+}
+
+// take an address of the signaling server and a handle to identify the intended target. the keypair is used to authorize the connection.
+func NewDataChannel(atId string, opt ...ChannelOption) (*DataChannel, error) {
 	return nil, nil
 }
 

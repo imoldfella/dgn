@@ -2,13 +2,10 @@ package dgdb
 
 import (
 	"bytes"
-	"datagrove/dgrtc"
 
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"strings"
 )
 
 type LeaseApi interface {
@@ -78,26 +75,6 @@ func (d *DatagroveClient) Connect(botname string) (*BotConnection, error) {
 }
 func (d *BotConnection) Session() (*Session, error) {
 	return nil, nil
-}
-
-// a botutrl is bot@host
-func ConnectBot(boturl string) (*Session, error) {
-	v := strings.Split(boturl, "@")
-	if len(v) != 2 {
-		return nil, fmt.Errorf("usage: dgc ssh target [dir]")
-	}
-	botname := v[0]
-	host := v[1]
-	cn, e := dgrtc.Connect(dgrtc.DefaultClient(host))
-	if e != nil {
-		return nil, e
-	}
-	bot, e := cn.Connect(botname)
-	if e != nil {
-		return nil, e
-	}
-	sess, e := bot.Session()
-	return sess, e
 }
 
 func Remote(url string, command string) {
