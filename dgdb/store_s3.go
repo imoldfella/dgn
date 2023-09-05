@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
+	aconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
@@ -49,7 +49,7 @@ func (cl *S3Client) Get(filePath string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	// Read the object contents
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }
 
 func (client *S3Client) Upload(path string, mime string, data []byte) error {
@@ -99,9 +99,9 @@ func NewS3Client() (*S3Client, error) {
 		}, nil
 	})
 
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithEndpointResolverWithOptions(r2Resolver),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(a.accessKeyId, a.accessKeySecret, "")),
+	cfg, err := aconfig.LoadDefaultConfig(context.TODO(),
+		aconfig.WithEndpointResolverWithOptions(r2Resolver),
+		aconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(a.accessKeyId, a.accessKeySecret, "")),
 	)
 	if err != nil {
 		return nil, err

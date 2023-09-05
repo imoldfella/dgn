@@ -20,7 +20,7 @@ func (s *LocalServer) RegisterBot(bot Bot, opt ...BotOption) error {
 
 type Plugin func(db *LocalServer)
 
-type Config struct {
+type ServiceConfig struct {
 	Datagrove []string
 }
 
@@ -31,7 +31,7 @@ type State struct {
 // we need to listen for incoming webrtc connections.
 // ideally we don't need datagrove to get connections from local clients
 func NewService(home string, opt ...Plugin) {
-	var cfg Config
+	var cfg ServiceConfig
 	b, e := os.ReadFile(home + "/config.json")
 	if e != nil {
 

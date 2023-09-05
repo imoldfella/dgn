@@ -1,4 +1,4 @@
-package bot
+package dgdb
 
 import (
 	"datagrove/dgrtc"

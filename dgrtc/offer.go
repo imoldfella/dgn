@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 // pion-to-pion is an example of two pion instances communicating directly!
-package bot
+package dgrtc
 
 import (
 	"bytes"
@@ -16,14 +16,12 @@ import (
 	"time"
 
 	"github.com/pion/webrtc/v3"
-	//"github.com/pion/webrtc/v3/examples/internal/signal"
 )
 
-func answerMain() { // nolint:gocognit
+func offerMain() { //nolint:gocognit
 	signalCandidate := func(addr string, c *webrtc.ICECandidate) error {
 		payload := []byte(c.ToJSON().Candidate)
-		resp, err := http.Post(fmt.Sprintf("http://%s/candidate", addr), // nolint:noctx
-			"application/json; charset=utf-8", bytes.NewReader(payload))
+		resp, err := http.Post(fmt.Sprintf("http://%s/candidate", addr), "application/json; charset=utf-8", bytes.NewReader(payload)) //nolint:noctx
 		if err != nil {
 			return err
 		}
@@ -31,12 +29,13 @@ func answerMain() { // nolint:gocognit
 		return resp.Body.Close()
 	}
 
-	offerAddr := flag.String("offer-address", "localhost:50000", "Address that the Offer HTTP server is hosted on.")
-	answerAddr := flag.String("answer-address", ":60000", "Address that the Answer HTTP server is hosted on.")
+	offerAddr := flag.String("offer-address", ":50000", "Address that the Offer HTTP server is hosted on.")
+	answerAddr := flag.String("answer-address", "127.0.0.1:60000", "Address that the Answer HTTP server is hosted on.")
 	flag.Parse()
 
 	var candidatesMux sync.Mutex
 	pendingCandidates := make([]*webrtc.ICECandidate, 0)
+
 	// Everything below is the Pion WebRTC API! Thanks for using it ❤️.
 
 	// Prepare the configuration
@@ -54,8 +53,8 @@ func answerMain() { // nolint:gocognit
 		panic(err)
 	}
 	defer func() {
-		if err := peerConnection.Close(); err != nil {
-			fmt.Printf("cannot close peerConnection: %v\n", err)
+		if cErr := peerConnection.Close(); cErr != nil {
+			fmt.Printf("cannot close peerConnection: %v\n", cErr)
 		}
 	}()
 
@@ -72,7 +71,7 @@ func answerMain() { // nolint:gocognit
 		desc := peerConnection.RemoteDescription()
 		if desc == nil {
 			pendingCandidates = append(pendingCandidates, c)
-		} else if onICECandidateErr := signalCandidate(*offerAddr, c); onICECandidateErr != nil {
+		} else if onICECandidateErr := signalCandidate(*answerAddr, c); onICECandidateErr != nil {
 			panic(onICECandidateErr)
 		}
 	})
@@ -93,47 +92,32 @@ func answerMain() { // nolint:gocognit
 	// A HTTP handler that processes a SessionDescription given to us from the other Pion process
 	http.HandleFunc("/sdp", func(w http.ResponseWriter, r *http.Request) {
 		sdp := webrtc.SessionDescription{}
-		if err := json.NewDecoder(r.Body).Decode(&sdp); err != nil {
-			panic(err)
+		if sdpErr := json.NewDecoder(r.Body).Decode(&sdp); sdpErr != nil {
+			panic(sdpErr)
 		}
 
-		if err := peerConnection.SetRemoteDescription(sdp); err != nil {
-			panic(err)
-		}
-
-		// Create an answer to send to the other process
-		answer, err := peerConnection.CreateAnswer(nil)
-		if err != nil {
-			panic(err)
-		}
-
-		// Send our answer to the HTTP server listening in the other process
-		payload, err := json.Marshal(answer)
-		if err != nil {
-			panic(err)
-		}
-		resp, err := http.Post(fmt.Sprintf("http://%s/sdp", *offerAddr), "application/json; charset=utf-8", bytes.NewReader(payload)) // nolint:noctx
-		if err != nil {
-			panic(err)
-		} else if closeErr := resp.Body.Close(); closeErr != nil {
-			panic(closeErr)
-		}
-
-		// Sets the LocalDescription, and starts our UDP listeners
-		err = peerConnection.SetLocalDescription(answer)
-		if err != nil {
-			panic(err)
+		if sdpErr := peerConnection.SetRemoteDescription(sdp); sdpErr != nil {
+			panic(sdpErr)
 		}
 
 		candidatesMux.Lock()
+		defer candidatesMux.Unlock()
+
 		for _, c := range pendingCandidates {
-			onICECandidateErr := signalCandidate(*offerAddr, c)
-			if onICECandidateErr != nil {
+			if onICECandidateErr := signalCandidate(*answerAddr, c); onICECandidateErr != nil {
 				panic(onICECandidateErr)
 			}
 		}
-		candidatesMux.Unlock()
 	})
+	// Start HTTP server that accepts requests from the answer process
+	// nolint: gosec
+	go func() { panic(http.ListenAndServe(*offerAddr, nil)) }()
+
+	// Create a datachannel with label 'data'
+	dataChannel, err := peerConnection.CreateDataChannel("data", nil)
+	if err != nil {
+		panic(err)
+	}
 
 	// Set the handler for Peer connection state
 	// This will notify you when the peer has connected/disconnected
@@ -149,33 +133,51 @@ func answerMain() { // nolint:gocognit
 		}
 	})
 
-	// Register data channel creation handling
-	peerConnection.OnDataChannel(func(d *webrtc.DataChannel) {
-		fmt.Printf("New DataChannel %s %d\n", d.Label(), d.ID())
+	// Register channel opening handling
+	dataChannel.OnOpen(func() {
+		fmt.Printf("Data channel '%s'-'%d' open. Random messages will now be sent to any connected DataChannels every 5 seconds\n", dataChannel.Label(), dataChannel.ID())
 
-		// Register channel opening handling
-		d.OnOpen(func() {
-			fmt.Printf("Data channel '%s'-'%d' open. Random messages will now be sent to any connected DataChannels every 5 seconds\n", d.Label(), d.ID())
+		for range time.NewTicker(5 * time.Second).C {
+			message := RandSeq(15)
+			fmt.Printf("Sending '%s'\n", message)
 
-			for range time.NewTicker(5 * time.Second).C {
-				message := RandSeq(15)
-				fmt.Printf("Sending '%s'\n", message)
-
-				// Send the message as text
-				sendTextErr := d.SendText(message)
-				if sendTextErr != nil {
-					panic(sendTextErr)
-				}
+			// Send the message as text
+			sendTextErr := dataChannel.SendText(message)
+			if sendTextErr != nil {
+				panic(sendTextErr)
 			}
-		})
-
-		// Register text message handling
-		d.OnMessage(func(msg webrtc.DataChannelMessage) {
-			fmt.Printf("Message from DataChannel '%s': '%s'\n", d.Label(), string(msg.Data))
-		})
+		}
 	})
 
-	// Start HTTP server that accepts requests from the offer process to exchange SDP and Candidates
-	// nolint: gosec
-	panic(http.ListenAndServe(*answerAddr, nil))
+	// Register text message handling
+	dataChannel.OnMessage(func(msg webrtc.DataChannelMessage) {
+		fmt.Printf("Message from DataChannel '%s': '%s'\n", dataChannel.Label(), string(msg.Data))
+	})
+
+	// Create an offer to send to the other process
+	offer, err := peerConnection.CreateOffer(nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// Sets the LocalDescription, and starts our UDP listeners
+	// Note: this will start the gathering of ICE candidates
+	if err = peerConnection.SetLocalDescription(offer); err != nil {
+		panic(err)
+	}
+
+	// Send our offer to the HTTP server listening in the other process
+	payload, err := json.Marshal(offer)
+	if err != nil {
+		panic(err)
+	}
+	resp, err := http.Post(fmt.Sprintf("http://%s/sdp", *answerAddr), "application/json; charset=utf-8", bytes.NewReader(payload)) // nolint:noctx
+	if err != nil {
+		panic(err)
+	} else if err := resp.Body.Close(); err != nil {
+		panic(err)
+	}
+
+	// Block forever
+	select {}
 }
