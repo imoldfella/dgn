@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,24 +16,72 @@ import (
 
 type Config struct {
 	Config webrtc.Configuration
-	Host   string
 }
 
-func DefaultClient(host string) *Config {
+func DefaultClient() *Config {
 	config := &Config{
 		Config: webrtc.Configuration{
 			ICEServers: []webrtc.ICEServer{
 				{
-					//URLs: []string{"stun:stun.l.google.com:19302"},
+					URLs: []string{"stun:stun.l.google.com:19302"},
 				},
 			},
 		},
-		Host: host,
 	}
 	return config
 }
 
-func Connect(config *Config) (SocketLike, error) {
+// take an address of the signaling server and a handle to identify the intended target. the keypair is used to authorize the connection.
+
+type Lobby struct {
+	mu     sync.Mutex
+	api    SocketLike
+	config *Config
+}
+
+var lobbiesMux sync.Mutex
+var lobby map[string]*Lobby
+
+// when we first connect, we may need to provide a OTP? Or maybe we should exchange the otp for a key to use.
+
+func NewLobby(host string, config *Config) (*Lobby, error) {
+	cache := func() (*Lobby, error) {
+		lobbiesMux.Lock()
+		defer lobbiesMux.Unlock()
+		if lobby == nil {
+			lobby = make(map[string]*Lobby)
+		}
+		var lb *Lobby
+		var ok bool
+		if lb, ok = lobby[host]; ok {
+			return lb, nil
+		}
+		return nil, nil
+	}
+	lb, e := cache()
+	if e == nil {
+		return lb, nil
+	}
+	lb = &Lobby{
+		mu:     sync.Mutex{},
+		api:    nil,
+		config: config,
+	}
+	// connect a datachannel to the host.
+	lobby[host] = lb
+	return lb, nil
+}
+
+func NewDataChannel(id *Identity, config *Config) (*DataChannel, error) {
+	v := strings.Split(id.Channel, "@")
+	lb, e := NewLobby(v[1], nil)
+	if e != nil {
+		return nil, e
+	}
+
+	if config == nil {
+		config = DefaultClient()
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -133,7 +182,7 @@ func Connect(config *Config) (SocketLike, error) {
 		panic(err)
 	}
 
-	requestURL := fmt.Sprintf("https://%s/sdp", config.Host)
+	requestURL := fmt.Sprintf("https://%s/sdp", host)
 	req, err := http.NewRequest(http.MethodPut, requestURL, bytes.NewReader(payload))
 	if err != nil {
 		fmt.Printf("client: could not create request: %s\n", err)
@@ -172,5 +221,5 @@ func Connect(config *Config) (SocketLike, error) {
 	// }
 	// Register data channel creation handling
 	wg.Wait()
-	return nil, nil
+
 }

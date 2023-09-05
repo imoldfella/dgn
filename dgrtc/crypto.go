@@ -40,12 +40,31 @@ func RandSeq(n int) string {
 	return val
 }
 
-type KeyPair struct {
+type Identity struct {
+	Channel string
+}
+
+type IdentityDatabase interface {
+	Get(channel string) (*Identity, error)
 }
 
 // browsers can only use 256; can we allow multiple keys like alg:key?
 //	kp, e := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
-func NewKeyPair() (*KeyPair, error) {
-	return &KeyPair{}, nil
+// this probably needs to take an identity database as well?
+func NewIdentity(name string) (*Identity, error) {
+	return &Identity{}, nil
 }
+
+type SimpleIdentityDatabase struct {
+}
+
+// Get implements IdentityDatabase.
+func (*SimpleIdentityDatabase) Get(channel string) (*Identity, error) {
+	return &Identity{}, nil
+}
+func NewSimpleIdentityDatabase() *SimpleIdentityDatabase {
+	return &SimpleIdentityDatabase{}
+}
+
+var _ IdentityDatabase = (*SimpleIdentityDatabase)(nil)

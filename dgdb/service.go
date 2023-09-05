@@ -53,7 +53,7 @@ func NewService(home string, opt ...Plugin) error {
 
 	botname := v[0]
 	host := v[1]
-	cn, e := dgrtc.Connect(dgrtc.DefaultClient(host))
+	cn, e := dgrtc.NewLobby(dgrtc.DefaultClient(host))
 	if e != nil {
 		return nil, e
 	}

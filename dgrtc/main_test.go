@@ -4,11 +4,17 @@ import (
 	"log"
 	"net/http"
 	"testing"
+	"time"
 )
 
 // create a pion/pion connection
 
 func Test_one(t *testing.T) {
+	db := NewSimpleIdentityDatabase()
+	id, e := db.Get("bot@localhost:8081")
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	// start a signaling server; it will take pion/pion connections and create datachannels.
 	go func() {
@@ -22,7 +28,7 @@ func Test_one(t *testing.T) {
 
 	// start a service.
 	go func() {
-		cn, e := NewDataChannel("bot@localhost:8081")
+		cn, e := NewDataChannel(id)
 		if e != nil {
 			log.Fatal(e)
 		}
@@ -41,8 +47,6 @@ func Test_one(t *testing.T) {
 	// if e != nil {
 	// 	t.Fatal(e)
 	// }
-
-	NewDataChannel("bot@localhost")
 
 }
 
@@ -64,20 +68,24 @@ type ConnectResponse struct {
 // option to answer on channel as well as offer.
 // we need to use some kind of grant to allow the connection to the cluster read/write+weight
 // the
-func Answer(kp *KeyPair) ChannelOption {
-	return func(*DataChannel) {
+// func Answer(kp *KeyPair) ChannelOption {
+// 	return func(*DataChannel) {
 
-	}
-}
-func Offer(kp *KeyPair) ChannelOption {
-	return func(*DataChannel) {
+// 	}
+// }
+// func Offer(kp *KeyPair) ChannelOption {
+// 	return func(*DataChannel) {
 
-	}
-}
+// 	}
+// }
 
 // maybe move this test to dgdb
 func Test_two(t *testing.T) {
-
+	db := NewSimpleIdentityDatabase()
+	id, e := db.Get("bot@localhost:8081")
+	if e != nil {
+		t.Fatal(e)
+	}
 	// we probably need some kind of auth server interface.
 	// start a signaling server; it will take pion/pion connections and create datachannels.
 	go func() {
@@ -93,16 +101,18 @@ func Test_two(t *testing.T) {
 		}).ListenAndServe())
 	}()
 
-	kp, _ := NewKeyPair()
+	// Identities are per channel. The identity also serves as a capability.
+
 	// start a service or a client. the first one to connect will become the service, the next one will become the client. The cluster must authenticate that the proposed writer is allowed to become the writer, and to adjudicate the superior writer if there is more than one.
+	time.Sleep(1 * time.Second)
 	for x := 0; x < 2; x++ {
 		go func() {
-			cn, e := NewDataChannel("bot@localhost:8080", Answer(kp))
+			ch, e := NewDataChannel(id)
 			if e != nil {
 				log.Fatal(e)
 			}
 			for {
-				_, e := cn.Receive()
+				_, e := ch.Receive()
 				if e != nil {
 					log.Fatal(e)
 				}

@@ -30,15 +30,6 @@ var _ SocketLike = (*DataChannel)(nil)
 
 type ChannelOption func(*DataChannel)
 
-func Authenticator(kp *KeyPair) ChannelOption {
-	return nil
-}
-
-// take an address of the signaling server and a handle to identify the intended target. the keypair is used to authorize the connection.
-func NewDataChannel(atId string, opt ...ChannelOption) (*DataChannel, error) {
-	return nil, nil
-}
-
 // this initial connection requires that the bot target to trust the proxy. For better security, the bot can require the client to make a jump connection, then the bot can inspect the client's public key and decide whether to trust it.
 type SshApi interface {
 	// fails if target is not connected or if target doesn't accept the ssh key.
