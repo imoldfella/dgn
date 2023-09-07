@@ -34,9 +34,11 @@ func DefaultClient() *Config {
 // take an address of the signaling server and a handle to identify the intended target. the keypair is used to authorize the connection.
 
 type Lobby struct {
+	host   string
 	mu     sync.Mutex
 	api    SocketLike
 	config *Config
+	ch     SocketLike
 }
 
 var lobbiesMux sync.Mutex
@@ -45,6 +47,9 @@ var lobby map[string]*Lobby
 // when we first connect, we may need to provide a OTP? Or maybe we should exchange the otp for a key to use.
 
 func NewLobby(host string, config *Config) (*Lobby, error) {
+	if config == nil {
+		config = DefaultClient()
+	}
 	cache := func() (*Lobby, error) {
 		lobbiesMux.Lock()
 		defer lobbiesMux.Unlock()
@@ -63,31 +68,43 @@ func NewLobby(host string, config *Config) (*Lobby, error) {
 		return lb, nil
 	}
 	lb = &Lobby{
+		host:   host,
 		mu:     sync.Mutex{},
 		api:    nil,
 		config: config,
 	}
-	// connect a datachannel to the host.
+
 	lobby[host] = lb
 	return lb, nil
 }
 
 func NewDataChannel(id *Identity, config *Config) (*DataChannel, error) {
 	v := strings.Split(id.Channel, "@")
-	lb, e := NewLobby(v[1], nil)
+	lb, e := NewLobby(v[1], config)
 	if e != nil {
 		return nil, e
 	}
 
-	if config == nil {
-		config = DefaultClient()
+	lb.mu.Lock()
+	defer lb.mu.Unlock()
+	if lb.ch == nil {
+		// connect a datachannel to the host.
+		dc, e := NewDirectChannel(lb.host, lb.config.Config)
+		if e != nil {
+			return nil, e
+		}
+		lb.ch = dc
 	}
+	_ = lb
+	return nil, nil
+}
 
+func NewDirectChannel(host string, config webrtc.Configuration) (*DataChannel, error) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
 	// Create a new RTCPeerConnection
-	peerConnection, err := webrtc.NewPeerConnection(config.Config)
+	peerConnection, err := webrtc.NewPeerConnection(config)
 	if err != nil {
 		panic(err)
 	}
