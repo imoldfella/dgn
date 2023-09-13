@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"testing"
-	"time"
 )
 
 // create a pion/pion connection
@@ -28,7 +27,7 @@ func Test_one(t *testing.T) {
 
 	// start a service.
 	go func() {
-		cn, e := NewDataChannel(id)
+		cn, e := NewDataChannel(id, nil)
 		if e != nil {
 			log.Fatal(e)
 		}
@@ -38,15 +37,9 @@ func Test_one(t *testing.T) {
 				log.Fatal(e)
 			}
 		}
-
 	}()
 
 	// connect to the service. in general use this expands to allow us to read data directly from the cluster, and to potentially become a writer service
-
-	// kp, e : = NewKeyPair()
-	// if e != nil {
-	// 	t.Fatal(e)
-	// }
 
 }
 
@@ -78,53 +71,3 @@ type ConnectResponse struct {
 
 // 	}
 // }
-
-// maybe move this test to dgdb
-func Test_two(t *testing.T) {
-	db := NewSimpleIdentityDatabase()
-	id, e := db.Get("bot@localhost:8081")
-	if e != nil {
-		t.Fatal(e)
-	}
-	// we probably need some kind of auth server interface.
-	// start a signaling server; it will take pion/pion connections and create datachannels.
-	go func() {
-		mux := http.NewServeMux()
-		// these will let clients connect directly to cluster
-		// they can use that connection with an api to connect to other channels.
-		// I think we need some plugins or callback here?
-		AddHandlers(mux)
-
-		log.Fatal((&http.Server{
-			Handler: mux,
-			Addr:    "localhost:8080",
-		}).ListenAndServe())
-	}()
-
-	// Identities are per channel. The identity also serves as a capability.
-
-	// start a service or a client. the first one to connect will become the service, the next one will become the client. The cluster must authenticate that the proposed writer is allowed to become the writer, and to adjudicate the superior writer if there is more than one.
-	time.Sleep(1 * time.Second)
-	for x := 0; x < 2; x++ {
-		go func() {
-			ch, e := NewDataChannel(id)
-			if e != nil {
-				log.Fatal(e)
-			}
-			for {
-				_, e := ch.Receive()
-				if e != nil {
-					log.Fatal(e)
-				}
-			}
-		}()
-	}
-
-	// connect to the service. in general use this expands to allow us to read data directly from the cluster, and to potentially become a writer service
-
-	// kp, e : = NewKeyPair()
-	// if e != nil {
-	// 	t.Fatal(e)
-	// }
-
-}

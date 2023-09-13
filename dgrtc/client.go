@@ -238,5 +238,7 @@ func NewDirectChannel(host string, config webrtc.Configuration) (*DataChannel, e
 	// }
 	// Register data channel creation handling
 	wg.Wait()
-
+	return &DataChannel{
+		ch: dataChannel,
+	}, nil
 }

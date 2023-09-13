@@ -1,6 +1,10 @@
 package dgrtc
 
-import "io"
+import (
+	"io"
+
+	"github.com/pion/webrtc/v3"
+)
 
 type SocketLike interface {
 	Send([]byte) error
@@ -9,6 +13,7 @@ type SocketLike interface {
 }
 
 type DataChannel struct {
+	ch *webrtc.DataChannel
 }
 
 // Close implements SocketLike.
