@@ -41,11 +41,11 @@ func RandSeq(n int) string {
 }
 
 type Identity struct {
-	Channel string
+	Name string
 }
 
 type IdentityDatabase interface {
-	Get(channel string) (*Identity, error)
+	Get(name string) (*Identity, error)
 }
 
 // browsers can only use 256; can we allow multiple keys like alg:key?

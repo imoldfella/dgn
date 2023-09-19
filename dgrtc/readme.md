@@ -20,3 +20,7 @@ in dgdb, if we are the only online writer we should then offer to write, as well
 use one admin keypair to sign id's (these id's are channel specific, not general user ids). 
 
 when we create a channel, we create the keypair that goes with it. 
+
+each listener can provide a public key and prove they have the private key. how does a better server pull rank in this case? should it ratchet the key? we can let the have different keys for the ranks.
+
+the server should get a lease to the key, not permanent (everything has a backup). when the lease expires cluster gives the channel to the 

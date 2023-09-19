@@ -6,16 +6,18 @@ import (
 	"testing"
 )
 
-// create a pion/pion connection
+// we need two kinds of channel? one is dm, one is pub/sub.
+//
 
 func Test_one(t *testing.T) {
+	// in general we need some ceremony or password to open an identity database
 	db := NewSimpleIdentityDatabase()
 	id, e := db.Get("bot@localhost:8081")
 	if e != nil {
 		t.Fatal(e)
 	}
 
-	// start a signaling server; it will take pion/pion connections and create datachannels.
+	// start a signaling cluster; it will take pion/pion connections and create datachannels.
 	go func() {
 		mux := http.NewServeMux()
 		AddHandlers(mux)
@@ -25,21 +27,33 @@ func Test_one(t *testing.T) {
 		}).ListenAndServe())
 	}()
 
-	// start a service.
+	// start a local server.
 	go func() {
-		cn, e := NewDataChannel(id, nil)
+		cn, e := Listen(id, nil)
 		if e != nil {
 			log.Fatal(e)
 		}
 		for {
-			_, e := cn.Receive()
+			b, e := cn.Receive()
 			if e != nil {
 				log.Fatal(e)
 			}
+			cn.Send(b)
 		}
 	}()
 
-	// connect to the service. in general use this expands to allow us to read data directly from the cluster, and to potentially become a writer service
+	// connect to the local server through the signaling cluster.
+
+	idc, e := db.Get("client@localhost:8080")
+	cn, e := Dial(idc, id, nil)
+	cn.Send([]byte("hello"))
+	b, e := cn.Receive()
+	if e != nil {
+		t.Fatal(e)
+	}
+	if string(b) != "hello" {
+		t.Fatal("bad echo")
+	}
 
 }
 

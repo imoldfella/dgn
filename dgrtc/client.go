@@ -46,41 +46,40 @@ var lobby map[string]*Lobby
 
 // when we first connect, we may need to provide a OTP? Or maybe we should exchange the otp for a key to use.
 
-func NewLobby(host string, config *Config) (*Lobby, error) {
-	if config == nil {
-		config = DefaultClient()
-	}
-	cache := func() (*Lobby, error) {
-		lobbiesMux.Lock()
-		defer lobbiesMux.Unlock()
-		if lobby == nil {
-			lobby = make(map[string]*Lobby)
+func SignalChannel(host string, config *Config) (*DataChannel, error) {
+	GetLobby := func(host string, config *Config) (*Lobby, error) {
+		if config == nil {
+			config = DefaultClient()
 		}
-		var lb *Lobby
-		var ok bool
-		if lb, ok = lobby[host]; ok {
+		cache := func() (*Lobby, error) {
+			lobbiesMux.Lock()
+			defer lobbiesMux.Unlock()
+			if lobby == nil {
+				lobby = make(map[string]*Lobby)
+			}
+			var lb *Lobby
+			var ok bool
+			if lb, ok = lobby[host]; ok {
+				return lb, nil
+			}
+			return nil, nil
+		}
+		lb, e := cache()
+		if e == nil {
 			return lb, nil
 		}
-		return nil, nil
-	}
-	lb, e := cache()
-	if e == nil {
+		lb = &Lobby{
+			host:   host,
+			mu:     sync.Mutex{},
+			api:    nil,
+			config: config,
+		}
+
+		lobby[host] = lb
 		return lb, nil
 	}
-	lb = &Lobby{
-		host:   host,
-		mu:     sync.Mutex{},
-		api:    nil,
-		config: config,
-	}
 
-	lobby[host] = lb
-	return lb, nil
-}
-
-func NewDataChannel(id *Identity, config *Config) (*DataChannel, error) {
-	v := strings.Split(id.Channel, "@")
-	lb, e := NewLobby(v[1], config)
+	lb, e := GetLobby(host, config)
 	if e != nil {
 		return nil, e
 	}
@@ -96,6 +95,39 @@ func NewDataChannel(id *Identity, config *Config) (*DataChannel, error) {
 		lb.ch = dc
 	}
 	_ = lb
+	return nil, nil
+}
+
+// we potentially create two connections here, to the signaling server and to the peer.
+func Dial(from *Identity, to *Identity, config *Config) (*DataChannel, error) {
+	v := strings.Split(to.Name, "@")
+	lb, e := SignalChannel(v[1], config)
+	if e != nil {
+		return nil, e
+	}
+	lb.Send([]byte("hello"))
+	return nil, nil
+}
+
+// listen for webrtc offers. Unclear
+func Listen(id *Identity, config *Config) (*DataChannel, error) {
+	v := strings.Split(id.Name, "@")
+	lb, e := SignalChannel(v[1], config)
+	if e != nil {
+		return nil, e
+	}
+	// send a message to the signaling server that we are willing to accept a connections for specific channels, and validate our authority to do so.
+	// the channel can be identified by a public key (in a transparent log) and then the listener can prove it has the private key by signing a challenge.
+	lb.Send([]byte("hello"))
+	go func() {
+		for {
+			b, e := lb.Receive()
+			if e != nil {
+				panic(e)
+			}
+			fmt.Printf("received: %s\n", b)
+		}
+	}()
 	return nil, nil
 }
 
