@@ -150,6 +150,7 @@ require (
 	github.com/go-webauthn/webauthn v0.8.6
 	github.com/gofiber/fiber/v2 v2.48.0
 	github.com/joho/godotenv v1.5.1
+	github.com/kardianos/service v1.2.2
 	github.com/lesismal/nbio v1.3.17
 	github.com/markbates/goth v1.77.0
 	github.com/mitchellh/go-homedir v1.1.0

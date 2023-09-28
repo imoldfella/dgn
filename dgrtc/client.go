@@ -98,7 +98,7 @@ func SignalChannel(host string, config *Config) (*DataChannel, error) {
 }
 
 // we potentially create two connections here, to the signaling server and to the peer.
-func Dial(from *Identity, to *Identity, config *Config) (*DataChannel, error) {
+func Dial2(from *Identity, to *Identity, config *Config) (*DataChannel, error) {
 	lb, e := SignalChannel(to.Host(), config)
 	if e != nil {
 		return nil, e
@@ -111,39 +111,20 @@ type CreateRequest struct {
 	PublicKey    []byte `json:"public_key,omitempty"`
 	BillValidate []byte `json:"bill_validate,omitempty"`
 }
+
 // The identity here
 func Create(id *Identity, billto *Identity, config *Config) (*DataChannel, error) {
 	lb, e := SignalChannel(id.Host(), config)
 	if e != nil {
 		return nil, e
 	}
+	_ = lb
 	// this needs to be more an rpc.
-	e = lb.Ask(&CreateRequest{
-		PublicKey:    []byte("public key"),
-		BillValidate: []byte("bill validate"),
-	})
-	
-	return nil, nil
-}
+	// e = lb.Ask(&CreateRequest{
+	// 	PublicKey:    []byte("public key"),
+	// 	BillValidate: []byte("bill validate"),
+	// })
 
-// when we listen we might want to listen to more than one channel.
-func Listen(id *Identity, config *Config) (*DataChannel, error) {
-	lb, e := SignalChannel(id.Host(), config)
-	if e != nil {
-		return nil, e
-	}
-	// send a message to the signaling server that we are willing to accept a connections for specific channels, and validate our authority to do so.
-	// the channel can be identified by a public key (in a transparent log) and then the listener can prove it has the private key by signing a challenge.
-	lb.Send([]byte("hello"))
-	go func() {
-		for {
-			b, e := lb.Receive()
-			if e != nil {
-				panic(e)
-			}
-			fmt.Printf("received: %s\n", b)
-		}
-	}()
 	return nil, nil
 }
 
