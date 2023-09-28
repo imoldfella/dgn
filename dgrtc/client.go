@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
@@ -100,8 +99,7 @@ func SignalChannel(host string, config *Config) (*DataChannel, error) {
 
 // we potentially create two connections here, to the signaling server and to the peer.
 func Dial(from *Identity, to *Identity, config *Config) (*DataChannel, error) {
-	v := strings.Split(to.Name, "@")
-	lb, e := SignalChannel(v[1], config)
+	lb, e := SignalChannel(to.Host(), config)
 	if e != nil {
 		return nil, e
 	}
@@ -109,10 +107,28 @@ func Dial(from *Identity, to *Identity, config *Config) (*DataChannel, error) {
 	return nil, nil
 }
 
-// listen for webrtc offers. Unclear
+type CreateRequest struct {
+	PublicKey    []byte `json:"public_key,omitempty"`
+	BillValidate []byte `json:"bill_validate,omitempty"`
+}
+// The identity here
+func Create(id *Identity, billto *Identity, config *Config) (*DataChannel, error) {
+	lb, e := SignalChannel(id.Host(), config)
+	if e != nil {
+		return nil, e
+	}
+	// this needs to be more an rpc.
+	e = lb.Ask(&CreateRequest{
+		PublicKey:    []byte("public key"),
+		BillValidate: []byte("bill validate"),
+	})
+	
+	return nil, nil
+}
+
+// when we listen we might want to listen to more than one channel.
 func Listen(id *Identity, config *Config) (*DataChannel, error) {
-	v := strings.Split(id.Name, "@")
-	lb, e := SignalChannel(v[1], config)
+	lb, e := SignalChannel(id.Host(), config)
 	if e != nil {
 		return nil, e
 	}

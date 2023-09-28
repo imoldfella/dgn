@@ -4,6 +4,7 @@ import (
 	crand "crypto/rand"
 	"encoding/binary"
 	"math/big"
+	"strings"
 
 	"github.com/pion/randutil"
 )
@@ -42,6 +43,11 @@ func RandSeq(n int) string {
 
 type Identity struct {
 	Name string
+}
+
+func (id *Identity) Host() string {
+	v := strings.Split(id.Name, "@")
+	return v[1]
 }
 
 type IdentityDatabase interface {
