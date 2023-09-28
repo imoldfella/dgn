@@ -23,8 +23,8 @@ type program struct {
 }
 
 func (p *program) Start(s service.Service) error {
+	go startServer()
 	// Start should not block. Do the actual work async.
-
 	return nil
 }
 func (p *program) Stop(s service.Service) error {
@@ -54,7 +54,7 @@ func startServer() {
 	http.HandleFunc("/", root)
 
 	http.HandleFunc("/whip", func(w http.ResponseWriter, r *http.Request) {
-		// start a data channel to the lobby
+		// start a data channel to the lobby. this is
 	})
 
 	log.Fatal(http.ListenAndServe(":5093", nil))
@@ -121,7 +121,7 @@ func main() {
 				Description: "dglobby",
 			}
 			s, err := service.New(prg, svcConfig)
-			startServer()
+
 			if err != nil {
 				log.Fatal(err)
 			}

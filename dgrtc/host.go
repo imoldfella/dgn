@@ -16,9 +16,11 @@ const (
 type Channel []byte
 
 type Capability struct {
-	PublicKey []byte
-	Cap       int
-	Proof     []byte //
+	Channel     []byte // the public key of the channel
+	IssueTo     []byte // public key of capability
+	Cap         int
+	ProofLength int    // if 0, then Proof is a signature, otherwise it is a capability.
+	Proof       []byte //chain of signatures (and capabilities?)
 }
 
 type Listener struct {
