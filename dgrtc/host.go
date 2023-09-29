@@ -23,6 +23,10 @@ type Capability struct {
 	Proof       []byte //chain of signatures (and capabilities?)
 }
 
+func LoadCapability(path string) (*Capability, error) {
+	return nil, nil
+}
+
 type Listener struct {
 }
 
@@ -39,7 +43,7 @@ func NewLobbyClient(address string) (*LobbyClient, error) {
 }
 
 // must be a server capability
-func Listen(lc *LobbyClient, kp *Capability) (*Listener, error) {
+func (lc *LobbyClient) Listen(kp *Capability) (*Listener, error) {
 	return nil, nil
 }
 

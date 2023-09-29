@@ -1,0 +1,8 @@
+{
+    "proxy": {
+        // each sets up a tunnel, user must provide ssh auth
+        "DEFAULT": {
+            "ip": "localhost:22"
+        }
+    }
+}
