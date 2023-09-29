@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -44,6 +45,34 @@ const page = `
 </body>
 </html>
 `
+
+func logHTTPError(w http.ResponseWriter, err string, code int) {
+	log.Println(err)
+	http.Error(w, err, code)
+}
+func whipHandler(res http.ResponseWriter, r *http.Request) {
+	streamKey := r.Header.Get("Authorization")
+	if streamKey == "" {
+		logHTTPError(res, "Authorization was not set", http.StatusBadRequest)
+		return
+	}
+
+	offer, err := io.ReadAll(r.Body)
+	if err != nil {
+		logHTTPError(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	answer, err := WHIP(string(offer), streamKey)
+	if err != nil {
+		logHTTPError(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	res.Header().Add("Location", "/api/whip")
+	res.WriteHeader(http.StatusCreated)
+	fmt.Fprint(res, answer)
+}
 
 func startServer() {
 	root := func(w http.ResponseWriter, r *http.Request) {
