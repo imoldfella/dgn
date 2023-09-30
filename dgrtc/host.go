@@ -2,8 +2,6 @@ package dgrtc
 
 type LobbyClient struct {
 }
-type Keypair struct {
-}
 
 const (
 	CapOwn = iota
@@ -15,7 +13,7 @@ const (
 // this is the public key of the owning keypair.
 type Channel []byte
 
-func LoadCapability(path string) (*Capability, error) {
+func LoadCapability(path string) (*Token, error) {
 	return nil, nil
 }
 
@@ -35,13 +33,13 @@ func NewLobbyClient(address string) (*LobbyClient, error) {
 }
 
 // must be a server capability
-func (lc *LobbyClient) Listen(kp *Capability) (*Listener, error) {
+func (lc *LobbyClient) Listen(kp *Token) (*Listener, error) {
 	return nil, nil
 }
 
 // the keypair here can be anonymous capability issued by the host.
 // the lobby needs to be able to validate the
-func Dial(lc *LobbyClient, kp *Capability) (*DataChannel, error) {
+func Dial(lc *LobbyClient, kp *Token) (*DataChannel, error) {
 	return nil, nil
 }
 

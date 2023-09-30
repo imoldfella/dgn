@@ -35,7 +35,7 @@ func Test_one(t *testing.T) {
 	}
 }
 
-func host1(serverCap *dgrtc.Capability) error {
+func host1(serverCap *dgrtc.Token) error {
 
 	ls, err := dgrtc.NewLobbyClient("localhost:5093")
 	if err != nil {
