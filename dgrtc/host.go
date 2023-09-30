@@ -15,14 +15,6 @@ const (
 // this is the public key of the owning keypair.
 type Channel []byte
 
-type Capability struct {
-	Channel     []byte // the public key of the channel
-	IssueTo     []byte // public key of capability
-	Cap         int
-	ProofLength int    // if 0, then Proof is a signature, otherwise it is a capability.
-	Proof       []byte //chain of signatures (and capabilities?)
-}
-
 func LoadCapability(path string) (*Capability, error) {
 	return nil, nil
 }
