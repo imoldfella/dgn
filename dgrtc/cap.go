@@ -26,10 +26,9 @@ import (
 // the second "to" is the initial admin key
 
 type Token struct {
-	Root      []byte
 	Signature [][]byte
 	Auth      []string
-	To        [][]byte
+	To        [][]byte // one more tha
 	Begin     []uint64
 	End       []uint64
 }
@@ -56,7 +55,7 @@ func Authorize(tok *Token, pubkey []byte, auth string) bool {
 
 	for i, sig := range tok.Signature {
 		blk := tok.SignedBlock(i)
-		if !Verify(pubkey, block, sig) {
+		if !Verify(pubkey, blk, sig) {
 			return false
 		}
 
