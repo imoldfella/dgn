@@ -28,7 +28,7 @@ import (
 type Token struct {
 	Root      []byte
 	Signature [][]byte
-	Grant     []string
+	Auth      []string
 	To        [][]byte
 	Begin     []uint64
 	End       []uint64
@@ -46,8 +46,21 @@ func Sign(priv []byte, challenge []byte) []byte {
 func Verify(public []byte, challenge []byte, sig []byte) bool {
 	return ed25519.Verify(public, challenge, sig)
 }
-func Authorize(tok *Token, pubkey []byte, grant string) bool {
-	// the first "to" is the site id.
+func (tok *Token) SignedBlock(i int) []byte {
+	return nil
+}
+
+// 1. auth must be in the final authorization
+// 2. Each signature must be valid
+func Authorize(tok *Token, pubkey []byte, auth string) bool {
+
+	for i, sig := range tok.Signature {
+		blk := tok.SignedBlock(i)
+		if !Verify(pubkey, block, sig) {
+			return false
+		}
+
+	}
 
 }
 
@@ -57,22 +70,28 @@ func NewSite(site Keypair) *Token {
 		Root: site.Pubkey,
 	}
 }
-func NewToken(signer Keypair, base *Token, to []byte, grant string, begin uint64, end uint64) (*Token, error) {
 
+type GrantData struct {
+	To     []byte
+	Auth   string
+	Begin  uint64
+	End    uint64
+	Signer Keypair
+}
+
+func (base *Token) Grant(d *GrantData) (*Token, error) {
 	r := *base
-	r.To = append(r.To, to)
-	r.Begin = append(r.Begin, begin)
-	r.End = append(r.End, end)
-	r.Grant = append(r.Grant, grant)
+	r.To = append(r.To, d.To)
+	r.Begin = append(r.Begin, d.Begin)
+	r.End = append(r.End, d.End)
+	r.Auth = append(r.Auth, d.Auth)
 
-	// sign the previous signature + time range + to + grant
-	b := r.To[len(r.To)-1]
-	b = binary.AppendUvarint(b, begin)
-	b = binary.AppendUvarint(b, uint64(len(r.End)))
-	b = binary.AppendUvarint(b, uint64(len(to)))
-	b = append(b, to...)
+	b := d.To
+	b = binary.AppendUvarint(b, d.Begin)
+	b = binary.AppendUvarint(b, d.End)
+	b = append(b, d.Auth...)
 
-	sig := ed25519.Sign(signer.Privkey, b)
+	sig := ed25519.Sign(d.Signer.Privkey, b)
 	r.Signature = append(r.Signature, sig)
 
 	return &r, nil
