@@ -26,15 +26,19 @@ import (
 // the second "to" is the initial admin key
 
 type Token struct {
-	Signature [][]byte
-	Auth      []string
-	To        [][]byte // one more tha
-	Begin     []uint64
-	End       []uint64
+	Root  []byte // public key associated with database.
+	Chain []GrantData
 }
 type Keypair struct {
 	Pubkey  []byte
 	Privkey []byte
+}
+type GrantData struct {
+	To        []byte
+	Auth      string
+	Begin     uint64
+	End       uint64
+	Signature []byte
 }
 
 // authorization is a sorted set of strings x|y|z|...
@@ -42,18 +46,24 @@ type Keypair struct {
 func Sign(priv []byte, challenge []byte) []byte {
 	return ed25519.Sign(priv, challenge)
 }
-func Verify(public []byte, challenge []byte, sig []byte) bool {
+func Verify1(public []byte, challenge []byte, sig []byte) bool {
 	return ed25519.Verify(public, challenge, sig)
 }
-func (tok *Token) SignedBlock(i int) []byte {
-	return nil
+
+func SignedBlock(d *GrantData) []byte {
+	b := d.To
+	b = binary.AppendUvarint(b, d.Begin)
+	b = binary.AppendUvarint(b, d.End)
+	b = append(b, d.Auth...)
+
+	return b
 }
 
 // 1. auth must be in the final authorization
 // 2. Each signature must be valid
-func Authorize(tok *Token, pubkey []byte, auth string) bool {
+func Verify(tok *Token, pubkey []byte, auth string) bool {
 
-	for i, sig := range tok.Signature {
+	for i, sig := range tok.Chain {
 		blk := tok.SignedBlock(i)
 		if !Verify(pubkey, blk, sig) {
 			return false
@@ -70,25 +80,12 @@ func NewSite(site Keypair) *Token {
 	}
 }
 
-type GrantData struct {
-	To     []byte
-	Auth   string
-	Begin  uint64
-	End    uint64
-	Signer Keypair
-}
-
 func (base *Token) Grant(d *GrantData) (*Token, error) {
 	r := *base
 	r.To = append(r.To, d.To)
 	r.Begin = append(r.Begin, d.Begin)
 	r.End = append(r.End, d.End)
 	r.Auth = append(r.Auth, d.Auth)
-
-	b := d.To
-	b = binary.AppendUvarint(b, d.Begin)
-	b = binary.AppendUvarint(b, d.End)
-	b = append(b, d.Auth...)
 
 	sig := ed25519.Sign(d.Signer.Privkey, b)
 	r.Signature = append(r.Signature, sig)
