@@ -4,6 +4,9 @@
     // with Ctrl+P "> Preferences: Open Settings (JSON)"
     // to have it apply to all projects
     "debug.allowBreakpointsEverywhere": true,
-    "css.customData": [".vscode/css_custom_data.json"]
+    "css.customData": [
+        ".vscode/css_custom_data.json"
+    ],
+    "zig.initialSetupDone": true
     
 }

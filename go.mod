@@ -6,6 +6,9 @@ require github.com/gliderlabs/ssh v0.3.5
 
 require (
 	cloud.google.com/go v0.81.0 // indirect
+	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
+	github.com/aead/chacha20poly1305 v0.0.0-20170617001512-233f39982aeb // indirect
+	github.com/aead/poly1305 v0.0.0-20180717145839-3fee0db0b635 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.13 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.35 // indirect
@@ -87,6 +90,7 @@ require (
 	github.com/pion/srtp/v2 v2.0.16 // indirect
 	github.com/pion/stun v0.6.1 // indirect
 	github.com/pion/transport/v2 v2.2.1 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.10.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
@@ -127,6 +131,7 @@ require (
 	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	golang.org/x/tools v0.6.0 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20210510173355-fb37daa5cd7a // indirect
 	google.golang.org/grpc v1.37.0 // indirect
@@ -154,6 +159,8 @@ require (
 	github.com/lesismal/nbio v1.3.17
 	github.com/markbates/goth v1.77.0
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/o1egl/paseto v1.0.0
+	github.com/o1egl/paseto/v2 v2.1.1
 	github.com/orcaman/concurrent-map/v2 v2.0.1
 	github.com/pion/ice/v2 v2.3.10
 	github.com/pion/interceptor v0.1.17

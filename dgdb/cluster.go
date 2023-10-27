@@ -2,7 +2,6 @@ package dgdb
 
 import (
 	"context"
-	"embed"
 	"encoding/json"
 	"fmt"
 	"io/fs"
@@ -30,9 +29,6 @@ import (
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"github.com/pion/webrtc/v3"
 )
-
-//go:embed ui/dist
-var ui embed.FS
 
 var api = &Api{
 	Fn:  map[string]func(r *Rpcp) (any, error){},

@@ -1,4 +1,4 @@
-package dgrtc
+package dgcap
 
 import (
 	crand "crypto/rand"

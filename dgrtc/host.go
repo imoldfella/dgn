@@ -1,5 +1,9 @@
 package dgrtc
 
+import (
+	"datagrove/dgcap"
+)
+
 type LobbyClient struct {
 }
 
@@ -13,7 +17,7 @@ const (
 // this is the public key of the owning keypair.
 type Channel []byte
 
-func LoadCapability(path string) (*Token, error) {
+func LoadCapability(path string) (*dgcap.AccessProof, error) {
 	return nil, nil
 }
 
@@ -33,13 +37,13 @@ func NewLobbyClient(address string) (*LobbyClient, error) {
 }
 
 // must be a server capability
-func (lc *LobbyClient) Listen(kp *Token) (*Listener, error) {
+func (lc *LobbyClient) Listen(kp *dgcap.AccessProof) (*Listener, error) {
 	return nil, nil
 }
 
 // the keypair here can be anonymous capability issued by the host.
 // the lobby needs to be able to validate the
-func Dial(lc *LobbyClient, kp *Token) (*DataChannel, error) {
+func Dial(lc *LobbyClient, kp *dgcap.AccessProof) (*DataChannel, error) {
 	return nil, nil
 }
 

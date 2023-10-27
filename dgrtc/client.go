@@ -10,6 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"datagrove/dgcap"
+
 	"github.com/pion/webrtc/v3"
 )
 
@@ -98,7 +100,7 @@ func SignalChannel(host string, config *Config) (*DataChannel, error) {
 }
 
 // we potentially create two connections here, to the signaling server and to the peer.
-func Dial2(from *Identity, to *Identity, config *Config) (*DataChannel, error) {
+func Dial2(from *dgcap.Identity, to *dgcap.Identity, config *Config) (*DataChannel, error) {
 	lb, e := SignalChannel(to.Host(), config)
 	if e != nil {
 		return nil, e
@@ -113,7 +115,7 @@ type CreateRequest struct {
 }
 
 // The identity here
-func Create(id *Identity, billto *Identity, config *Config) (*DataChannel, error) {
+func Create(id *dgcap.Identity, billto *dgcap.Identity, config *Config) (*DataChannel, error) {
 	lb, e := SignalChannel(id.Host(), config)
 	if e != nil {
 		return nil, e
@@ -171,7 +173,7 @@ func NewDirectChannel(host string, config webrtc.Configuration) (*DataChannel, e
 			fmt.Printf("Data channel '%s'-'%d' open. Random messages will now be sent to any connected DataChannels every 5 seconds\n", d.Label(), d.ID())
 
 			for range time.NewTicker(5 * time.Second).C {
-				message := RandSeq(15)
+				message := "ping"
 				fmt.Printf("Sending '%s'\n", message)
 
 				// Send the message as text
@@ -193,7 +195,7 @@ func NewDirectChannel(host string, config webrtc.Configuration) (*DataChannel, e
 		fmt.Printf("Data channel '%s'-'%d' open. Random messages will now be sent to any connected DataChannels every 5 seconds\n", dataChannel.Label(), dataChannel.ID())
 
 		for range time.NewTicker(5 * time.Second).C {
-			message := RandSeq(15)
+			message := "ping"
 			fmt.Printf("Sending '%s'\n", message)
 
 			// Send the message as text

@@ -158,7 +158,7 @@ func answerMain() { // nolint:gocognit
 			fmt.Printf("Data channel '%s'-'%d' open. Random messages will now be sent to any connected DataChannels every 5 seconds\n", d.Label(), d.ID())
 
 			for range time.NewTicker(5 * time.Second).C {
-				message := RandSeq(15)
+				message := "ping"
 				fmt.Printf("Sending '%s'\n", message)
 
 				// Send the message as text
