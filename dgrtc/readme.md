@@ -1,4 +1,11 @@
 
+cooperative;
+lobby: subset of cooperative that has public ips. cooperative servers agree to pay the egress fees 
+
+
+
+what kind of identity does the client need to connect? 
+
 // identity requires a public key (DID)
 // the client will also need to layer on the particular key used to encrypt data so as to be able to store encyrypted on the cluster. this key is different for each database.
 

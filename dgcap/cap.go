@@ -25,6 +25,9 @@ package dgcap
 // session will be given the capabilities in the final capability string.
 // the server can store these validated capabilities. a database keyed by the session id.
 
+type Keychain interface {
+}
+
 type Validator struct {
 	// we can check signatures in the cache as speedup?
 	Cache   map[string]*signedPacket
@@ -38,6 +41,7 @@ func (v *Validator) Allow(session int64, db, cap string) bool {
 	return true
 }
 
+// maybe give a keychain.
 func NewValidator() *Validator {
 	return &Validator{
 		Cache: make(map[string]*signedPacket),
@@ -45,6 +49,7 @@ func NewValidator() *Validator {
 }
 
 // this could have multiple chains starting over at the root if multiple capabilities have been received from different authorizors.
+// empty capability indicates root key.
 type AccessProof struct {
 	Version    string
 	Publickey  [][]byte
@@ -60,7 +65,7 @@ func NewOwnerProof(kp Keypair, challenge []byte) (*AccessProof, error) {
 		Version: "1",
 	}, nil
 }
-func (kp Keypair) Extend(a AccessProof, begin, end int64) (*AccessProof, error) {
+func (kp Keypair) Grant(a AccessProof, cap []string, begin, end int64) (*AccessProof, error) {
 	return nil, nil
 }
 func MergeProofs(a, b AccessProof) AccessProof {

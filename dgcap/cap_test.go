@@ -8,11 +8,17 @@ func NewToken(from Keypair, to Keypair, cap string, exp uint64) (*AccessProof, e
 	return nil, nil
 }
 func Test_make(t *testing.T) {
+	challenge := []byte("hello world")
+
 	root, e := NewKeypair()
 	if e != nil {
 		t.Fatal(e)
 	}
-	tok := NewProof(root)
+
+	tok, e := NewOwnerProof(root, challenge)
+	if e != nil {
+		t.Fatal(e)
+	}
 
 	admin, e := NewKeypair()
 	if e != nil {

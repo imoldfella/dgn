@@ -11,41 +11,47 @@ import (
 // we need two kinds of channel? one is dm, one is pub/sub.
 //
 
-func SimpleServer() {
-		mux := http.NewServeMux()
-		// this is the crucial bit; add all the wip/wep handlers
-		AddHandlers(mux)
-		log.Fatal((&http.Server{
-			Handler: mux,
-			Addr:    "localhost:8080",
-		}).ListenAndServe())
+type TestKeychain struct {
+}
+
+var _ dgcap.Keychain = &TestKeychain{}
+
+func SimpleLobby(keys dgcap.Keychain) {
+	// specify what to do with incoming connetions, offer as interface in addhandlers.
+	connect := func(cn *DataChannel) {
+
 	}
 
-func Test_one(t *testing.T) {
-	// in general we need some ceremony or password to open an identity database
-	db := dgcap.NewSimpleIdentityDatabase()
+	mux := http.NewServeMux()
+	// this is the crucial bit; add all the wip/wep handlers
+	AddHandlers(mux, connect)
 
+	log.Fatal((&http.Server{
+		Handler: mux,
+		Addr:    "localhost:8080",
+	}).ListenAndServe())
+}
+
+func Test_one(t *testing.T) {
+	kc := &TestKeychain{}
 
 	// start a signaling cluster; it will take pion/pion connections and create datachannels.
-	go SimpleServer()
+	go SimpleLobby(kc)
 
 	// start a local server.
-	lobby := 
 
-		go func() {
-			cn, e := Listen(id, nil)
-			if e != nil {
-				log.Fatal(e)
-			}
-			for {
-				b, e := cn.Receive()
-				if e != nil {
-					log.Fatal(e)
-				}
-				cn.Send(b)
-			}
-		}()
-	
+	cn, e := Listen(id, nil)
+	if e != nil {
+		log.Fatal(e)
+	}
+	for {
+		b, e := cn.Receive()
+		if e != nil {
+			log.Fatal(e)
+		}
+		cn.Send(b)
+	}
+
 }
 
 func ClientTest(t *testing.T) {
@@ -56,19 +62,19 @@ func ClientTest(t *testing.T) {
 		t.Fatal(e)
 	}
 
-		// connect to the local server through the signaling cluster.
-	
-		idc, e := db.Get("client@localhost:8080")
-		cn, e := Dial(idc, id, nil)
-		cn.Send([]byte("hello"))
-		b, e := cn.Receive()
-		if e != nil {
-			t.Fatal(e)
-		}
-		if string(b) != "hello" {
-			t.Fatal("bad echo")
-		}
-}	
+	// connect to the local server through the signaling cluster.
+
+	idc, e := db.Get("client@localhost:8080")
+	cn, e := Dial(idc, id, nil)
+	cn.Send([]byte("hello"))
+	b, e := cn.Receive()
+	if e != nil {
+		t.Fatal(e)
+	}
+	if string(b) != "hello" {
+		t.Fatal("bad echo")
+	}
+}
 
 // these public keys protect the operation; the key is sent to the server, stored on the server. we have to send a challenge to encrypt.
 type ChannelCaps struct {

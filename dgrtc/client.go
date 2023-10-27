@@ -10,8 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"datagrove/dgcap"
-
 	"github.com/pion/webrtc/v3"
 )
 
@@ -100,14 +98,14 @@ func SignalChannel(host string, config *Config) (*DataChannel, error) {
 }
 
 // we potentially create two connections here, to the signaling server and to the peer.
-func Dial2(from *dgcap.Identity, to *dgcap.Identity, config *Config) (*DataChannel, error) {
-	lb, e := SignalChannel(to.Host(), config)
-	if e != nil {
-		return nil, e
-	}
-	lb.Send([]byte("hello"))
-	return nil, nil
-}
+// func Dial2(from *dgcap.Identity, to *dgcap.Identity, config *Config) (*DataChannel, error) {
+// 	lb, e := SignalChannel(to.Host(), config)
+// 	if e != nil {
+// 		return nil, e
+// 	}
+// 	lb.Send([]byte("hello"))
+// 	return nil, nil
+// }
 
 type CreateRequest struct {
 	PublicKey    []byte `json:"public_key,omitempty"`
@@ -115,20 +113,20 @@ type CreateRequest struct {
 }
 
 // The identity here
-func Create(id *dgcap.Identity, billto *dgcap.Identity, config *Config) (*DataChannel, error) {
-	lb, e := SignalChannel(id.Host(), config)
-	if e != nil {
-		return nil, e
-	}
-	_ = lb
-	// this needs to be more an rpc.
-	// e = lb.Ask(&CreateRequest{
-	// 	PublicKey:    []byte("public key"),
-	// 	BillValidate: []byte("bill validate"),
-	// })
+// func Create(id *dgcap.Identity, billto *dgcap.Identity, config *Config) (*DataChannel, error) {
+// 	lb, e := SignalChannel(id.Host(), config)
+// 	if e != nil {
+// 		return nil, e
+// 	}
+// 	_ = lb
+// 	// this needs to be more an rpc.
+// 	// e = lb.Ask(&CreateRequest{
+// 	// 	PublicKey:    []byte("public key"),
+// 	// 	BillValidate: []byte("bill validate"),
+// 	// })
 
-	return nil, nil
-}
+// 	return nil, nil
+// }
 
 func NewDirectChannel(host string, config webrtc.Configuration) (*DataChannel, error) {
 	var wg sync.WaitGroup
