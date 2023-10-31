@@ -4,3 +4,5 @@
 3. public vs private. private=payment. public=teaching.
 
 
+Poll root every second; If this shows no change than we are done.
+
