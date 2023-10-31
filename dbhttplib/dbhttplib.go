@@ -19,3 +19,7 @@ func NewDb(dir string) *Dbhttp {
 func (db *Dbhttp) Commit(tx *Tx) {
 
 }
+
+func (db *Dbhttp) Append(tx *Tx) {
+
+}
