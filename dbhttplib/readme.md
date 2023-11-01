@@ -15,3 +15,10 @@ AUTH=token   // dehex, decrypt, validate params
 /up?file=user.name&offset=0 
 data
 
+
+Each cluster member has a set of slots. It continues to gather those slots and insert them into the trees.
+OR
+why not just let each computer insert the records as it gathers them? We still need to create an epoch each second though so that clients can poll it? what is the scalestore approach to MVCC?
+
+There is a tree for each user, and a tree for public.
+

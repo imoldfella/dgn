@@ -73,10 +73,12 @@ func ValidateToken(secret []byte, data []byte) ([]byte, error) {
 		panic(err)
 	}
 
-	plaintext, err := aead.Open(nil, nonce, ciphertext, additionalData)
+	plaintext, err := aead.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
 		panic(err)
 	}
+
+	_ = plaintext
 
 	var tk Token
 	return tk.PublicKey, nil
