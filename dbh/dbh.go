@@ -2,8 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
+	"path"
 
 	"github.com/spf13/cobra"
 )
@@ -15,6 +19,12 @@ type Config struct {
 	// this is the active keypair. The certificate is the public key signed by a chain of keypairs up to the root keypair
 	Certificate string
 	PrivateKey  string
+	Bucket      string
+	Firehose    string // directory to replicate firehose into.
+}
+
+type Firehose struct {
+	Last int64
 }
 
 var config Config
@@ -45,7 +55,30 @@ func main() {
 
 }
 
-func firehose() {
+func wget(url string) ([]byte, error) {
+	return nil, nil
+}
+
+func firehose() error {
+	// read the local firehose pointer
+	b, e := os.ReadFile(path.Join(config.Firehose, "firehose.json"))
+	if e != nil {
+		return e
+	}
+	var fh Firehose
+	json.Unmarshal(b, &fh)
+
+	resp, err := http.Get(fmt.Sprintf("%s/%d", config.Bucket, fh.Last))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	b, e = io.ReadAll(resp.Body)
+	if e != nil {
+		return e
+	}
+	// if the tail is longer than the one we have, then we need to read all the files referenced plus the files they reference.
+
 }
 
 func loadConfig() error {
