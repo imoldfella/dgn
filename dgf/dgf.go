@@ -4,7 +4,6 @@ import "github.com/spf13/cobra"
 
 func main() {
 
-	loadConfig()
 	var rootCmd = &cobra.Command{
 		Use: "dghttp",
 	}
@@ -13,7 +12,7 @@ func main() {
 		Short: "run [dir]",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			configure()
+
 		},
 	})
 	rootCmd.AddCommand(&cobra.Command{
