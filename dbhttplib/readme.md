@@ -1,4 +1,20 @@
 
+A very simple log writer, similar to calvin ticket number, but heavily batched and with all redundancy delegated to the storage layer (r2). 
+
+1. Collect a batches of inserts (max time, max records)
+2. Write the batches into R2
+3. Write the batchid into the tail file. When the tail file gets large enough then update the tail finder file and start a new tail.
+3b. Proxies will write their batchid to the leader, which includes them in the batch.
+
+
+
+
+We may encounter large uploads. These we can write into a temp file and then sequence that into the next batch.
+
+The whole thing creates a group commit, and acknowledgment is only returned when it is reliably stored. This can cause the same transaction to be retransmitted, the client is responsible to assign a unique id to every operation. The reader generally doesn't care about executing the same insert twice, but if it does, it must dedupe the inserts.
+
+
+
 uploads need to be authorized into an account (may require a pragmatic limit)
 generally this is done with auth headers. each file can be in a directory tied to the account.
 
@@ -16,9 +32,7 @@ AUTH=token   // dehex, decrypt, validate params
 data
 
 
-Each cluster member has a set of slots. It continues to gather those slots and insert them into the trees.
-OR
-why not just let each computer insert the records as it gathers them? We still need to create an epoch each second though so that clients can poll it? what is the scalestore approach to MVCC?
+There is one cluster writer. It gathers sorted batches from the proxy servers and writes them into a log according to splinterdb methodology. 
 
 There is a tree for each user, and a tree for public.
 

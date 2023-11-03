@@ -1,6 +1,8 @@
 package dbhttplib
 
 type Dbhttp struct {
+	leader string // empty if we are the leader.
+	w      chan []byte
 }
 
 const (
