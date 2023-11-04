@@ -12,6 +12,17 @@ import (
 var db *dbhttplib.Dbhttp
 var directory = "./data"
 
+type Config struct {
+	Backend string  // s3, local
+	Url     string  // s3 bucket or local directory
+}
+
+type Backend interface {
+	Put(key string, value []byte) error
+	Get(key string) ([]byte, error)
+}
+type Program
+
 func main() {
 	var rootCmd = &cobra.Command{
 		Use: "dghttp",
