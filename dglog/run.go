@@ -1,6 +1,7 @@
 package main
 
 import (
+	"datagrove/dgstore"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,20 +19,24 @@ type Config struct {
 	Url     string // s3 bucket or local directory
 }
 
-type Backend interface {
-	Put(key string, value []byte) error
-	Get(key string) ([]byte, error)
+type App struct {
+	Config
+	Client dgstore.Client
 }
+
+var app App
 
 // return a signed url for uploading a blob
 // we can name blobs owner.sha to prevent collisions
 // that also lets us audit for usage, reading the R2 logs.
 func blob(res http.ResponseWriter, req *http.Request) {
-	cl, e := NewS3Client()
+	// we have to check that the name is correctly attributed to the owner
+	name := req.Form.Get("name")
+	p, e := app.Client.Preauth(name)
 	if e != nil {
-		panic(e)
+		return
 	}
-
+	res.Write([]byte(p))
 }
 
 // transactions must be small, but can reference blobs
