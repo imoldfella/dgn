@@ -1,11 +1,51 @@
 package dglib
 
+import (
+	"bytes"
+	"datagrove/dgcap"
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+
+	"github.com/fxamacker/cbor/v2"
+)
+
+// for each database we write to, we must provide a proof that this device has access to that database. The proof is a chain of signatures rooted in the keypair that defines the database
+
+type Grant struct {
+	Db int64
+}
+
+// a proof is a chain of grants
+type Proof struct {
+	Grant []Grant
+}
+
+type DbLogin struct {
+	Db    int64
+	Proof []Proof
+}
+
+type LoginOp struct {
+	Db []DbLogin
+}
+type LoginResponse struct {
+	Token []string
+}
+
+// this allows a write to a db
+type TokenPayload struct {
+	Db int64
+}
+
 // wrap access to dglog. We need a way to keep proofs of db access.
 type DbConfig struct {
 	Token   string `json:"token,omitempty"`
 	Refresh string `json:"refresh,omitempty"`
 }
 type LogServerConfig struct {
+	Id  dgcap.Keypair
 	Url string `json:"url,omitempty"`
 	Db  map[int64]*DbConfig
 }
@@ -55,6 +95,47 @@ func (cl *ClientTx) Commit() error {
 // server/db
 func (cl *Client) Begin(db string) (*ClientTx, error) {
 	return nil, nil
+}
+
+type RpcOp struct {
+	Token  []byte
+	Db     int64
+	Op     string
+	Params any
+}
+
+func (cl *Client) Rpc(database string, op string, params any, out any) error {
+	server := strings.Split(database, "/")[0]
+	svr, ok := cl.Server[server]
+	if !ok {
+		return fmt.Errorf("no server %s", server)
+	}
+
+	b, e := cbor.Marshal(&RpcOp{
+		Db:     database,
+		Op:     op,
+		Params: params,
+	})
+	if e != nil {
+		return e
+	}
+
+	resp, e := http.Post(svr.Url+"/rpc", "application/cbor", bytes.NewReader(b))
+	if e != nil {
+		return e
+	}
+	defer resp.Body.Close()
+	b, e = io.ReadAll(resp.Body)
+	if e != nil {
+		return e
+	}
+	return cbor.Unmarshal(b, out)
+}
+
+// this will create server/account/db
+// it will also create a record in the account db, so requires a token for that db.
+func (cl *Client) CreateDb(db string) error {
+	return nil
 }
 
 func NewClient(dir string) (*Client, error) {

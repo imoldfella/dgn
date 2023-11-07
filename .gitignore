@@ -12,3 +12,4 @@ __*
 .DS_Store
 .env
 .data
+.clientdata

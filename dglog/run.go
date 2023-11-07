@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"datagrove/dglib"
@@ -21,10 +22,15 @@ type Config struct {
 	Url     string          `json:"url,omitempty"`     // s3 bucket or local directory
 }
 
+type Record struct {
+	Stream int64
+	Data   []byte
+}
 type App struct {
 	Dir string
 	Config
 	Client dgstore.Client
+	Write  chan Record
 }
 
 var app App
@@ -84,6 +90,9 @@ func startup(dir string) error {
 	return http.ListenAndServe(":3000", nil)
 }
 
+func createAccount(res http.ResponseWriter, req *http.Request) {
+}
+
 // login gets tokens that can be used to sign transactions with hmac
 // we need to send a proof that we can access all the dbs we want to access
 // the return will return a token and a refresh token
@@ -96,8 +105,8 @@ func login(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var login Login
-	var r LoginResponse
+	var login dglib.LoginOp
+	var r dglib.LoginResponse
 	cbor.Unmarshal(n, &login)
 
 	now := time.Now()
@@ -146,22 +155,83 @@ func login(res http.ResponseWriter, req *http.Request) {
 
 // }
 
-// authentication in a header lets us keep clear binary for the payload
-func commit(res http.ResponseWriter, req *http.Request) {
+func verify(req *http.Request) (string, error) {
 	x := req.Header.Get("Authorization")
 	var token paseto.JSONToken
 	var footer string
 	err := paseto.Decrypt(x, serverSecret, &token, &footer)
 	if err != nil {
-		return
+		return "", err
 	}
-	dbid, e := strconv.Atoi(token.Subject)
+
+	return token.Subject, nil
+}
+
+type Tail struct {
+	Data []byte
+	Len  int
+}
+
+const (
+	LogBlockSize = 32 * 1024
+	LogFirst     = iota
+	LogMiddle
+	LogLast
+	LogAll
+)
+
+func (t *Tail) Write(p []byte, flush func([]byte)) {
+	remain := LogBlockSize - t.Len
+	if len(p)+7 < remain {
+
+	}
+	t.Data = append(t.Data, p...)
+	t.Len += len(p)
+	if t.Len > LogBlockSize {
+		flush(t.Data)
+		t.Data = nil
+		t.Len = 0
+	}
+}
+
+// It's best to write a specific byte size since we might need to rewrite a page multiple times
+// if the page had one really large transaction that could be expensive. we use the stra
+func writer() {
+	m := map[int64][][]byte{}
+	for {
+		r := <-app.Write
+		m[r.Stream] = append(m[r.Stream], r.Data)
+		if len(m[r.Stream]) > 100 {
+			// upload the blobs
+			// upload the transaction
+			// commit the transaction
+		}
+	}
+}
+
+// authentication in a header lets us keep clear binary for the payload
+func commit(res http.ResponseWriter, req *http.Request) {
+	subj, e := verify(req)
 	if e != nil {
 		return
 	}
+	a := strings.Split(subj, " ")
+	if len(a) != 2 || a[0] != "commit" {
+		return
+	}
+
+	dbid, e := strconv.Atoi(a[1])
 	n, e := io.ReadAll(req.Body)
 	if e != nil {
 		return
+	}
+	// there is a bit in the dbid that indicates if this is public or private.
+	// all public databases go in the same stream, all private databases go in their own stream.
+	public := dbid&1 == 0
+
+	stream := 0
+	if public {
+		stream = dbid
 	}
 
 	//
