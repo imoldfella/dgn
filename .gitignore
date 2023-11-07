@@ -11,3 +11,4 @@ zig-out/
 __*
 .DS_Store
 .env
+.data

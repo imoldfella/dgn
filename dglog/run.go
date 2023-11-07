@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"datagrove/dglib"
+
 	"github.com/fxamacker/cbor/v2"
 	"github.com/o1egl/paseto/v2"
 )
@@ -15,24 +17,45 @@ import (
 var serverSecret = []byte("serverSecret")
 
 type Config struct {
-	Backend string // s3, local
-	Url     string // s3 bucket or local directory
+	Account dgstore.Account `json:"account,omitempty"` // s3, local
+	Url     string          `json:"url,omitempty"`     // s3 bucket or local directory
 }
 
 type App struct {
+	Dir string
 	Config
 	Client dgstore.Client
 }
 
 var app App
 
+// client must send the correct authorization header for the database being written.
+func CheckRequest(req *http.Request) (int64, error) {
+	auth := req.Header.Get("Authorization")
+	var token paseto.JSONToken
+	var footer string
+	err := paseto.Decrypt(auth, serverSecret, &token, &footer)
+	if err != nil {
+		return 0, err
+	}
+	dbid, e := strconv.Atoi(token.Subject)
+	if e != nil {
+		return 0, e
+	}
+	return int64(dbid), nil
+}
+
 // return a signed url for uploading a blob
 // we can name blobs owner.sha to prevent collisions
 // that also lets us audit for usage, reading the R2 logs.
 func blob(res http.ResponseWriter, req *http.Request) {
-	// we have to check that the name is correctly attributed to the owner
+	// we have to check that writer has access to the db, and that the name is prefixed by the db.
+	dbid, e := CheckRequest(req)
+	if e != nil {
+		return
+	}
 	name := req.Form.Get("name")
-	p, e := app.Client.Preauth(name)
+	p, e := app.Client.Preauth(fmt.Sprintf("%d", dbid) + "/" + name)
 	if e != nil {
 		return
 	}
@@ -43,32 +66,25 @@ func blob(res http.ResponseWriter, req *http.Request) {
 // POST forms are limited to 10mb anyway
 // cbor
 
-type Proof struct {
-}
-
-type DbLogin struct {
-	Db    int64
-	Proof []Proof
-}
-
-type Login struct {
-	Db []DbLogin
-}
-type LoginResponse struct {
-	Token []string
-}
-
-// this allows a write to a db
-type TokenPayload struct {
-	Db int64
-}
-
-func startup() {
+func startup(dir string) error {
 	// read configuration for the directory
+	dglib.JsoncFile(&app.Config, dir, "config.jsonc")
+	cl, err := dgstore.NewClient(&app.Account)
+	if err != nil {
+		return err
+	}
+	app.Client = cl
 
+	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
+		res.Write([]byte("dbhttp"))
+	})
+	http.HandleFunc("/commit", commit)
+	http.HandleFunc("/blob", blob)
+	http.HandleFunc("/login", login)
+	return http.ListenAndServe(":3000", nil)
 }
 
-// login gets a secret that can be used to sign transactions with hmac
+// login gets tokens that can be used to sign transactions with hmac
 // we need to send a proof that we can access all the dbs we want to access
 // the return will return a token and a refresh token
 func login(res http.ResponseWriter, req *http.Request) {

@@ -1,4 +1,4 @@
-package dbhttplib
+package dglib
 
 import (
 	"crypto/ed25519"

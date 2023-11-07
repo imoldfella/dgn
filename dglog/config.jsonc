@@ -1,0 +1,8 @@
+{
+    "driver": "minio",
+    "access_key": "Q3HmGf4bwoHhBabKUp4O",
+    "secret_key": "a4AO3FfcFOqvPZWRIMOtEKla4eyOoEtMnqCiZQuN",
+    "id": "minioadmin",
+    "bucket": "yop",
+    "endpoint": "127.0.0.1:9000",
+}

@@ -36,3 +36,5 @@ There is one cluster writer. It gathers sorted batches from the proxy servers an
 
 There is a tree for each user, and a tree for public.
 
+Private databases
+don't log in the public log, write directly to the current leader (webrtc). The current leader may backup to the cloud (paid) or not. Only public databases are written to the cloud.

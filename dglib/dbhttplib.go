@@ -1,4 +1,4 @@
-package dbhttplib
+package dglib
 
 type Dbhttp struct {
 	leader string // empty if we are the leader.

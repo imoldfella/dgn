@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 
 	"github.com/kardianos/service"
@@ -21,14 +20,11 @@ func (p *program) Start(s service.Service) error {
 }
 
 func (p *program) run() {
-	startup()
-	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
-		res.Write([]byte("dbhttp"))
-	})
-	http.HandleFunc("/commit", commit)
-	http.HandleFunc("/blob", blob)
-	http.HandleFunc("/login", login)
-	log.Fatal(http.ListenAndServe(":3000", nil))
+	e := startup(directory)
+	if e != nil {
+		log.Fatal(e)
+	}
+
 }
 func (p *program) Stop(s service.Service) error {
 	// Stop should not block. Return with a few seconds.

@@ -175,6 +175,7 @@ require (
 	github.com/pion/webrtc/v3 v3.2.14
 	github.com/pkg/sftp v1.13.6
 	github.com/spf13/cobra v1.7.0
+	github.com/tailscale/hujson v0.0.0-20221223112325-20486734a56a
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect

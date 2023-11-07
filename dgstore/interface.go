@@ -15,9 +15,13 @@ type Client interface {
 }
 
 type Account struct {
-	Driver                                                        string
-	AccountId, AccessKeyId, AccessKeySecret, BucketName, Endpoint string
-	UseHttp                                                       bool
+	Driver          string `json:"driver,omitempty"`
+	AccountId       string `json:"account_id,omitempty"`
+	AccessKeyId     string `json:"access_key_id,omitempty"`
+	AccessKeySecret string `json:"access_key_secret,omitempty"`
+	BucketName      string `json:"bucket_name,omitempty"`
+	Endpoint        string `json:"endpoint,omitempty"`
+	UseHttp         bool   `json:"use_http,omitempty"`
 }
 
 func NewClient(a *Account) (Client, error) {

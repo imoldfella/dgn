@@ -1,4 +1,4 @@
-package dbhttplib
+package dglib
 
 type BlobStore interface {
 	Add(path string, data []byte) error

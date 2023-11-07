@@ -1,4 +1,4 @@
-package dbhttplib
+package dglib
 
 type Keychain interface {
 }
