@@ -2,6 +2,7 @@ package main
 
 import (
 	"datagrove/dgstore"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"net/http"
@@ -174,44 +175,85 @@ type Tail struct {
 
 const (
 	LogBlockSize = 32 * 1024
-	LogFirst     = iota
-	LogMiddle
-	LogLast
-	LogAll
+	LogAll       = 1
+	LogFirst     = 2
+	LogMiddle    = 3
+	LogLast      = 4
 )
 
-func (t *Tail) Write(p []byte, flush func([]byte)) {
-	remain := LogBlockSize - t.Len
-	if len(p)+7 < remain {
+func writeChecksum(d []byte, out []byte) {
+	// we need to write a checksum
+	// we need to write the length
+	// we need to write the type
+	// we need to write the data
+}
 
-	}
-	t.Data = append(t.Data, p...)
-	t.Len += len(p)
-	if t.Len > LogBlockSize {
-		flush(t.Data)
-		t.Data = nil
-		t.Len = 0
-	}
+func WriteObject(path string, data []byte) error {
+	app.Client.Put(path, "application/octet-stream", data)
+	return nil
 }
 
 // It's best to write a specific byte size since we might need to rewrite a page multiple times
 // if the page had one really large transaction that could be expensive. we use the stra
+// one issue is keeping multiple writes in-flight, and committing them to the client only when all previous writes are committed.
 func writer() {
-	m := map[int64][][]byte{}
-	for {
-		r := <-app.Write
-		m[r.Stream] = append(m[r.Stream], r.Data)
-		if len(m[r.Stream]) > 100 {
-			// upload the blobs
-			// upload the transaction
-			// commit the transaction
+	m := map[int64]Tail{}
+
+	flush := func(data []byte) {
+
+	}
+
+	write := func(r Record) {
+		t, ok := m[r.Stream]
+		p := r.Data
+		if !ok {
 		}
+		for {
+			remain := LogBlockSize - t.Len
+			if remain < 8 {
+				// it would be better to roll over a large buffer here.
+
+				t.Len = 0
+				continue
+			}
+			if len(p)+7 < remain {
+				writeChecksum(p, t.Data[t.Len:])
+				binary.LittleEndian.PutUint16(t.Data[t.Len+4:], uint16(len(p)))
+				t.Data[t.Len+6] = LogAll
+				copy(t.Data[t.Len+7:], p)
+				t.Len += len(p) + 7
+				return
+			} else if remain < 7 {
+
+			}
+			t.Data = append(t.Data, p...)
+			t.Len += len(p)
+			if t.Len > LogBlockSize {
+				flush(t.Data)
+				t.Data = nil
+				t.Len = 0
+			}
+		}
+
+	}
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case r := <-app.Write:
+			write(r)
+		case <-ticker.C:
+			// flush all the tails
+		}
+
 	}
 }
 
 // authentication in a header lets us keep clear binary for the payload
+
 func commit(res http.ResponseWriter, req *http.Request) {
-	subj, e := verify(req)
+	subj, e := verify(req) // returns the token subject in the form op args...
 	if e != nil {
 		return
 	}
@@ -226,15 +268,14 @@ func commit(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// there is a bit in the dbid that indicates if this is public or private.
-	// all public databases go in the same stream, all private databases go in their own stream.
-	public := dbid&1 == 0
-
+	// all public databases go in the same stream, all private databases go in unique streams.
 	stream := 0
-	if public {
+	if dbid&1 == 0 {
 		stream = dbid
 	}
 
-	//
-	_ = dbid
-	_ = n
+	app.Write <- Record{
+		Stream: int64(stream),
+		Data:   n,
+	}
 }

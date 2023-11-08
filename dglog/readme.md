@@ -14,6 +14,8 @@ Each private db is its own two layer array
 
 Each cluster server feed's a subset of private db's. Clients connect directly to the assigned server. A private db generally only allows one feeder, but more can be assigned if scaling is necessary.
 
+We don't need a true 2 level array, instead we have a main log and overflow logs. When an overflow log flushes its record, it introduces a pointer record in the main log. For the common case of only a main and no overflow this eliminates the unneeded redirection.
+
 
 
 
