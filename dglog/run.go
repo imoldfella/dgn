@@ -103,7 +103,7 @@ func createAccount(res http.ResponseWriter, req *http.Request) {
 // login gets tokens that can be used to sign transactions with hmac
 // we need to send a proof that we can access all the dbs we want to access
 // the return will return a token and a refresh token
-// generally we want to do a database access here to check that the database is associated with an account of some kind (public or private).
+// generally we want to do a database access here to check that the database is associated with an account of some kind (public or private). we could do this with a lag though or skip for public.
 func login(res http.ResponseWriter, req *http.Request) {
 	// return a signed url for uploading a blob
 	// we can name blobs owner.sha to prevent collisions
@@ -123,6 +123,9 @@ func login(res http.ResponseWriter, req *http.Request) {
 	for _, dbo := range login.Db {
 
 		_ = dbo.Proof
+		// todo: check that the proof is valid
+		// todo: check that the database is valid
+
 		jsonToken := paseto.JSONToken{
 			Audience:   "test",
 			Issuer:     "test_service",
@@ -133,8 +136,8 @@ func login(res http.ResponseWriter, req *http.Request) {
 			NotBefore:  now,
 		}
 		// Add custom claim    to the token
-		jsonToken.Set("data", "this is a signed message")
-		footer := "some footer"
+		//jsonToken.Set("data", "this is a signed message")
+		footer := ""
 
 		// Encrypt data
 		token, err := paseto.Encrypt(serverSecret, jsonToken, footer)

@@ -23,12 +23,15 @@ type Proof struct {
 }
 
 type DbLogin struct {
-	Db    int64
+	// database id is 32 byte eliptical curve public key
+	// a proof is a chain of signatures that are root in the database keypair and end in a signature of a current time.
+	Db    []byte
 	Proof []Proof
 }
 
 type LoginOp struct {
-	Db []DbLogin
+	Time int64 // must be in the last 10 seconds
+	Db   []DbLogin
 }
 type LoginResponse struct {
 	Token []string
