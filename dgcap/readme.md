@@ -6,3 +6,5 @@
 
 Poll root every second; If this shows no change than we are done.
 
+we need a global proof state? how do we check revokes?
+

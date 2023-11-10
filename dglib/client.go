@@ -16,19 +16,12 @@ type Grant struct {
 	Db int64
 }
 
-type DbLogin struct {
-	// database id is 32 byte eliptical curve public key
-	// a proof is a chain of signatures that are root in the database keypair and end in a signature of a current time.
-	Db    []byte
-	Proof []dgcap.Proof
-}
-
 type LoginOp struct {
 	Time int64 // must be in the last 10 seconds
-	Db   []DbLogin
+	Db   []dgcap.Proof
 }
 type LoginResponse struct {
-	Token []string
+	Token [][]byte
 }
 
 // this allows a write to a db
