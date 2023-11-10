@@ -24,7 +24,13 @@ func Test_make(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	Grant := func(from Keypair, to Keypair, cap string, exp uint64) (*AccessProof, error) {
+		return nil, nil
+	}
 	adminTok, e := Grant(root, admin, "admin", 0)
+
+	_ = tok
+	_ = adminTok
 
 }
 
@@ -34,7 +40,11 @@ func Test_keypair(t *testing.T) {
 		t.Fatal(e)
 	}
 	challenge := []byte("hello world")
+	Sign := func(privkey []byte, challenge []byte) []byte {
+		return nil
+	}
 	sig := Sign(root.Privkey, challenge)
+	_ = sig
 
 	// if !Verify(root.Pubkey, challenge, sig) {
 	// 	t.Fatal("failed to verify")

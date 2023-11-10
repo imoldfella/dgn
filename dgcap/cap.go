@@ -24,6 +24,7 @@ package dgcap
 // challenge will be the final "Publickey" in the chain.
 // session will be given the capabilities in the final capability string.
 // the server can store these validated capabilities. a database keyed by the session id.
+// a proof is a chain of grants
 
 type Keychain interface {
 }

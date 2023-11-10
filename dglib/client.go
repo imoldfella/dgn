@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/fxamacker/cbor/v2"
 )
@@ -17,16 +16,11 @@ type Grant struct {
 	Db int64
 }
 
-// a proof is a chain of grants
-type Proof struct {
-	Grant []Grant
-}
-
 type DbLogin struct {
 	// database id is 32 byte eliptical curve public key
 	// a proof is a chain of signatures that are root in the database keypair and end in a signature of a current time.
 	Db    []byte
-	Proof []Proof
+	Proof []dgcap.Proof
 }
 
 type LoginOp struct {
@@ -102,13 +96,13 @@ func (cl *Client) Begin(db string) (*ClientTx, error) {
 
 type RpcOp struct {
 	Token  []byte
-	Db     int64
+	Db     []byte
 	Op     string
 	Params any
 }
 
-func (cl *Client) Rpc(database string, op string, params any, out any) error {
-	server := strings.Split(database, "/")[0]
+func (cl *Client) Rpc(server string, database []byte, op string, params any, out any) error {
+
 	svr, ok := cl.Server[server]
 	if !ok {
 		return fmt.Errorf("no server %s", server)
