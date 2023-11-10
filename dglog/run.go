@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"datagrove/dglib"
@@ -32,6 +33,8 @@ type App struct {
 	Config
 	Client dgstore.Client
 	Write  chan Record
+
+	pool sync.Pool
 }
 
 var app App
@@ -81,6 +84,9 @@ func startup(dir string) error {
 		return err
 	}
 	app.Client = cl
+	app.pool.New = func() interface{} {
+		return new(Tail)
+	}
 
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte("dbhttp"))
@@ -97,6 +103,7 @@ func createAccount(res http.ResponseWriter, req *http.Request) {
 // login gets tokens that can be used to sign transactions with hmac
 // we need to send a proof that we can access all the dbs we want to access
 // the return will return a token and a refresh token
+// generally we want to do a database access here to check that the database is associated with an account of some kind (public or private).
 func login(res http.ResponseWriter, req *http.Request) {
 	// return a signed url for uploading a blob
 	// we can name blobs owner.sha to prevent collisions
@@ -171,10 +178,12 @@ func verify(req *http.Request) (string, error) {
 type Tail struct {
 	Data []byte
 	Len  int
+	// we need to look this up, cache in memory.
+	StreamEnd int64
 }
 
 const (
-	LogBlockSize = 32 * 1024
+	LogBlockSize = 64 * 1024
 	LogAll       = 1
 	LogFirst     = 2
 	LogMiddle    = 3
@@ -199,19 +208,20 @@ func WriteObject(path string, data []byte) error {
 func writer() {
 	m := map[int64]Tail{}
 
-	flush := func(data []byte) {
-
+	flush := func(t Tail) {
+		// we can write this async, but we only want to commit to the writer when all previous writes are committed.
 	}
 
 	write := func(r Record) {
 		t, ok := m[r.Stream]
 		p := r.Data
 		if !ok {
+			t = app.pool.Get().(Tail)
+			m[r.Stream] = t
 		}
 		for {
 			remain := LogBlockSize - t.Len
 			if remain < 8 {
-				// it would be better to roll over a large buffer here.
 
 				t.Len = 0
 				continue
@@ -245,6 +255,10 @@ func writer() {
 			write(r)
 		case <-ticker.C:
 			// flush all the tails
+			for _, t := range m {
+				flush(t)
+			}
+			m = map[int64]Tail{}
 		}
 
 	}

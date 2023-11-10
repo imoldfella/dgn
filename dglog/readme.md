@@ -16,7 +16,13 @@ Each cluster server feed's a subset of private db's. Clients connect directly to
 
 We don't need a true 2 level array, instead we have a main log and overflow logs. When an overflow log flushes its record, it introduces a pointer record in the main log. For the common case of only a main and no overflow this eliminates the unneeded redirection.
 
+avoiding dupes/skips is hard over http. but is it worth not using http?
 
+login can give us a session id.
+
+once a 
+
+What if we didn't use a cloud store or only for most recent?
 
 
 

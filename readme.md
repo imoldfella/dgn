@@ -25,4 +25,4 @@ revokes could use a transparency log; key->revoketime or just key. Here we need 
 
 For the main data log we can have a hash chain, and then record the epoch hash in the transparency log. There is no lookup here, by design you read the entire log.
 
-Is there a way though to allow the firehose readers to prove that they did not equivocate? Should they build 
+Is there a way though to allow the firehose readers to prove that they did not equivocate? Easy enough to compare their merkle trees.
