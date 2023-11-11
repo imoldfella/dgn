@@ -8,3 +8,4 @@ Poll root every second; If this shows no change than we are done.
 
 we need a global proof state? how do we check revokes?
 
+https://escholarship.org/content/qt8wm711vp/qt8wm711vp.pdf
