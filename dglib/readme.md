@@ -38,3 +38,8 @@ There is a tree for each user, and a tree for public.
 
 Private databases
 don't log in the public log, write directly to the current leader (webrtc). The current leader may backup to the cloud (paid) or not. Only public databases are written to the cloud.
+
+
+Use merkle^2 to claim an id and store a public key.
+Use cross_id to sign a proof of email/phone/id association.
+
