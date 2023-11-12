@@ -1,0 +1,38 @@
+// I think the point of refresh is to disconnect revocation from the access check
+// it forces the client to go through a revocation check periodically.
+
+// func refresh(res http.ResponseWriter, req *http.Request) {
+// 	// return a signed url for uploading a blob
+// 	// we can name blobs owner.sha to prevent collisions
+// 	// that also lets us audit for usage, reading the R2 logs.
+
+// 	// this is a public key
+
+// }
+
+// It's best to write a specific byte size since we might need to rewrite a page multiple times
+// if the page had one really large transaction that could be expensive. we use the stra
+// one issue is keeping multiple writes in-flight, and committing them to the client only when all previous writes are committed.
+
+// authentication in a header lets us keep clear binary for the payload
+// func verify(req *http.Request) (string, error) {
+// 	x := req.Header.Get("Authorization")
+// 	var token paseto.JSONToken
+// 	var footer string
+// 	err := paseto.Decrypt(x, serverSecret, &token, &footer)
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+//		return token.Subject, nil
+//	}
+
+func createAccount(res http.ResponseWriter, req *http.Request) {
+	dbid, err := dgcap.CanCreate([]byte(req.Header.Get("Authorization")), serverSecret)
+	if err != nil {
+		return
+	}
+	// return a token for reading and writing the database.
+	// return a presigned url for uploading blobs.
+
+}

@@ -17,11 +17,13 @@ type Grant struct {
 }
 
 type LoginOp struct {
-	Time int64 // must be in the last 10 seconds
-	Db   []dgcap.Proof
+	Time    int64 // must be in the last 10 seconds
+	Db      []dgcap.Proof
+	Presign []bool
 }
 type LoginResponse struct {
-	Token [][]byte
+	Token   [][]byte
+	Presign []string
 }
 
 // this allows a write to a db

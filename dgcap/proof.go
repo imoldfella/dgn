@@ -1,13 +1,12 @@
 package dgcap
 
 import (
-	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/o1egl/paseto/v2"
 )
 
+type Dbid []byte
 type Proof struct {
 	Db        []byte
 	Signature []Signature
@@ -32,7 +31,7 @@ func CheckRequest(auth string, secret []byte) ([]byte, error) {
 	return []byte(token.Subject), nil
 }
 
-// check the proof and create a token
+// check the proof and create a token. The token avoids having to check the proof again.
 func ProofToken(proof *Proof, secret []byte, proofTime int64) ([]byte, error) {
 	now := time.Now()
 	exp := now.Add(24 * time.Hour)
@@ -44,7 +43,7 @@ func ProofToken(proof *Proof, secret []byte, proofTime int64) ([]byte, error) {
 		Audience:   "test",
 		Issuer:     "test_service",
 		Jti:        "123",
-		Subject:    fmt.Sprintf("%d", dbo.Db),
+		Subject:    "", // dbo.Db,
 		IssuedAt:   now,
 		Expiration: exp,
 		NotBefore:  now,
@@ -54,33 +53,38 @@ func ProofToken(proof *Proof, secret []byte, proofTime int64) ([]byte, error) {
 	footer := ""
 
 	// Encrypt data
-	token, err := paseto.Encrypt(serverSecret, jsonToken, footer)
-	if err != nil {
-		r.Token = append(r.Token, "")
-	} else {
-		r.Token = append(r.Token, token)
-	}
+	token, err := paseto.Encrypt(secret, jsonToken, footer)
+	return []byte(token), err
+}
+
+func CanRead(token []byte, secret []byte) (Dbid, error) {
 	return nil, nil
 }
 
-func CanRead(token []byte, secret []byte) ([]byte, error) {
+func CanWrite(token []byte, secret []byte) (Dbid, error) {
 	return nil, nil
 }
 
-func CanWrite(token []byte, secret []byte) ([]byte, error) {
+// returns the account that the database can be created in
+func CanCreate(token []byte, secret []byte) (Dbid, error) {
 	return nil, nil
 }
 
-func VerifyAuthHeader(auth string) (int64, error) {
-	var token paseto.JSONToken
-	var footer string
-	err := paseto.Decrypt(auth, serverSecret, &token, &footer)
-	if err != nil {
-		return 0, err
-	}
-	dbid, e := strconv.Atoi(token.Subject)
-	if e != nil {
-		return 0, e
-	}
-	return int64(dbid), nil
+// take a refresh token and return a new active token and a new refresh token
+func Refresh(token []byte, secret []byte) ([]byte, []byte, error) {
+	return nil, nil, nil
 }
+
+// func VerifyAuthHeader(auth string,) (int64, error) {
+// 	var token paseto.JSONToken
+// 	var footer string
+// 	err := paseto.Decrypt(auth, secret, &token, &footer)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	dbid, e := strconv.Atoi(token.Subject)
+// 	if e != nil {
+// 		return 0, e
+// 	}
+// 	return int64(dbid), nil
+// }

@@ -5,19 +5,41 @@ import (
 	"time"
 )
 
+type Tail struct {
+	Data []byte
+	Len  int
+	// we need to look this up, cache in memory.
+	StreamEnd int64
+}
+
+const (
+	LogBlockSize = 64 * 1024
+	LogAll       = 1
+	LogFirst     = 2
+	LogMiddle    = 3
+	LogLast      = 4
+)
+
+func writeChecksum(d []byte, out []byte) {
+	// we need to write a checksum
+	// we need to write the length
+	// we need to write the type
+	// we need to write the data
+}
+
 func writer() {
-	m := map[int64]Tail{}
+	m := map[string]Tail{}
 
 	flush := func(t Tail) {
 		// we can write this async, but we only want to commit to the writer when all previous writes are committed.
 	}
 
 	write := func(r Record) {
-		t, ok := m[r.Stream]
+		t, ok := m[string(r.Dbid)]
 		p := r.Data
 		if !ok {
 			t = app.pool.Get().(Tail)
-			m[r.Stream] = t
+			m[string(r.Dbid)] = t
 		}
 		for {
 			remain := LogBlockSize - t.Len
@@ -58,7 +80,7 @@ func writer() {
 			for _, t := range m {
 				flush(t)
 			}
-			m = map[int64]Tail{}
+			m = map[string]Tail{}
 		}
 
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"datagrove/dgcap"
 	"datagrove/dglib"
 	"datagrove/dgstore"
 	"net/http"
@@ -15,8 +16,8 @@ type Config struct {
 }
 
 type Record struct {
-	Stream int64
-	Data   []byte
+	dgcap.Dbid
+	Data []byte
 }
 type App struct {
 	Dir string

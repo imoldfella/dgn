@@ -24,6 +24,11 @@ once a
 
 What if we didn't use a cloud store or only for most recent?
 
+1. Each database starts with a balance paid with tokens ($1?). Users can buy tokens with zcash, then apply them blindly to databases. An auditor can then block writes to a database based on policy.
+
+
+
+
 
 
 
