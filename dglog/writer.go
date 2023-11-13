@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"time"
 )
 
@@ -32,15 +33,32 @@ func writer() {
 
 	flush := func(t Tail) {
 		// we can write this async, but we only want to commit to the writer when all previous writes are committed.
+		app.Client.Put("", "application/octet-stream", t.Data)
 	}
 
+	advance := func(t Tail) {
+
+	}
+
+	// if tail doesn't exist yet, we may need to initialize it
+	// if
 	write := func(r Record) {
 		t, ok := m[string(r.Dbid)]
 		p := r.Data
 		if !ok {
 			t = app.pool.Get().(Tail)
 			m[string(r.Dbid)] = t
+			// read the existing tail pointer, then tail
+			fn := hex.EncodeToString(r.Dbid)
+			b, e := app.Client.Get(fn)
+			if e != nil {
+				t.StreamEnd = 0
+			} else {
+				t.StreamEnd = int64(binary.LittleEndian.Uint64(b))
+			}
 		}
+
+		// break into blocks
 		for {
 			remain := LogBlockSize - t.Len
 			if remain < 8 {
@@ -80,7 +98,7 @@ func writer() {
 			for _, t := range m {
 				flush(t)
 			}
-			m = map[string]Tail{}
+			// if we have too many streams open we should delete least recently used (or random 2nd chance would be ok too)
 		}
 
 	}

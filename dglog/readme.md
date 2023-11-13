@@ -29,6 +29,11 @@ What if we didn't use a cloud store or only for most recent?
 
 
 
+1. Write tail (xcrash)
+2. if the tail is full, update the pointer (xcrash)
 
+when you read the pointer, then read the tail. If the tail is full, write a new pointer.
+
+A goroutine per stream might be too much for private, too little for public?
 
 
