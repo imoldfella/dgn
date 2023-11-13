@@ -15,6 +15,28 @@ type MinioClient struct {
 	Client *minio.Client
 }
 
+// List implements Client.
+func (cl *MinioClient) List(prefix string, limit int) ([]string, error) {
+	// Set up the parameters for listing objects
+	// listInput := cl.Client.ListObjects{
+	// 	Bucket: aws.String(cl.BucketName),
+	// 	Prefix: aws.String(prefix),
+	// }
+
+	// Perform the list operation
+	rg := cl.Client.ListObjects(context.TODO(), prefix, minio.ListObjectsOptions{
+		UseV1:  true,
+		Prefix: prefix,
+		//Recursive: true,
+	})
+
+	var r []string
+	for o := range rg {
+		r = append(r, o.Key)
+	}
+	return r, nil
+}
+
 func NewMinioClient(a *Account) (*MinioClient, error) {
 
 	minioClient, err := minio.New(a.Endpoint, &minio.Options{

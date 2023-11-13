@@ -12,6 +12,7 @@ type Client interface {
 	Put(key string, mimetype string, value []byte) error
 	Get(key string) ([]byte, error)
 	Preauth(key string) (string, error)
+	List(prefix string, limit int) ([]string, error)
 }
 
 type Account struct {

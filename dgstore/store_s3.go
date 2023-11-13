@@ -19,7 +19,7 @@ type S3Client struct {
 
 var _ Client = (*S3Client)(nil)
 
-func (cl *S3Client) List(prefix string) (*s3.ListObjectsV2Output, error) {
+func (cl *S3Client) List(prefix string, limit int) ([]string, error) {
 	// Set up the parameters for listing objects
 	listInput := &s3.ListObjectsV2Input{
 		Bucket: aws.String(cl.BucketName),
@@ -28,7 +28,14 @@ func (cl *S3Client) List(prefix string) (*s3.ListObjectsV2Output, error) {
 
 	// Perform the list operation
 	resp, err := cl.Client.ListObjectsV2(context.TODO(), listInput)
-	return resp, err
+	if err != nil {
+		return nil, err
+	}
+	var r []string
+	for _, o := range resp.Contents {
+		r = append(r, *o.Key)
+	}
+	return r, err
 }
 func (cl *S3Client) Put(filePath string, mimetype string, data []byte) error {
 
