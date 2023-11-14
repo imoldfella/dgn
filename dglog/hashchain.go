@@ -4,6 +4,7 @@ import (
 	"datagrove/dgstore"
 	"encoding/binary"
 	"fmt"
+	"hash/crc32"
 	"math"
 	"strconv"
 	"strings"
@@ -66,47 +67,60 @@ func (t *HashChain) Flush() {
 	// overwrite the tail block.
 	key := t.Prefix + fmt.Sprintf("%016x", t.StreamEnd)
 	t.Client.Put(key, "application/octet-stream", t.Data)
+	t.Len = 0
 }
 func (t *HashChain) Append(id []byte, data []byte) {
 	// write into tail blocks, one transaction my split across more than than one block. Hash chain the blocks.
-	need := len(id) + len(data) + 7
+	data = append(data, id...)
+	need := len(data) + 7
 
-	// compute the checksum
-	writeChecksum := func(d []byte, out []byte) {
+	writeRecord := func(d []byte, ty byte) {
+		csum := crc32.ChecksumIEEE(d)
+		binary.LittleEndian.PutUint32(t.Data[t.Len:], csum)
 		// we need to write a checksum
 		// we need to write the length
 		// we need to write the type
 		// we need to write the data
+		binary.LittleEndian.PutUint16(t.Data[t.Len+4:], uint16(len(data)))
+		t.Data[t.Len+6] = ty
+		copy(t.Data[t.Len+7:], data)
+		t.Len += need
+		if LogBlockSize-t.Len <= 7 {
+			t.Flush()
+		}
 	}
 
-	for {
-		remain := LogBlockSize - t.Len
-		if need < remain {
-			writeChecksum(p, t.Data[t.Len:])
-			binary.LittleEndian.PutUint16(t.Data[t.Len+4:], uint16(len(p)))
-			t.Data[t.Len+6] = LogAll
-			copy(t.Data[t.Len+7:], p)
-			t.Len += len(p) + 7
-			return
-		} else if remain < 7 {
+	remain := LogBlockSize - t.Len
+	if need < remain {
+		writeRecord(data, LogAll)
+		remain -= need
+		// skip the remainder of the block
+
+		return
+	} else {
+		// there's room for another record, but not all of it.
+		partial := data[:remain-7]
+		writeRecord(partial, LogFirst)
+		t.Flush()
+		for len(data) > len(t.Data)-7 {
+			writeRecord(data, LogMiddle)
+			t.Flush()
+		}
+		writeRecord(data, LogLast)
+
+		data = data[remain-7:]
+
+	}
+
+}
+
+/*
+else if remain < 7 {
 			// there's no room for another record,
 			t.Flush()
 			t.Len = 0
 			t.StreamEnd--
-		} else {
-			// there's room for another record, but not all of it.
-			t.Data = append(t.Data, p...)
-			t.Len += len(p)
-			if t.Len > LogBlockSize {
-				t.Data = nil
-				t.Len = 0
-			}
 		}
-
-	}
-}
-
-/*
 	// if tail doesn't exist yet, we may need to initialize it
 	// if
 	write := func(r Record) {
