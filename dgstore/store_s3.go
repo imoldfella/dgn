@@ -3,7 +3,7 @@ package dgstore
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -15,6 +15,25 @@ import (
 type S3Client struct {
 	Account
 	Client *s3.Client
+}
+
+// GetSome implements Client.
+func (cl *S3Client) GetSome(key string, offset int64, length int64) ([]byte, error) {
+	getInput := &s3.GetObjectInput{
+		Bucket: aws.String(cl.BucketName),
+		Key:    aws.String(key),
+		Range:  aws.String("bytes=" + string(offset) + "-" + string(offset+length)),
+	}
+
+	// Perform the get operation
+	resp, err := cl.Client.GetObject(context.TODO(), getInput)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Read the object contents
+	return io.ReadAll(resp.Body)
 }
 
 var _ Client = (*S3Client)(nil)
@@ -36,6 +55,16 @@ func (cl *S3Client) List(prefix string, limit int) ([]string, error) {
 		r = append(r, *o.Key)
 	}
 	return r, err
+}
+func (cl *S3Client) PutReader(filePath string, mimetype string, data io.Reader) error {
+
+	// Perform the get operation
+	_, err := cl.Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: aws.String(cl.BucketName),
+		Key:    aws.String(filePath),
+		Body:   data,
+	})
+	return err
 }
 func (cl *S3Client) Put(filePath string, mimetype string, data []byte) error {
 
@@ -61,7 +90,7 @@ func (cl *S3Client) Get(filePath string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	// Read the object contents
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }
 
 func (client *S3Client) Upload(path string, mime string, data []byte) error {

@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/fxamacker/cbor/v2"
 )
@@ -20,11 +19,6 @@ var serverSecret = []byte("serverSecret")
 type Config struct {
 	Account dgstore.Account `json:"account,omitempty"` // s3, local
 	Url     string          `json:"url,omitempty"`     // s3 bucket or local directory
-}
-
-type Record struct {
-	dgcap.Dbid
-	Data []byte
 }
 
 const (
@@ -43,21 +37,27 @@ type App struct {
 var app App
 
 func startup(dir string) error {
-
-	writer := func(n int) {
+	writer := func(n int) error {
 		ch := app.Write[n]
-		hc := NewHashChain(fmt.Sprintf("public/%d/", n), app.Client)
-		// flush writes the tail even if it is not full. It does not advance the tail pointer
-		ticker := time.NewTicker(3 * time.Second)
-		defer ticker.Stop()
-		for {
-			select {
-			case r := <-ch:
-				hc.Append(r.Dbid, r.Data)
-			case <-ticker.C:
-				hc.Flush()
-			}
+		hc, e := NewHashChain(fmt.Sprintf("public/%d/", n), app.Client)
+		if e != nil {
+			return e
 		}
+		// flush writes the tail even if it is not full. It does not advance the tail pointer
+		//ticker := time.NewTicker(3 * time.Second)
+		//defer ticker.Stop()
+		for r := range ch {
+			// empty the channel
+			rv := []Record{r}
+			for len(ch) > 0 {
+				rv = append(rv, <-ch)
+			}
+			hc.Append(rv)
+
+			// case <-ticker.C:
+			// 	hc.Flush()
+		}
+		return nil
 	}
 
 	// read configuration for the directory

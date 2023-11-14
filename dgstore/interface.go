@@ -9,8 +9,10 @@ import (
 )
 
 type Client interface {
+	PutReader(key string, mimetype string, reader io.Reader) error
 	Put(key string, mimetype string, value []byte) error
 	Get(key string) ([]byte, error)
+	GetSome(key string, offset int64, length int64) ([]byte, error)
 	Preauth(key string) (string, error)
 	List(prefix string, limit int) ([]string, error)
 }

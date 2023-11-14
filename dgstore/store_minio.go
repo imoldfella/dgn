@@ -15,6 +15,20 @@ type MinioClient struct {
 	Client *minio.Client
 }
 
+// GetSome implements Client.
+func (cl *MinioClient) GetSome(key string, offset int64, length int64) ([]byte, error) {
+	opt := minio.GetObjectOptions{}
+	opt.SetRange(offset, offset+length)
+	b, err := cl.Client.GetObject(context.TODO(), cl.BucketName, key, opt)
+	if err != nil {
+		return nil, err
+	}
+	defer b.Close()
+	return io.ReadAll(b)
+}
+
+var _ Client = (*MinioClient)(nil)
+
 // List implements Client.
 func (cl *MinioClient) List(prefix string, limit int) ([]string, error) {
 	// Set up the parameters for listing objects
@@ -74,5 +88,8 @@ func (cl *MinioClient) Put(key string, mimetype string, value []byte) error {
 	_, err := cl.Client.PutObject(context.TODO(), cl.BucketName, key, bytes.NewReader(value), int64(len(value)), minio.PutObjectOptions{})
 	return err
 }
-
-var _ Client = (*MinioClient)(nil)
+func (cl *MinioClient) PutReader(key string, mimetype string, value io.Reader) error {
+	// Perform the get operation
+	_, err := cl.Client.PutObject(context.TODO(), cl.BucketName, key, value, -1, minio.PutObjectOptions{})
+	return err
+}
