@@ -3,7 +3,6 @@ package dglib
 import (
 	"encoding/json"
 	"os"
-	"path"
 
 	"github.com/tailscale/hujson"
 )
@@ -17,10 +16,15 @@ func Unmarshal(b []byte, v interface{}) error {
 	return json.Unmarshal(ast.Pack(), v)
 }
 
-func JsoncFile(v interface{}, p ...string) error {
-	b, e := os.ReadFile(path.Join(p...))
+func JsoncFile(v interface{}, path string) error {
+	b, e := os.ReadFile(path)
 	if e != nil {
-		return e
+		json, e := json.MarshalIndent(v, "", "  ")
+		if e != nil {
+			return e
+		}
+		return os.WriteFile(path, json, 0644)
+
 	}
 	return Unmarshal(b, v)
 

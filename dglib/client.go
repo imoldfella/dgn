@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 
 	"github.com/fxamacker/cbor/v2"
 )
@@ -134,6 +135,6 @@ func NewClient(dir string) (*Client, error) {
 	cl := Client{
 		Dir: dir,
 	}
-	JsoncFile(cl.ClientConfig, dir, "config.jsonc")
+	JsoncFile(cl.ClientConfig, path.Join(dir, "config.jsonc"))
 	return &cl, nil
 }

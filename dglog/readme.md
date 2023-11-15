@@ -37,3 +37,13 @@ when you read the pointer, then read the tail. If the tail is full, write a new 
 A goroutine per stream might be too much for private, too little for public?
 
 
+do we need https?
+
+we send a proof, then we get a token. The biggest opportunity to MITM is to fake the server? 
+propose: As long as the idp is secure, the logger does not need to be.
+
+if someone intercepts a token, what do they do?
+1. Some metadata is leaked, however we assume it is leaked anyway. Some depth is given up.
+2. Mitm steals a token, now it can use that token to post. Not good! https keeps us from having to check every signature.
+
+An alternative is set a session key ourselves, but this is more or less what tls does for us anyway. It's not clear we can do it faster or better, probably slower and worse.

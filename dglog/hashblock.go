@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/sha256"
+	"datagrove/dgcap"
 	"datagrove/dgstore"
 	"encoding/binary"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 )
 
 type Record struct {
-	Dbid     uint64
+	Dbid     dgcap.Dbid
 	Clientid uint64
 	Data     []byte
 }
@@ -41,7 +42,7 @@ func (hc *HashChain) Append(data []Record) error {
 
 	// add all the data last; this allows us to stream without creating a contiguous buffer for the data.
 	for _, r := range data {
-		add(r.Dbid)
+		add(uint64(r.Dbid))
 		add(r.Clientid)
 		add(uint64(len(r.Data)))
 	}

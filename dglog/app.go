@@ -4,11 +4,12 @@ import (
 	"datagrove/dgcap"
 	"datagrove/dglib"
 	"datagrove/dgstore"
-	"encoding/hex"
 	"fmt"
 	"hash/fnv"
 	"io"
+	"log"
 	"net/http"
+	"path"
 	"sync"
 
 	"github.com/fxamacker/cbor/v2"
@@ -16,9 +17,15 @@ import (
 
 var serverSecret = []byte("serverSecret")
 
+// what advantage is there to running the logger over https?
+// we don't trust the logger anyway?
+type ConfigHttps struct {
+	Port string `json:"port,omitempty"`
+	Http bool   `json:"http,omitempty"`
+}
 type Config struct {
 	Account dgstore.Account `json:"account,omitempty"` // s3, local
-	Url     string          `json:"url,omitempty"`     // s3 bucket or local directory
+	Https   []ConfigHttps   `json:"https,omitempty"`   // s3 bucket or local directory
 }
 
 const (
@@ -61,7 +68,22 @@ func startup(dir string) error {
 	}
 
 	// read configuration for the directory
-	dglib.JsoncFile(&app.Config, dir, "config.jsonc")
+	app.Config = Config{
+		Account: dgstore.Account{
+			Driver:          "",
+			AccountId:       "",
+			AccessKeyId:     "",
+			AccessKeySecret: "",
+			BucketName:      "",
+			Endpoint:        "",
+			UseHttp:         false,
+		},
+		Https: []ConfigHttps{{
+			Port: ":3000",
+			Http: true,
+		}},
+	}
+	dglib.JsoncFile(&app.Config, path.Join(dir, "config.jsonc"))
 	cl, err := dgstore.NewClient(&app.Account)
 	if err != nil {
 		return err
@@ -82,7 +104,8 @@ func startup(dir string) error {
 	http.HandleFunc("/commit", commit)
 	http.HandleFunc("/blob", blob)
 	http.HandleFunc("/login", login)
-	return http.ListenAndServe(":3000", nil)
+	log.Printf("listening on %s", app.Config.Https[0].Port)
+	return http.ListenAndServe(app.Config.Https[0].Port, nil)
 }
 
 // hash a binary array, use hash to pick deterministically from a set of n
@@ -105,7 +128,7 @@ func blob(res http.ResponseWriter, req *http.Request) {
 	if e != nil {
 		return
 	}
-	p, e := app.Client.Preauth(hex.EncodeToString(dbid))
+	p, e := app.Client.Preauth(fmt.Sprintf("%x", dbid))
 	if e != nil {
 		return
 	}
@@ -154,7 +177,7 @@ func commit(res http.ResponseWriter, req *http.Request) {
 	// there is a character in the dbid that indicates if this is public or private.
 	// all public databases go in the same stream, all private databases go in unique streams.
 
-	app.Write[hashPick(Writers, dbid)] <- Record{
+	app.Write[dbid%Writers] <- Record{
 		Dbid: dbid,
 		Data: n,
 	}

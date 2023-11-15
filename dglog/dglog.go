@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var directory = "./data"
+var directory = "./.data"
 var logger service.Logger
 
 type program struct{}
@@ -24,8 +24,8 @@ func (p *program) run() {
 	if e != nil {
 		log.Fatal(e)
 	}
-
 }
+
 func (p *program) Stop(s service.Service) error {
 	// Stop should not block. Return with a few seconds.
 	return nil
