@@ -15,15 +15,32 @@ type Dbid uint64
 type Proof struct {
 	Version int
 	Db      Dbid
-	Grant   []Grant
+	Grant   []GrantData
 }
 
-type Grant struct {
+type GrantData struct {
 	To        []byte // public key
 	NotBefore int64
 	NotAfter  int64
 	Can       []string
 	Signature []byte
+}
+
+// we have to look up a private key in the key chain.
+// we need to look up a proof that allows us to grant the requested capability.
+
+func Grant(key *Keychain, dbid Dbid, toPublicKey []byte, can []string) (Proof, error) {
+	var proof Proof
+	return Proof{
+		Version: 1,
+		Db:      dbid,
+		Grant: append(proof.Grant, GrantData{
+			To:        toPublicKey,
+			NotBefore: time.Now().Unix(),
+			NotAfter:  time.Now().Add(365 * 24 * time.Hour).Unix(),
+			Can:       can,
+		}),
+	}, nil
 }
 
 // client must send the correct authorization header for the database being written.

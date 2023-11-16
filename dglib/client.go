@@ -135,6 +135,8 @@ func NewClient(dir string) (*Client, error) {
 	cl := Client{
 		Dir: dir,
 	}
+	// if there is no config file, we need to create an identity.
+	// we might create an identity from a bip39 seed.
 	JsoncFile(cl.ClientConfig, path.Join(dir, "config.jsonc"))
 	return &cl, nil
 }

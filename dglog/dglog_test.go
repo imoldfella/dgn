@@ -19,12 +19,14 @@ func Test_version(t *testing.T) {
 func Test_client1(t *testing.T) {
 	go Test_run(t)
 
+	// how do we create an account? can newclient do that?
 	//
 	cl, e := dglib.NewClient("./clientdata")
 	if e != nil {
 		t.Fatal(e)
 	}
 
+	//
 	cl.CreateDb("testdb")
 
 	tx, e := cl.Begin("testdb")

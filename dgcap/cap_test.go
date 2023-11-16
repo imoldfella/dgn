@@ -4,6 +4,33 @@ import (
 	"testing"
 )
 
+func Test_one(t *testing.T) {
+	// there is a root datagrove keypair, that signs the working key pair.
+	// all database proofs start with these two keys.
+	root, e := NewKeypair()
+	if e != nil {
+		t.Fatal(e)
+	}
+	active, e := NewKeypair()
+	if e != nil {
+		t.Fatal(e)
+	}
+	GrantData(root, active, "admin", 0)
+
+	// create a mnemonic
+	mn, e := Bip39()
+	if e != nil {
+		t.Fatal(e)
+	}
+	// create a keypair from the mnemonic
+	id, e := NewIdentityFromSeed(mn)
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	// create an account from the
+
+}
 func NewToken(from Keypair, to Keypair, cap string, exp uint64) (*AccessProof, error) {
 	return nil, nil
 }
