@@ -2,20 +2,12 @@ package dgcap
 
 import (
 	"testing"
+	"time"
 )
 
 func Test_one(t *testing.T) {
 	// there is a root datagrove keypair, that signs the working key pair.
 	// all database proofs start with these two keys.
-	root, e := NewKeypair()
-	if e != nil {
-		t.Fatal(e)
-	}
-	active, e := NewKeypair()
-	if e != nil {
-		t.Fatal(e)
-	}
-	GrantData(root, active, "admin", 0)
 
 	// create a mnemonic
 	mn, e := Bip39()
@@ -23,11 +15,24 @@ func Test_one(t *testing.T) {
 		t.Fatal(e)
 	}
 	// create a keypair from the mnemonic
-	id, e := NewIdentityFromSeed(mn)
+	root, e := NewIdentityFromSeed(mn)
 	if e != nil {
 		t.Fatal(e)
 	}
 
+	active, e := NewKeypair()
+	if e != nil {
+		t.Fatal(e)
+	}
+	// the active key is used to host databases by signing them.
+	pr, e := Grant(root, &Proof{}, active.Pubkey, "host", 365*24*time.Hour)
+	if e != nil {
+		t.Fatal(e)
+	}
+	ok := Verify(&pr, root.Pubkey, "host")
+	if !ok {
+		t.Fatal("failed to verify")
+	}
 	// create an account from the
 
 }

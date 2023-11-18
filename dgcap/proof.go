@@ -22,23 +22,27 @@ type GrantData struct {
 	To        []byte // public key
 	NotBefore int64
 	NotAfter  int64
-	Can       []string
+	Can       string
 	Signature []byte
 }
 
 // we have to look up a private key in the key chain.
 // we need to look up a proof that allows us to grant the requested capability.
+// all proofs start with the root key, but we can cache signatures like the active root->active so we don't have to keep prooving them.
+func Verify(proof *Proof, pubkey []byte, cap string) bool {
+	return false
+}
 
-func Grant(key *Keychain, dbid Dbid, toPublicKey []byte, can []string) (Proof, error) {
-	var proof Proof
+func Grant(key Keypair, proof *Proof, toPublicKey []byte, can string, dur time.Duration) (Proof, error) {
 	return Proof{
 		Version: 1,
-		Db:      dbid,
+		Db:      proof.Db,
 		Grant: append(proof.Grant, GrantData{
 			To:        toPublicKey,
 			NotBefore: time.Now().Unix(),
-			NotAfter:  time.Now().Add(365 * 24 * time.Hour).Unix(),
+			NotAfter:  time.Now().Add(dur).Unix(),
 			Can:       can,
+			Signature: nil,
 		}),
 	}, nil
 }
