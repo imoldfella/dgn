@@ -18,9 +18,10 @@ func (a *CapDb) Refresh(token []byte) ([]byte, []byte, error) {
 
 // revoke is a capability that can get passed around
 // revoke(from,to,db,can) -> proof
+// revoke-write implied by write?
 
-// the rev
-func (a *CapDb) Revoke(pr *Proof) error {
+// you can revoke capabilities that have never been granted because we never track what has been granted. The proof that you send is proof that you could have granted the capability.
+func (a *CapDb) Revoke(pr *Proof, can string) error {
 	// if proof
 	return nil
 }
