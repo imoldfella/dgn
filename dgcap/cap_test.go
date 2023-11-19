@@ -61,12 +61,14 @@ func Test_one(t *testing.T) {
 		// create a grant for the database
 	}
 
+	// verify checks that there is a valid path from the root to the target that includes the requested capability.
 	ok := Verify(&pr, root.Pubkey, "host")
 	if !ok {
 		t.Fatal("failed to verify")
 	}
 
 }
+
 func NewToken(from Keypair, to Keypair, cap string, exp uint64) (*AccessProof, error) {
 	return nil, nil
 }

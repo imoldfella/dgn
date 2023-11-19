@@ -29,3 +29,5 @@ Auditors checking for idempotency is potentially expensive. But the server check
 
 Each token could have the clientid and the dbid, and these would be created from the proof at login.
 
+A proof is a path through a grant graph. Keys grant to other keys, rooted at a host key.
+
