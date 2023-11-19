@@ -98,11 +98,6 @@ func CanCreate(token []byte, secret []byte) (Dbid, error) {
 	return 0, nil
 }
 
-// take a refresh token and return a new active token and a new refresh token
-func Refresh(token []byte, secret []byte) ([]byte, []byte, error) {
-	return nil, nil, nil
-}
-
 // func VerifyAuthHeader(auth string,) (int64, error) {
 // 	var token paseto.JSONToken
 // 	var footer string

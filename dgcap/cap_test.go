@@ -23,25 +23,17 @@ func Test_one(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	active, e := NewKeypair()
-	if e != nil {
-		t.Fatal(e)
+	// create a path, should host root be explicit?
+	pr := []Proof{}
+	var x []Keypair = []Keypair{root}
+	for i := 0; i < 10; i++ {
+		k, e := NewKeypair()
+		if e != nil {
+			t.Fatal(e)
+		}
+		x = append(x, k)
 	}
 
-	account, e := NewKeypair()
-	if e != nil {
-		t.Fatal(e)
-	}
-
-	db, e := NewKeypair()
-	if e != nil {
-		t.Fatal(e)
-	}
-
-	admin, e := NewKeypair()
-	if e != nil {
-		t.Fatal(e)
-	}
 	// database users can read or write, with grant or not.
 
 	// the active key is used to host databases by signing them.
@@ -55,7 +47,7 @@ func Test_one(t *testing.T) {
 		t.Fatal(e)
 	}
 	// admin is always read|write|grant, write implies read.
-	pr := []Proof{}
+
 	grantTest := []string{"read", "write", "read|grant", "write|grant"}
 	for _, cap := range grantTest {
 		// create a grant for the database
