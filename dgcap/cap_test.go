@@ -8,6 +8,9 @@ import (
 func Test_one(t *testing.T) {
 	// there is a root datagrove keypair, that signs the working key pair.
 	// all database proofs start with these two keys.
+	// the working keypair is used to sign account keypairs.
+	// accounts are funded by digital/untraceable cash.
+	// anyone can fund the account to keep the databases created by the account alive/available.
 
 	// create a mnemonic
 	mn, e := Bip39()
@@ -24,16 +27,44 @@ func Test_one(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+
+	account, e := NewKeypair()
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	db, e := NewKeypair()
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	admin, e := NewKeypair()
+	if e != nil {
+		t.Fatal(e)
+	}
+	// database users can read or write, with grant or not.
+
 	// the active key is used to host databases by signing them.
 	pr, e := Grant(root, &Proof{}, active.Pubkey, "host", 365*24*time.Hour)
 	if e != nil {
 		t.Fatal(e)
 	}
+
+	ac, e := Grant(active, &pr, account.Pubkey, "account", 365*24*time.Hour)
+	if e != nil {
+		t.Fatal(e)
+	}
+	// admin is always read|write|grant, write implies read.
+	pr := []Proof{}
+	grantTest := []string{"read", "write", "read|grant", "write|grant"}
+	for _, cap := range grantTest {
+		// create a grant for the database
+	}
+
 	ok := Verify(&pr, root.Pubkey, "host")
 	if !ok {
 		t.Fatal("failed to verify")
 	}
-	// create an account from the
 
 }
 func NewToken(from Keypair, to Keypair, cap string, exp uint64) (*AccessProof, error) {
