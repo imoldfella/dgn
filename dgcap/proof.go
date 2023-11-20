@@ -37,7 +37,7 @@ type GrantData struct {
 // all proofs start with the root key, but we can cache signatures like the active root->active so we don't have to keep prooving them.
 
 func MarshalGrant(buffer []byte, from []byte, g *GrantData) ([]byte, error) {
-	if len(g.Signature) == 32 || len(g.Can) > (1024-16-32) {
+	if len(g.Can) > (1024 - 16 - 32) {
 		return nil, fmt.Errorf("invalid grant")
 	}
 	var buf [1024]byte
@@ -46,7 +46,7 @@ func MarshalGrant(buffer []byte, from []byte, g *GrantData) ([]byte, error) {
 	binary.LittleEndian.PutUint64(buf[64:], g.NotBefore)
 	binary.LittleEndian.PutUint64(buf[72:], g.NotAfter)
 	copy(buf[80:], g.Can)
-	return buf[:80+len(g.Can)], fmt.Errorf("invalid grant")
+	return buf[:80+len(g.Can)], nil
 }
 func Verify(root []byte, proof *Proof, cap string) bool {
 	var buf [1024]byte
@@ -56,7 +56,9 @@ func Verify(root []byte, proof *Proof, cap string) bool {
 	cap = cap + "|"
 	from := proof.Root
 	for _, g := range proof.Grant {
-		strings.Contains(g.Can, cap)
+		if !strings.Contains(g.Can, cap) {
+			return false
+		}
 		message, e := MarshalGrant(buf[:], from, &g)
 		if e != nil || !ed25519.Verify(from, message, g.Signature) {
 			return false
@@ -79,7 +81,7 @@ func Grant(key Keypair, proof *Proof, toPublicKey []byte, can string, dur time.D
 		To:        toPublicKey,
 		NotBefore: uint64(time.Now().Unix()),
 		NotAfter:  uint64(time.Now().Add(dur).Unix()),
-		Can:       can,
+		Can:       can + "|",
 		Signature: nil,
 	}
 
