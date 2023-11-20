@@ -16,19 +16,6 @@ func Test_one(t *testing.T) {
 	// accounts are funded by digital/untraceable cash.
 	// anyone can fund the account to keep the databases created by the account alive/available.
 	db := NewCapDb(".data")
-	_ = db
-	// create a mnemonic
-	mn, e := Bip39()
-	if e != nil {
-		t.Fatal(e)
-	}
-	// create a keypair from the mnemonic
-	root, e := NewIdentityFromSeed(mn)
-	if e != nil {
-		t.Fatal(e)
-	}
-	rootPub := root.Public
-
 	var x []Keypair = []Keypair{root}
 	for i := 0; i < 5; i++ {
 		k, e := NewKeypair()
@@ -37,16 +24,15 @@ func Test_one(t *testing.T) {
 		}
 		x = append(x, k)
 	}
-
 	pr := &Proof{
 		Version: 0,
 		Root:    rootPub,
-		Db:      0,
+		Db:      42,
 		Grant:   nil,
 	}
 	from := root
 	for i := 0; i < len(x)-1; i++ {
-		pr, e = Grant(from, pr, x[i].Public, "host", 365*24*time.Hour)
+		pr, _, e = db.Grant(from, pr, x[i].Public, "host", 365*24*time.Hour)
 		from = x[i]
 		if e != nil {
 			t.Fatal(e)
