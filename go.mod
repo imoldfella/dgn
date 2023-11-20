@@ -117,6 +117,7 @@ require (
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.14.0
-	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
+	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/term v0.13.0
 )

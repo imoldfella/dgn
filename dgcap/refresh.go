@@ -9,7 +9,7 @@ import (
 // the refresh token contains all keys used to validate the token when it was issue. If none of these have been revoked, then the token is valid.
 // take a refresh token and return a new active token and a new refresh token
 
-func NewCapDb() *CapDb {
+func NewCapDb(dir string) *CapDb {
 	return &CapDb{
 		secret: sync.Map{},
 		filter: cuckoo.NewFilter(1000 * 1000),
@@ -26,12 +26,6 @@ func (a *CapDb) Refresh(token []byte) ([]byte, []byte, error) {
 // revoke is a capability that can get passed around
 // revoke(from,to,db,can) -> proof
 // revoke-write implied by write?
-
-// you can revoke capabilities that have never been granted because we never track what has been granted. The proof that you send is proof that you could have granted the capability.
-func (a *CapDb) Revoke(pr *Proof, can string) error {
-	// if proof
-	return nil
-}
 
 func (a *CapDb) RevokeEdge(from, to []byte) error {
 	ok := a.filter.Insert(append(from, to...))

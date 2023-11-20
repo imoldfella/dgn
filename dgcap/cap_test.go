@@ -15,7 +15,8 @@ func Test_one(t *testing.T) {
 	// the working keypair is used to sign account keypairs.
 	// accounts are funded by digital/untraceable cash.
 	// anyone can fund the account to keep the databases created by the account alive/available.
-
+	db := NewCapDb(".data")
+	_ = db
 	// create a mnemonic
 	mn, e := Bip39()
 	if e != nil {

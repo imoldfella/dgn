@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"crypto/ed25519"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -12,7 +14,6 @@ import (
 
 	"github.com/o1egl/paseto/v2"
 	cuckoo "github.com/seiflotfy/cuckoofilter"
-	"golang.org/x/exp/rand"
 )
 
 // this is a serial number assigned at creation along with its key pair. This makes creation a little more complex, but accelerates operations on records.
@@ -23,6 +24,21 @@ type CapDb struct {
 	root   []byte
 	secret sync.Map
 	filter *cuckoo.Filter
+}
+
+type DbSecret struct {
+	Serial uint64
+	Secret []byte
+}
+
+func (c *CapDb) CurrentSecret() DbSecret {
+	return DbSecret{
+		Serial: 0,
+		Secret: []byte("todo"),
+	}
+}
+func (c *CapDb) GetSecret(sn uint64) []byte {
+	return []byte("todo")
 }
 
 // we should store top 32 bit, and then use some more logic to make sure this is monotonic.
@@ -41,6 +57,8 @@ type Proof struct {
 	Grant   []GrantData
 }
 
+// a revoke is a paseto token that can be used to revoke a grant. These are checked by refresh.
+
 type GrantData struct {
 	To        []byte // public key
 	Serial    uint64 // we can use the serial number to revoke. Would it be more efficient to use NotBefore as a unique lamport clock?
@@ -50,7 +68,7 @@ type GrantData struct {
 	Signature []byte
 }
 
-type Revoke = []byte
+type Revoke = string // paseto token
 type RevokeData struct {
 	Serial uint64
 	Secret []byte
@@ -92,31 +110,36 @@ func Verify(root []byte, proof *Proof, cap string) bool {
 	return true
 }
 
+// return an encrypted token that can be used to revoke the grant.
+// the app secret should be a serial number + random bytes so we can rotate it, then regress the key back to that state.
 func (c *CapDb) Grant(key Keypair, proof *Proof, toPublicKey []byte, can string, dur time.Duration) (*Proof, Revoke, error) {
 	from := proof.Root
 	if proof.Grant != nil {
 		from = proof.Grant[len(proof.Grant)-1].To
 	}
 	if !bytes.Equal(key.Public, from) {
-		return nil, nil, fmt.Errorf("invalid proof")
+		return nil, "", fmt.Errorf("invalid proof")
 	}
 
+	sn := c.GetSerialNumber()
 	gr := &GrantData{
 		To:        toPublicKey,
 		NotBefore: uint64(time.Now().Unix()),
 		NotAfter:  uint64(time.Now().Add(dur).Unix()),
 		Can:       can + "|",
 		Signature: nil,
-		Serial:    c.GetSerialNumber(),
+		Serial:    sn,
 	}
 	// store the serial number
-	revoke := make([]byte, 16)
-	rand.Read(revoke)
+	revoke, e := c.RevokeToken(sn)
+	if e != nil {
+		return nil, "", e
+	}
 
 	var buf [1024]byte
 	message, e := MarshalGrant(buf[:], from, gr)
 	if e != nil {
-		return nil, nil, e
+		return nil, "", e
 	}
 
 	gr.Signature = ed25519.Sign(key.Private, message)
@@ -124,8 +147,28 @@ func (c *CapDb) Grant(key Keypair, proof *Proof, toPublicKey []byte, can string,
 	return proof, revoke, nil
 }
 
+func (c *CapDb) RevokeToken(r uint64) (string, error) {
+	var t paseto.JSONToken
+	t.Subject = fmt.Sprintf("%d", r)
+	t.Audience = "revoke"
+	secret := c.CurrentSecret()
+	b, e := paseto.Encrypt(secret.Secret, &t, "")
+	if e != nil {
+		return "", e
+	}
+	return b, nil
+}
+
 // client must send the correct authorization header for the database being written.
-func CheckRequest(auth string, secret []byte) ([]byte, error) {
+// the auth string is serial,paseto
+func (c *CapDb) CheckRequest(auth string) ([]byte, error) {
+
+	a := strings.Split(auth, ",")
+	sn, e := strconv.Atoi(a[0])
+	if e != nil {
+		return nil, e
+	}
+	secret := c.GetSecret(uint64(sn))
 
 	var token paseto.JSONToken
 	var footer string
@@ -136,8 +179,9 @@ func CheckRequest(auth string, secret []byte) ([]byte, error) {
 	return []byte(token.Subject), nil
 }
 
-// check the proof and create a token. The token avoids having to check the proof again.
-func ProofToken(proof *Proof, secret []byte, proofTime int64) ([]byte, error) {
+// check the proof and create a token and a refresh token. The token avoids having to check the proof again.
+// the refresh token provides a cheaper way to check the proof again. (in case of revocation)
+func ProofToken(proof *Proof, secret []byte, proofTime int64) ([]byte, []byte, error) {
 	now := time.Now()
 	exp := now.Add(24 * time.Hour)
 
@@ -153,13 +197,26 @@ func ProofToken(proof *Proof, secret []byte, proofTime int64) ([]byte, error) {
 		Expiration: exp,
 		NotBefore:  now,
 	}
+
+	refreshToken := paseto.JSONToken{
+		Audience: "refresh",
+		Subject:  fmt.Sprintf("%d", proof.Db),
+	}
+	footer2, e := json.Marshal(refreshToken)
+	if e != nil {
+		return nil, nil, e
+	}
 	// Add custom claim    to the token
 	// jsonToken.Set("data", "this is a signed message")
 	footer := ""
 
 	// Encrypt data
 	token, err := paseto.Encrypt(secret, jsonToken, footer)
-	return []byte(token), err
+	if err != nil {
+		return nil, nil, err
+	}
+	token2, err := paseto.Encrypt(secret, refreshToken, footer2)
+	return []byte(token), []byte(token2), err
 }
 
 func CanRead(token []byte, secret []byte) (Dbid, error) {
