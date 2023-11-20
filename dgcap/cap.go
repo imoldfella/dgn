@@ -80,16 +80,6 @@ type signedPacket struct {
 	End        uint64
 }
 
-type Keypair struct {
-	Pubkey  []byte
-	Privkey []byte
-}
-
-func NewKeypair() (Keypair, error) {
-	r := Keypair{}
-	return r, nil
-}
-
 /*
 
 func (kp *Keypair) Sign(challenge []byte) []byte {

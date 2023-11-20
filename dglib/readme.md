@@ -43,3 +43,7 @@ don't log in the public log, write directly to the current leader (webrtc). The 
 Use merkle^2 to claim an id and store a public key.
 Use cross_id to sign a proof of email/phone/id association.
 
+air gap sign
+0. Write a ssd for pi? device?
+1. Generate Bip39
+2. Generate random key, (add name and date) sign with root, display signature as qr code. Display revoke as qr code.

@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+// database users can read or write, with grant or not.
+// the active key is used to host databases by signing them.
+// admin is always read|write|grant, write implies read.
+
 func Test_one(t *testing.T) {
 	// there is a root datagrove keypair, that signs the working key pair.
 	// all database proofs start with these two keys.
@@ -22,11 +26,10 @@ func Test_one(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	rootPub := root.Public
 
-	// create a path, should host root be explicit?
-	pr := []Proof{}
 	var x []Keypair = []Keypair{root}
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 5; i++ {
 		k, e := NewKeypair()
 		if e != nil {
 			t.Fatal(e)
@@ -34,27 +37,16 @@ func Test_one(t *testing.T) {
 		x = append(x, k)
 	}
 
-	// database users can read or write, with grant or not.
-
-	// the active key is used to host databases by signing them.
-	pr, e := Grant(root, &Proof{}, active.Pubkey, "host", 365*24*time.Hour)
-	if e != nil {
-		t.Fatal(e)
-	}
-
-	ac, e := Grant(active, &pr, account.Pubkey, "account", 365*24*time.Hour)
-	if e != nil {
-		t.Fatal(e)
-	}
-	// admin is always read|write|grant, write implies read.
-
-	grantTest := []string{"read", "write", "read|grant", "write|grant"}
-	for _, cap := range grantTest {
-		// create a grant for the database
+	pr := Proof{}
+	for i := 0; i < len(x)-1; i++ {
+		pr, e = Grant(root, &pr, rootPub, "host", 365*24*time.Hour)
+		if e != nil {
+			t.Fatal(e)
+		}
 	}
 
 	// verify checks that there is a valid path from the root to the target that includes the requested capability.
-	ok := Verify(&pr, root.Pubkey, "host")
+	ok := Verify(&pr, rootPub, "host")
 	if !ok {
 		t.Fatal("failed to verify")
 	}
@@ -100,7 +92,7 @@ func Test_keypair(t *testing.T) {
 	Sign := func(privkey []byte, challenge []byte) []byte {
 		return nil
 	}
-	sig := Sign(root.Privkey, challenge)
+	sig := Sign(root.Private, challenge)
 	_ = sig
 
 	// if !Verify(root.Pubkey, challenge, sig) {

@@ -31,3 +31,14 @@ Each token could have the clientid and the dbid, and these would be created from
 
 A proof is a path through a grant graph. Keys grant to other keys, rooted at a host key.
 
+A downside of the cuckoo filters is filling up and needing to be recreated. It's useless while being created. Also the number of active revokes might be too large to fit in memory (unlikely)
+
+Dictionary 
+IsRevoked(key)
+Revoke(key, until Time) # still revoked after time, but irrelevant.
+
+straw man:
+Add token dependencies, keep a list by time. If it gets too large, then we delete oldest when we add a new one. Refresh tokens that are too old can be revalidated. Reboot with empty map.
+
+simple implementation: reprove everything.
+

@@ -1,13 +1,37 @@
 package dgcap
 
 import (
+	"crypto/ed25519"
+
 	"github.com/tyler-smith/go-bip39"
 )
 
-// return a keypair
-func NewIdentityFromSeed(bip39 string) (Keypair, error) {
+type Keypair struct {
+	Public  []byte
+	Private []byte
+}
 
-	return Keypair{}, nil
+func NewKeypair() (Keypair, error) {
+	pub, priv, e := ed25519.GenerateKey(nil)
+	if e != nil {
+		return Keypair{}, e
+	}
+	return Keypair{
+		Public:  pub,
+		Private: priv,
+	}, nil
+}
+
+// return a keypair
+func NewIdentityFromSeed(mnemonic string) (Keypair, error) {
+	seed := bip39.NewSeed(mnemonic, "Secret Passphrase")
+
+	key := ed25519.NewKeyFromSeed(seed)
+
+	return Keypair{
+		Private: key,
+		Public:  key.Public().(ed25519.PublicKey),
+	}, nil
 }
 func Bip39() (string, error) {
 	// Generate a mnemonic for memorization or user-friendly seeds

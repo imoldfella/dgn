@@ -1,6 +1,11 @@
 package dgcap
 
 import (
+	"bytes"
+	"crypto/ed25519"
+	"encoding/binary"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/o1egl/paseto/v2"
@@ -14,14 +19,15 @@ type Dbid uint64
 // Databases are integers that are assigned by the host using a host signature.
 type Proof struct {
 	Version int
+	Root    []byte // this must be a root key controlled by the host.
 	Db      Dbid
 	Grant   []GrantData
 }
 
 type GrantData struct {
 	To        []byte // public key
-	NotBefore int64
-	NotAfter  int64
+	NotBefore uint64
+	NotAfter  uint64
 	Can       string
 	Signature []byte
 }
@@ -29,22 +35,60 @@ type GrantData struct {
 // we have to look up a private key in the key chain.
 // we need to look up a proof that allows us to grant the requested capability.
 // all proofs start with the root key, but we can cache signatures like the active root->active so we don't have to keep prooving them.
-func Verify(proof *Proof, pubkey []byte, cap string) bool {
-	return false
+
+func MarshalGrant(buffer []byte, from []byte, g *GrantData) ([]byte, error) {
+	if len(g.Signature) == 32 || len(g.Can) > (1024-16-32) {
+		return nil, fmt.Errorf("invalid grant")
+	}
+	var buf [1024]byte
+	copy(buf[:], from)
+	copy(buf[32:], g.To)
+	binary.LittleEndian.PutUint64(buf[64:], g.NotBefore)
+	binary.LittleEndian.PutUint64(buf[72:], g.NotAfter)
+	copy(buf[80:], g.Can)
+	return buf[:80+len(g.Can)], fmt.Errorf("invalid grant")
+}
+func (c *CapDb) Verify(proof *Proof, cap string) bool {
+	var buf [1024]byte
+	if !bytes.Equal(proof.Root, c.root) {
+		return false
+	}
+	cap = cap + "|"
+	from := proof.Root
+	for _, g := range proof.Grant {
+		strings.Contains(g.Can, cap)
+		message, e := MarshalGrant(buf[:], from, &g)
+		if e != nil || !ed25519.Verify(from, message, g.Signature) {
+			return false
+		}
+		from = g.To
+	}
+	return true
 }
 
-func Grant(key Keypair, proof *Proof, toPublicKey []byte, can string, dur time.Duration) (Proof, error) {
-	return Proof{
-		Version: 1,
-		Db:      proof.Db,
-		Grant: append(proof.Grant, GrantData{
-			To:        toPublicKey,
-			NotBefore: time.Now().Unix(),
-			NotAfter:  time.Now().Add(dur).Unix(),
-			Can:       can,
-			Signature: nil,
-		}),
-	}, nil
+func Grant(key Keypair, proof *Proof, toPublicKey []byte, can string, dur time.Duration) (*Proof, error) {
+	from := proof.Grant[len(proof.Grant)-1].To
+	if !bytes.Equal(key.Public, from) {
+		return nil, fmt.Errorf("invalid proof")
+	}
+
+	gr := &GrantData{
+		To:        toPublicKey,
+		NotBefore: uint64(time.Now().Unix()),
+		NotAfter:  uint64(time.Now().Add(dur).Unix()),
+		Can:       can,
+		Signature: nil,
+	}
+
+	var buf [1024]byte
+	message, e := MarshalGrant(buf[:], from, gr)
+	if e != nil {
+		return nil, e
+	}
+
+	gr.Signature = ed25519.Sign(key.Private, message)
+	proof.Grant = append(proof.Grant, *gr)
+	return proof, nil
 }
 
 // client must send the correct authorization header for the database being written.

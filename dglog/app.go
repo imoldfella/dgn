@@ -103,6 +103,7 @@ func startup(dir string) error {
 	})
 	http.HandleFunc("/commit", commit)
 	http.HandleFunc("/blob", blob)
+	// login converts proofs to tokens; use tokens to write to a database
 	http.HandleFunc("/login", login)
 	log.Printf("listening on %s", app.Config.Https[0].Port)
 	return http.ListenAndServe(app.Config.Https[0].Port, nil)
