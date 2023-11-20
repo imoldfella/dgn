@@ -26,7 +26,7 @@ func NewKeypair() (Keypair, error) {
 func NewIdentityFromSeed(mnemonic string) (Keypair, error) {
 	seed := bip39.NewSeed(mnemonic, "Secret Passphrase")
 
-	key := ed25519.NewKeyFromSeed(seed)
+	key := ed25519.NewKeyFromSeed(seed[0:ed25519.SeedSize])
 
 	return Keypair{
 		Private: key,

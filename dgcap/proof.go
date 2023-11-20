@@ -48,9 +48,9 @@ func MarshalGrant(buffer []byte, from []byte, g *GrantData) ([]byte, error) {
 	copy(buf[80:], g.Can)
 	return buf[:80+len(g.Can)], fmt.Errorf("invalid grant")
 }
-func (c *CapDb) Verify(proof *Proof, cap string) bool {
+func Verify(root []byte, proof *Proof, cap string) bool {
 	var buf [1024]byte
-	if !bytes.Equal(proof.Root, c.root) {
+	if !bytes.Equal(proof.Root, root) {
 		return false
 	}
 	cap = cap + "|"
@@ -67,7 +67,10 @@ func (c *CapDb) Verify(proof *Proof, cap string) bool {
 }
 
 func Grant(key Keypair, proof *Proof, toPublicKey []byte, can string, dur time.Duration) (*Proof, error) {
-	from := proof.Grant[len(proof.Grant)-1].To
+	from := proof.Root
+	if proof.Grant != nil {
+		from = proof.Grant[len(proof.Grant)-1].To
+	}
 	if !bytes.Equal(key.Public, from) {
 		return nil, fmt.Errorf("invalid proof")
 	}

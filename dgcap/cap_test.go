@@ -37,16 +37,23 @@ func Test_one(t *testing.T) {
 		x = append(x, k)
 	}
 
-	pr := Proof{}
+	pr := &Proof{
+		Version: 0,
+		Root:    rootPub,
+		Db:      0,
+		Grant:   nil,
+	}
+	from := root
 	for i := 0; i < len(x)-1; i++ {
-		pr, e = Grant(root, &pr, rootPub, "host", 365*24*time.Hour)
+		pr, e = Grant(from, pr, x[i].Public, "host", 365*24*time.Hour)
+		from = x[i]
 		if e != nil {
 			t.Fatal(e)
 		}
 	}
 
 	// verify checks that there is a valid path from the root to the target that includes the requested capability.
-	ok := Verify(&pr, rootPub, "host")
+	ok := Verify(rootPub, pr, "host")
 	if !ok {
 		t.Fatal("failed to verify")
 	}
