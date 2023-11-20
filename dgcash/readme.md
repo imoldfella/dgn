@@ -1,1 +1,3 @@
 Blind signature based 
+
+Revoking

@@ -42,3 +42,10 @@ Add token dependencies, keep a list by time. If it gets too large, then we delet
 
 simple implementation: reprove everything.
 
+rotating keys?
+because its a capability, we have to carefully define revoke.
+Generally we might create a revoke when we create the capability, as a blocked edge. often in a capability system we also have a copy that creates a unique handle
+
+proof, revoke := xx
+
+practically

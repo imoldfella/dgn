@@ -9,13 +9,6 @@ import (
 // the refresh token contains all keys used to validate the token when it was issue. If none of these have been revoked, then the token is valid.
 // take a refresh token and return a new active token and a new refresh token
 
-// we could rotate the secret by including a hash or a version number in the token. we would ensure that the secret expires after the token does.
-type CapDb struct {
-	root   []byte
-	secret sync.Map
-	filter *cuckoo.Filter
-}
-
 func NewCapDb() *CapDb {
 	return &CapDb{
 		secret: sync.Map{},
