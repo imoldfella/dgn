@@ -4,7 +4,7 @@ import (
 	"crypto/ed25519"
 	"os"
 
-	"github.com/fxamacker/cbor"
+	"github.com/fxamacker/cbor/v2"
 	"github.com/tyler-smith/go-bip39"
 )
 

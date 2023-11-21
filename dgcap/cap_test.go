@@ -15,7 +15,10 @@ func Test_one(t *testing.T) {
 	// the working keypair is used to sign account keypairs.
 	// accounts are funded by digital/untraceable cash.
 	// anyone can fund the account to keep the databases created by the account alive/available.
-	db := NewCapDb(".data")
+	db, e := NewCapDb(".data")
+	if e != nil {
+		t.Fatal(e)
+	}
 	var x []Keypair = []Keypair{}
 	for i := 0; i < 5; i++ {
 		k, e := NewKeypair()
@@ -27,7 +30,6 @@ func Test_one(t *testing.T) {
 
 	from := db.Host
 	pr := &*db.HostProof
-	var e error
 	for i := 0; i < len(x)-1; i++ {
 		pr, _, e = db.Grant(from, pr, x[i].Public, "host", 365*24*time.Hour)
 		from = x[i]
