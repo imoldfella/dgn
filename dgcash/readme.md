@@ -1,3 +1,2 @@
 Blind signature based 
 
-Revoking
