@@ -16,7 +16,7 @@ func Test_one(t *testing.T) {
 	// accounts are funded by digital/untraceable cash.
 	// anyone can fund the account to keep the databases created by the account alive/available.
 	db := NewCapDb(".data")
-	var x []Keypair = []Keypair{root}
+	var x []Keypair = []Keypair{}
 	for i := 0; i < 5; i++ {
 		k, e := NewKeypair()
 		if e != nil {
@@ -24,13 +24,10 @@ func Test_one(t *testing.T) {
 		}
 		x = append(x, k)
 	}
-	pr := &Proof{
-		Version: 0,
-		Root:    rootPub,
-		Db:      42,
-		Grant:   nil,
-	}
-	from := root
+
+	from := db.Host
+	pr := &*db.HostProof
+	var e error
 	for i := 0; i < len(x)-1; i++ {
 		pr, _, e = db.Grant(from, pr, x[i].Public, "host", 365*24*time.Hour)
 		from = x[i]
@@ -40,7 +37,7 @@ func Test_one(t *testing.T) {
 	}
 
 	// verify checks that there is a valid path from the root to the target that includes the requested capability.
-	ok := Verify(rootPub, pr, "host")
+	ok := Verify(db.RootPublic, pr, "host")
 	if !ok {
 		t.Fatal("failed to verify")
 	}

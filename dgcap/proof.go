@@ -29,19 +29,25 @@ type CapStore interface {
 	Expire() error
 }
 
+type CapDbConfig struct {
+}
 type CapDb struct {
-	Serial uint64
-	root   []byte
-	secret sync.Map
-	filter *cuckoo.Filter
-	store  CapStore
+	Serial     uint64
+	RootPublic []byte
+	Host       Keypair
+	secret     sync.Map
+	filter     *cuckoo.Filter
+	store      CapStore
+	HostProof  *Proof
 }
 
 // the refresh token contains all keys used to validate the token when it was issue. If none of these have been revoked, then the token is valid.
 // take a refresh token and return a new active token and a new refresh token
 
 func NewCapDb(dir string) *CapDb {
+	var config CapDbConfig
 	b, e := os.ReadFile(path.Join(dir, "/index.jsonc"))
+
 	if e != nil {
 		_ = db
 		// create a mnemonic
@@ -55,6 +61,7 @@ func NewCapDb(dir string) *CapDb {
 			t.Fatal(e)
 		}
 	}
+	json.Unmarshal(b, &config)
 
 	rootPub := root.Public
 
