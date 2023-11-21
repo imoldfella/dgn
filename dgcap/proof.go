@@ -3,6 +3,8 @@ package dgcap
 import (
 	"bytes"
 	"crypto/ed25519"
+	"crypto/rand"
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -32,6 +34,7 @@ type CapStore interface {
 type CapDbConfig struct {
 }
 type CapDb struct {
+	CapDbConfig
 	Serial     uint64
 	RootPublic []byte
 	Host       Keypair
@@ -44,33 +47,56 @@ type CapDb struct {
 // the refresh token contains all keys used to validate the token when it was issue. If none of these have been revoked, then the token is valid.
 // take a refresh token and return a new active token and a new refresh token
 
-func NewCapDb(dir string) *CapDb {
+func NewCapDb(dir string) (*CapDb, error) {
+	// there should already be an active host, if not then generate a root and use it to sign a host keypair. Generally you should then delete the root key from any online system.
 	var config CapDbConfig
-	b, e := os.ReadFile(path.Join(dir, "/index.jsonc"))
-
-	if e != nil {
-		_ = db
-		// create a mnemonic
-		mn, e := Bip39()
-		if e != nil {
-			t.Fatal(e)
-		}
-		// create a keypair from the mnemonic
-		root, e := NewIdentityFromSeed(mn)
-		if e != nil {
-			t.Fatal(e)
-		}
-	}
-	json.Unmarshal(b, &config)
-
-	rootPub := root.Public
-
-	return &CapDb{
-
+	r := &CapDb{
 		secret: sync.Map{},
 		filter: cuckoo.NewFilter(1000 * 1000),
 		store:  &SimpleCapStore{},
 	}
+
+	generateRoot := func() error {
+		// create a mnemonic
+		mn, e := Bip39()
+		if e != nil {
+			return e
+		}
+		os.WriteFile(path.Join(dir, "/root.txt"), []byte(mn), 0644)
+
+		// create a keypair from the mnemonic
+
+		root, e := NewIdentityFromSeed(mn)
+		if e != nil {
+			return e
+		}
+		host, e := NewKeypair()
+		if e != nil {
+			return e
+		}
+		r.Grant(root, &Proof{
+			Root: root.Public,
+			Db:   0,
+		}, host.Public, "host", 24*time.Hour)
+
+		b, e := json.Marshal(&config)
+		if e != nil {
+			return e
+		}
+		os.WriteFile(path.Join(dir, "/index.jsonc"), b, 0644)
+		return nil
+	}
+
+	b, e := os.ReadFile(path.Join(dir, "/index.jsonc"))
+	if e != nil {
+		e := generateRoot()
+		if e != nil {
+			return nil, e
+		}
+	} else {
+		json.Unmarshal(b, &config)
+	}
+	return r, nil
 }
 
 func (c *CapDb) DecryptToken(token string, out *paseto.JSONToken) error {
@@ -107,21 +133,25 @@ type Dbid uint64
 
 // Databases are integers that are assigned by the host using a host signature.
 type Proof struct {
+	// these three values are hashed into each grant.
+	// note that dbid is only unique in context of the root key.
 	Version int
 	Root    []byte // this must be a root key controlled by the host.
 	Db      Dbid
-	Grant   []GrantData
+	// the host grant always uses a db of 0, it can be cached.
+	HostGrant GrantData   // active keypair for the host, signed by root.
+	Grant     []GrantData // host grants to other keys, eventually to the challenge created by the host.
 }
 
 // a revoke is a paseto token that can be used to revoke a grant. These are checked by refresh.
 
 type GrantData struct {
-	To        []byte // public key
-	Serial    uint64 // we can use the serial number to revoke. Would it be more efficient to use NotBefore as a unique lamport clock?
-	NotBefore uint64
-	NotAfter  uint64
-	Can       string
-	Signature []byte
+	To         []byte // public key
+	Commitment []byte // we can use the hash^-1(Commitment) to revoke.
+	NotBefore  uint64
+	NotAfter   uint64
+	Can        string
+	Signature  []byte
 }
 
 type Revoke = string // paseto token
@@ -179,14 +209,20 @@ func (c *CapDb) Grant(key Keypair, proof *Proof, toPublicKey []byte, can string,
 		return nil, "", fmt.Errorf("invalid proof")
 	}
 
-	sn := c.GetSerialNumber()
+	var revokeKey [32]byte
+	_, e := rand.Read(revokeKey[:])
+	if e != nil {
+		return nil, "", e
+	}
+	commit := sha256.Sum256(revokeKey[:])
+
 	gr := &GrantData{
-		To:        toPublicKey,
-		NotBefore: uint64(time.Now().Unix()),
-		NotAfter:  uint64(time.Now().Add(dur).Unix()),
-		Can:       can + "|",
-		Signature: nil,
-		Serial:    sn,
+		To:         toPublicKey,
+		NotBefore:  uint64(time.Now().Unix()),
+		NotAfter:   uint64(time.Now().Add(dur).Unix()),
+		Can:        can + "|",
+		Signature:  nil,
+		Commitment: commit[:],
 	}
 	c.store.AddDependsOn(sn, dependsOn)
 

@@ -2,15 +2,32 @@ package dgcap
 
 import (
 	"crypto/ed25519"
+	"os"
 
+	"github.com/fxamacker/cbor"
 	"github.com/tyler-smith/go-bip39"
 )
 
 type Keypair struct {
-	Public  []byte
-	Private []byte
+	Version int    `json:"version,omitempty"`
+	Public  []byte `json:"public,omitempty"`
+	Private []byte `json:"private,omitempty"`
 }
 
+func (k *Keypair) WriteFile(path string) error {
+	b, e := os.ReadFile(path)
+	if e != nil {
+		return e
+	}
+	return cbor.Unmarshal(b, k)
+}
+func (k *Keypair) ReadFile(path string) error {
+	b, e := cbor.Marshal(k)
+	if e != nil {
+		return e
+	}
+	return os.WriteFile(path, b, 0644)
+}
 func NewKeypair() (Keypair, error) {
 	pub, priv, e := ed25519.GenerateKey(nil)
 	if e != nil {
