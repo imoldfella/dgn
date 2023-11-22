@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"datagrove/dgcap"
 	"datagrove/dglib"
 	"datagrove/dgstore"
@@ -101,10 +102,20 @@ func startup(dir string) error {
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte("dbhttp"))
 	})
+
+	commit := func(res http.ResponseWriter, req *http.Request) {
+		// req.Header.Get("Authorization")
+		var buf bytes.Buffer
+		_, e := io.Copy(&buf, req.Body)
+		if e != nil {
+			return
+		}
+		b, e := Commit(buf.Bytes())
+		if e != nil {
+			res.Write(b)
+		}
+	}
 	http.HandleFunc("/commit", commit)
-	http.HandleFunc("/blob", blob)
-	// login converts proofs to tokens; use tokens to write to a database
-	http.HandleFunc("/login", login)
 	log.Printf("listening on %s", app.Config.Https[0].Port)
 	return http.ListenAndServe(app.Config.Https[0].Port, nil)
 }
@@ -117,69 +128,125 @@ func hashPick(n int, b []byte) int {
 	return int(h.Sum32()) % n
 }
 
-type Dbid []byte
-
-// return a signed url for uploading CAS blobs to a database.
-// we can name blobs owner.sha to prevent collisions
-// that also lets us audit for usage, reading the R2 logs.
-func blob(res http.ResponseWriter, req *http.Request) {
-	// we have to check that writer has access to the db, and that the name is prefixed by the db.
-	auth := req.Header.Get("Authorization")
-	dbid, e := dgcap.CanWrite([]byte(auth), serverSecret)
-	if e != nil {
-		return
-	}
-	p, e := app.Client.Preauth(fmt.Sprintf("%x", dbid))
-	if e != nil {
-		return
-	}
-	res.Write([]byte(p))
+type Proof struct {
+	Time    int64 // must be in the last 10 seconds
+	Db      []dgcap.Proof
+	Presign []bool
 }
 
-// login gets tokens that can be used to sign transactions with hmac
-// we need to send a proof that we can access all the dbs we want to access
-// the return will return a token and a refresh token
-// generally we want to do a database access here to check that the database is associated with an account of some kind (public or private). we could do this with a lag though or skip for public.
-func login(res http.ResponseWriter, req *http.Request) {
-	// return a signed url for uploading a blob
-	// we can name blobs owner.sha to prevent collisions
-	// that also lets us audit for usage, reading the R2 logs.
-	var login dglib.LoginOp
-	n, e := io.ReadAll(req.Body)
-	if e != nil {
-		return
-	}
-	cbor.Unmarshal(n, &login)
+// we can presign blobs, log entries.
+// return tokens for repeat operations
+// generally blobs should be written first, then log entries.
+// we don't need refresh tokens, instead use the age of the proof to indicate if revokes need to be checked.
+const (
+	ProofType = iota
+	ProofTokenType
 
-	var r dglib.LoginResponse
-	for _, dbo := range login.Db {
-		a, e := dgcap.ProofToken(&dbo, serverSecret, login.Time)
-		if e == nil {
-			r.Token = append(r.Token, a)
+	OpBlob = iota
+	OpLogEntry
+)
+
+type CommitOp struct {
+	Proof []struct {
+		Type int
+		Data []byte // token or cbor proof
+	}
+	// operations are ordered only if they are for the same database.
+	Log []struct {
+		Proof int // index into proof array
+		// note that the proof may cover multiple databases and schemas
+		Type   int // blob or log entry
+		Db     uint64
+		Schema uint64
+		Data   []byte
+	}
+}
+
+type Result struct {
+	Error string
+	Value []byte
+}
+
+// a refresh token can potentially be larger since it is not sent repeatedly? Although we can store in our database the serial number of the token and check with a single lookup if
+type CommitResponse struct {
+	// if given a proof return a refresh token +
+	Token  [][]byte // this is always a refreshable token
+	Result []Result
+}
+
+func Commit(data []byte) ([]byte, error) {
+	// this
+	var op CommitOp
+	cbor.Unmarshal(data, &op)
+
+	// validate the proof or token, create tokens for proofs. refresh old tokens.
+	var rtoken [][]byte
+	var result []Result
+	for _, p := range op.Proof {
+		var tok []byte
+		switch p.Type {
+		case ProofType:
+
+			a, e := dgcap.ProofToken(&dbo, serverSecret, login.Time)
+			if e == nil {
+				r.Token = append(r.Token, a)
+			}
+
+		case ProofTokenType:
+			// if the token is too old, check for revokes and return a new token.
+
+		}
+		rtoken = append(rtoken, tok)
+	}
+	// dbid, e := dgcap.CanWrite([]byte(auth), serverSecret)
+	// if e != nil {
+	// 	return
+	// }
+
+	// what guarantee if the operation succeeds? What timeout do we allow for storage?
+	var wg sync.WaitGroup
+	wg.Add(len(op.Log))
+	for _, l := range op.Log {
+		switch l.Type {
+		case OpBlob:
+			p, e := app.Client.Preauth(fmt.Sprintf("%x", l.Db))
+			if e != nil {
+				result = append(result, Result{
+					Error: e.Error(),
+				})
+				continue
+			} else {
+				result = append(result, Result{
+					Value: []byte(p),
+				})
+			}
+			wg.Done()
+		case OpLogEntry:
+			var r dglib.CommitResponse
+
+			// there is a character in the dbid that indicates if this is public or private.
+			// all public databases go in the same stream, all private databases go in unique streams.
+
+			// validate the request.
+
+			// we only try to serialize writes if they are in the same schema?
+
+			app.Write[op.Db%Writers] <- Record{
+				Dbid: dbid,
+				Data: n,
+			}
 		}
 	}
-	b, e := cbor.Marshal(&r)
+	// wait for all writes to complete (or fail or timeout)
+	wg.Wait()
+
+	// return tokens if the request sent proofs, this speeds up subsequent writes.
+	b, e := cbor.Marshal(&CommitResponse{
+		Token:  rtoken,
+		Result: result,
+	})
 	if e != nil {
-		return
+		return nil, e
 	}
-	res.Write(b)
-}
-
-func commit(res http.ResponseWriter, req *http.Request) {
-	dbid, err := dgcap.CanWrite([]byte(req.Header.Get("Authorization")), serverSecret)
-	if err != nil {
-		return
-	}
-
-	n, e := io.ReadAll(req.Body)
-	if e != nil {
-		return
-	}
-	// there is a character in the dbid that indicates if this is public or private.
-	// all public databases go in the same stream, all private databases go in unique streams.
-
-	app.Write[dbid%Writers] <- Record{
-		Dbid: dbid,
-		Data: n,
-	}
+	return b, nil
 }

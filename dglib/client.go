@@ -13,16 +13,12 @@ import (
 
 // for each database we write to, we must provide a proof that this device has access to that database. The proof is a chain of signatures rooted in the keypair that defines the database
 
-type Grant struct {
-	Db int64
-}
-
-type LoginOp struct {
+type CommitOp struct {
 	Time    int64 // must be in the last 10 seconds
 	Db      []dgcap.Proof
 	Presign []bool
 }
-type LoginResponse struct {
+type CommitResponse struct {
 	Token   [][]byte
 	Presign []string
 }

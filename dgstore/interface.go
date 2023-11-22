@@ -58,3 +58,11 @@ func Upload(url string, mime string, data []byte) error {
 	log.Print(string(b))
 	return e2
 }
+
+type Keychain interface {
+}
+
+type BlobStore interface {
+	Add(path string, data []byte) error
+	AddFile(path string) error
+}
