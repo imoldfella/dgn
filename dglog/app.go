@@ -13,10 +13,27 @@ import (
 	"path"
 	"sync"
 
+	"crypto/sha256"
+
+	"encoding/binary"
+
+	"math"
+	"strconv"
+	"strings"
+
 	"github.com/fxamacker/cbor/v2"
 )
 
-var serverSecret = []byte("serverSecret")
+const (
+	Writers = 100
+)
+
+//var serverSecret = []byte("serverSecret")
+
+// we can presign blobs, log entries.
+// return tokens for repeat operations
+// generally blobs should be written first, then log entries.
+// we don't need refresh tokens, instead use the age of the proof to indicate if revokes need to be checked.
 
 // what advantage is there to running the logger over https?
 // we don't trust the logger anyway?
@@ -28,16 +45,12 @@ type Config struct {
 	Account dgstore.Account `json:"account,omitempty"` // s3, local
 	Https   []ConfigHttps   `json:"https,omitempty"`   // s3 bucket or local directory
 }
-
-const (
-	Writers = 100
-)
-
 type App struct {
 	Dir string
 	Config
 	Client dgstore.Client
-	Write  []chan Record
+	*dgcap.CapDb
+	Write []chan dglib.LogOp
 
 	pool sync.Pool
 }
@@ -56,7 +69,7 @@ func startup(dir string) error {
 		//defer ticker.Stop()
 		for r := range ch {
 			// empty the channel
-			rv := []Record{r}
+			rv := []dglib.LogOp{r}
 			for len(ch) > 0 {
 				rv = append(rv, <-ch)
 			}
@@ -93,9 +106,14 @@ func startup(dir string) error {
 	app.pool.New = func() interface{} {
 		return new(HashChain)
 	}
-	app.Write = make([]chan Record, Writers)
+	app.CapDb, err = dgcap.NewCapDb(dir)
+	if err != nil {
+		return err
+	}
+
+	app.Write = make([]chan dglib.LogOp, Writers)
 	for i := 0; i < Writers; i++ {
-		app.Write[i] = make(chan Record, 1000)
+		app.Write[i] = make(chan dglib.LogOp, 1000)
 		go writer(i)
 	}
 
@@ -128,71 +146,40 @@ func hashPick(n int, b []byte) int {
 	return int(h.Sum32()) % n
 }
 
-type Proof struct {
-	Time    int64 // must be in the last 10 seconds
-	Db      []dgcap.Proof
-	Presign []bool
-}
-
-// we can presign blobs, log entries.
-// return tokens for repeat operations
-// generally blobs should be written first, then log entries.
-// we don't need refresh tokens, instead use the age of the proof to indicate if revokes need to be checked.
-const (
-	ProofType = iota
-	ProofTokenType
-
-	OpBlob = iota
-	OpLogEntry
-)
-
-type CommitOp struct {
-	Proof []struct {
-		Type int
-		Data []byte // token or cbor proof
-	}
-	// operations are ordered only if they are for the same database.
-	Log []struct {
-		Proof int // index into proof array
-		// note that the proof may cover multiple databases and schemas
-		Type   int // blob or log entry
-		Db     uint64
-		Schema uint64
-		Data   []byte
-	}
-}
-
-type Result struct {
-	Error string
-	Value []byte
-}
+// type Proof struct {
+// 	Time    int64 // must be in the last 10 seconds
+// 	Db      []dgcap.Proof
+// 	Presign []bool
+// }
 
 // a refresh token can potentially be larger since it is not sent repeatedly? Although we can store in our database the serial number of the token and check with a single lookup if
 type CommitResponse struct {
 	// if given a proof return a refresh token +
 	Token  [][]byte // this is always a refreshable token
-	Result []Result
+	Result []dglib.Result
 }
 
 func Commit(data []byte) ([]byte, error) {
 	// this
-	var op CommitOp
+	var op dglib.CommitOp
 	cbor.Unmarshal(data, &op)
 
 	// validate the proof or token, create tokens for proofs. refresh old tokens.
 	var rtoken [][]byte
-	var result []Result
+	var result []dglib.Result
 	for _, p := range op.Proof {
 		var tok []byte
 		switch p.Type {
-		case ProofType:
+		case dglib.ProofType:
+			var proof dgcap.Proof
+			cbor.Unmarshal(p.Data, &proof)
+			tok, e := app.CapDb.ProofToken(&proof, 0)
+			// a, e := dgcap.ProofToken(&dbo, serverSecret, login.Time)
+			// if e == nil {
+			// 	r.Token = append(r.Token, a)
+			// }
 
-			a, e := dgcap.ProofToken(&dbo, serverSecret, login.Time)
-			if e == nil {
-				r.Token = append(r.Token, a)
-			}
-
-		case ProofTokenType:
+		case dglib.ProofTokenType:
 			// if the token is too old, check for revokes and return a new token.
 
 		}
@@ -208,33 +195,21 @@ func Commit(data []byte) ([]byte, error) {
 	wg.Add(len(op.Log))
 	for _, l := range op.Log {
 		switch l.Type {
-		case OpBlob:
+		case dglib.OpBlob:
 			p, e := app.Client.Preauth(fmt.Sprintf("%x", l.Db))
 			if e != nil {
-				result = append(result, Result{
+				result = append(result, dglib.Result{
 					Error: e.Error(),
 				})
 				continue
 			} else {
-				result = append(result, Result{
+				result = append(result, dglib.Result{
 					Value: []byte(p),
 				})
 			}
 			wg.Done()
-		case OpLogEntry:
-			var r dglib.CommitResponse
-
-			// there is a character in the dbid that indicates if this is public or private.
-			// all public databases go in the same stream, all private databases go in unique streams.
-
-			// validate the request.
-
-			// we only try to serialize writes if they are in the same schema?
-
-			app.Write[op.Db%Writers] <- Record{
-				Dbid: dbid,
-				Data: n,
-			}
+		case dglib.OpLogEntry:
+			app.Write[l.Db%Writers] <- l
 		}
 	}
 	// wait for all writes to complete (or fail or timeout)
@@ -249,4 +224,75 @@ func Commit(data []byte) ([]byte, error) {
 		return nil, e
 	}
 	return b, nil
+}
+
+type HashChain struct {
+	Prefix string
+	Client dgstore.Client
+	Data   []byte
+	Len    int
+	// StreamEnd counts down from MaxInt64 so that we can query in ascending order and find the last block.
+	StreamEnd int64
+	Hash      [32]byte
+}
+
+// what is the compressibility of Dbid? should we use integer and bind it into the token? this requires a database lookup or potentially build the integer into the certificate chain? that only requires a lookup when the database is created.
+
+// each block should begin with a format byte, then 32 byte hash, then an array of records.
+func (hc *HashChain) Append(data []dglib.LogOp) error {
+	var b bytes.Buffer
+	buf := make([]byte, binary.MaxVarintLen64)
+	add := func(x uint64) {
+		n := binary.PutUvarint(buf, x)
+		b.Write(buf[:n])
+	}
+
+	// add all the data last; this allows us to stream without creating a contiguous buffer for the data.
+	for _, r := range data {
+		add(uint64(r.Dbid))
+		add(r.Clientid)
+		add(uint64(len(r.Data)))
+	}
+	// compute the hash
+	h := sha256.New()
+	h.Write(hc.Hash[:])
+	io.Copy(h, &b)
+	for _, r := range data {
+		h.Write(r.Data)
+	}
+	key := fmt.Sprintf("%s%016x", hc.Prefix, hc.StreamEnd)
+	// create a reader buffer
+	hc.StreamEnd--
+
+	reader := io.MultiReader()
+	hc.Client.PutReader(key, "application/octet-stream", reader)
+	return nil
+}
+func NewHashChain(prefix string, client dgstore.Client) (*HashChain, error) {
+	r := &HashChain{
+		Prefix: prefix,
+		Client: client,
+	}
+	sl, e := client.List(prefix, 1)
+	if e != nil {
+		r.StreamEnd = math.MaxInt64
+	} else {
+		strings.Split(sl[0], "-")
+		pn := sl[len(sl)-1]
+		i, err := strconv.ParseInt(pn, 10, 64)
+		if err != nil {
+			r.StreamEnd = math.MaxInt64
+		} else {
+			r.StreamEnd = i - 1
+			// we need to read the last block to get the hash
+			key := fmt.Sprintf("%s%016x", prefix, r.StreamEnd)
+			data, err := client.GetSome(key, 0, 32)
+			if err != nil {
+				return nil, err
+			}
+			copy(r.Hash[:], data)
+		}
+	}
+
+	return r, nil
 }

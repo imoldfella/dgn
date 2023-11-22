@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"crypto/sha256"
-	"datagrove/dgcap"
 	"datagrove/dgstore"
 	"encoding/binary"
 	"fmt"
@@ -12,12 +11,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-type Record struct {
-	Dbid     dgcap.Dbid
-	Clientid uint64
-	Data     []byte
-}
 
 type HashChain struct {
 	Prefix string
@@ -32,7 +25,7 @@ type HashChain struct {
 // what is the compressibility of Dbid? should we use integer and bind it into the token? this requires a database lookup or potentially build the integer into the certificate chain? that only requires a lookup when the database is created.
 
 // each block should begin with a format byte, then 32 byte hash, then an array of records.
-func (hc *HashChain) Append(data []Record) error {
+func (hc *HashChain) Append(data []LogOp) error {
 	var b bytes.Buffer
 	buf := make([]byte, binary.MaxVarintLen64)
 	add := func(x uint64) {

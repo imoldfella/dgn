@@ -48,4 +48,7 @@ Generally we might create a revoke when we create the capability, as a blocked e
 
 proof, revoke := xx
 
-practically
+
+A database that tracks issued tokens versus signed capabilities they depend on. if the capability is revoked, the token cannot be refreshed.
+
+tokens are assigned a serial number.

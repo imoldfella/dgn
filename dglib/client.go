@@ -12,16 +12,47 @@ import (
 )
 
 // for each database we write to, we must provide a proof that this device has access to that database. The proof is a chain of signatures rooted in the keypair that defines the database
+const (
+	Writers   = 100
+	ProofType = iota
+	ProofTokenType
 
+	OpBlob = iota
+	OpLogEntry
+	OpRevoke
+)
+
+type LogOp struct {
+	Proof int // index into proof array
+	// note that the proof may cover multiple databases and schemas
+	Type   int // blob or log entry
+	Db     uint64
+	Schema uint64
+	Data   []byte
+}
 type CommitOp struct {
-	Time    int64 // must be in the last 10 seconds
-	Db      []dgcap.Proof
-	Presign []bool
+	Proof []struct {
+		Type int
+		Data []byte // token or cbor proof
+	}
+	// operations are ordered only if they are for the same database.
+	Log []LogOp
 }
-type CommitResponse struct {
-	Token   [][]byte
-	Presign []string
+
+type Result struct {
+	Error string
+	Value []byte
 }
+
+// type CommitOp struct {
+// 	Time    int64 // must be in the last 10 seconds
+// 	Db      []dgcap.Proof
+// 	Presign []bool
+// }
+// type CommitResponse struct {
+// 	Token   [][]byte
+// 	Presign []string
+// }
 
 // this allows a write to a db
 type TokenPayload struct {

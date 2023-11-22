@@ -1,6 +1,8 @@
 package dgcap
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
 	"testing"
 	"time"
 )
@@ -30,8 +32,13 @@ func Test_one(t *testing.T) {
 
 	from := db.Host
 	pr := &*db.HostProof
+
 	for i := 0; i < len(x)-1; i++ {
-		pr, _, e = db.Grant(from, pr, x[i].Public, "host", 365*24*time.Hour)
+		commit := [32]byte{}
+		_, e = rand.Read(commit[:])
+		sha := sha256.Sum256(commit[:])
+
+		pr, e = db.Grant(from, pr, sha[:], x[i].Public, "host", 365*24*time.Hour)
 		from = x[i]
 		if e != nil {
 			t.Fatal(e)
