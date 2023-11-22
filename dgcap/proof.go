@@ -48,6 +48,7 @@ func NewCapDb(dir string) (*CapDb, error) {
 		store:  &SimpleCapStore{},
 	}
 
+	// generate a root keypair and a host keypair.
 	generateRoot := func() error {
 		// create a mnemonic
 		mn, e := Bip39()
@@ -63,13 +64,30 @@ func NewCapDb(dir string) (*CapDb, error) {
 			return e
 		}
 		host, e := NewKeypair()
+		host.WriteFile(path.Join(dir, "/host.key"))
 		if e != nil {
 			return e
 		}
-		r.Grant(root, &Proof{
-			Root: root.Public,
-			Db:   0,
-		}, host.Public, "host", 24*time.Hour)
+		var commit [32]byte
+		_, e = rand.Read(commit[:])
+		if e != nil {
+			return e
+		}
+		c2 := sha256.Sum256(commit[:])
+		pr := &Proof{
+			Version: 0,
+			Root:    root.Public,
+			Db:      0,
+			HostGrant: GrantData{
+				To:         host.Public,
+				Commitment: c2[:],
+				NotBefore:  uint64(time.Now().Unix()),
+				NotAfter:   uint64(time.Now().Add(365 * 24 * time.Hour).Unix()),
+				Can:        "host|",
+				Signature:  []byte{},
+			},
+			Grant: []GrantData{},
+		}
 
 		b, e := json.Marshal(&config)
 		if e != nil {
@@ -129,10 +147,8 @@ type Proof struct {
 	// note that dbid is only unique in context of the root key.
 	Version int
 	Root    []byte // this must be a root key controlled by the host.
-	Db      Dbid
-	// the host grant always uses a db of 0, it can be cached.
-	HostGrant GrantData   // active keypair for the host, signed by root.
-	Grant     []GrantData // host grants to other keys, eventually to the challenge created by the host.
+	// the host grant always uses a db of 0, so it can be cached.
+	Grant []GrantData // host grants to other keys, eventually to the challenge created by the host.
 }
 
 // a revoke is a paseto token that can be used to revoke a grant. These are checked by refresh.
@@ -188,35 +204,15 @@ func Verify(root []byte, proof *Proof, cap string) bool {
 	return true
 }
 
-// return an encrypted token that can be used to revoke the grant.
-// the app secret should be a serial number + random bytes so we can rotate it, then regress the key back to that state.
-func (c *CapDb) Grant(key Keypair, proof *Proof, toPublicKey []byte, can string, dur time.Duration) (*Proof, Revoke, error) {
-	from := proof.Root
-	dependsOn := uint64(0)
-	if proof.Grant != nil {
-		from = proof.Grant[len(proof.Grant)-1].To
-		dependsOn = proof.Grant[len(proof.Grant)-1].Serial
-	}
-	if !bytes.Equal(key.Public, from) {
-		return nil, "", fmt.Errorf("invalid proof")
-	}
-
+func RevokeCommit() ([]byte, []byte) {
 	var revokeKey [32]byte
-	_, e := rand.Read(revokeKey[:])
-	if e != nil {
-		return nil, "", e
-	}
-	commit := sha256.Sum256(revokeKey[:])
+	rand.Read(revokeKey[:])
+	b := sha256.Sum256(revokeKey[:])
+	return b[:], revokeKey[:]
+}
 
-	gr := &GrantData{
-		To:         toPublicKey,
-		NotBefore:  uint64(time.Now().Unix()),
-		NotAfter:   uint64(time.Now().Add(dur).Unix()),
-		Can:        can + "|",
-		Signature:  nil,
-		Commitment: commit[:],
-	}
-	c.store.AddDependsOn(sn, dependsOn)
+/*
+	c.store.AddDependsOn(sn, commit)
 
 	RevokeToken := func(r uint64) (string, error) {
 		var t paseto.JSONToken
@@ -233,16 +229,29 @@ func (c *CapDb) Grant(key Keypair, proof *Proof, toPublicKey []byte, can string,
 	if e != nil {
 		return nil, "", e
 	}
+*/
+
+// return an encrypted token that can be used to revoke the grant.
+// the app secret should be a serial number + random bytes so we can rotate it, then regress the key back to that state.
+func (c *CapDb) Grant(key Keypair, proof *Proof, commit []byte, toPublicKey []byte, can string, dur time.Duration) (*Proof, error) {
+	gr := &GrantData{
+		To:         toPublicKey,
+		NotBefore:  uint64(time.Now().Unix()),
+		NotAfter:   uint64(time.Now().Add(dur).Unix()),
+		Can:        can + "|",
+		Signature:  nil,
+		Commitment: commit,
+	}
 
 	var buf [1024]byte
-	message, e := MarshalGrant(buf[:], from, gr)
+	message, e := MarshalGrant(buf[:], key.Public, gr)
 	if e != nil {
-		return nil, "", e
+		return nil, e
 	}
 
 	gr.Signature = ed25519.Sign(key.Private, message)
 	proof.Grant = append(proof.Grant, *gr)
-	return proof, revoke, nil
+	return proof, nil
 }
 
 // every grant has a serial number. The revoke identifies this serial number, and then the database identifies all active refresh tokens that depend on this grant. To refresh, we then have to check that our refresh token has not been invalidated. We can do this in memory by checking a cuckoo filter, although its not clear what we can do when the cuckoo filter fills? it might be just as well to use a database indexed by the time that the refresh token will be invalidated as a lamport (unique) clock.
