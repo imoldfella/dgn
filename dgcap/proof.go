@@ -74,19 +74,18 @@ func NewCapDb(dir string) (*CapDb, error) {
 			return e
 		}
 		c2 := sha256.Sum256(commit[:])
+		gr := GrantData{
+			To:         host.Public,
+			Commitment: c2[:],
+			NotBefore:  uint64(time.Now().Unix()),
+			NotAfter:   uint64(time.Now().Add(365 * 24 * time.Hour).Unix()),
+			Can:        "host|",
+			Signature:  []byte{},
+		}
 		pr := &Proof{
 			Version: 0,
 			Root:    root.Public,
-			Db:      0,
-			HostGrant: GrantData{
-				To:         host.Public,
-				Commitment: c2[:],
-				NotBefore:  uint64(time.Now().Unix()),
-				NotAfter:   uint64(time.Now().Add(365 * 24 * time.Hour).Unix()),
-				Can:        "host|",
-				Signature:  []byte{},
-			},
-			Grant: []GrantData{},
+			Grant:   []GrantData{gr},
 		}
 
 		b, e := json.Marshal(&config)
