@@ -52,3 +52,8 @@ proof, revoke := xx
 A database that tracks issued tokens versus signed capabilities they depend on. if the capability is revoked, the token cannot be refreshed.
 
 tokens are assigned a serial number.
+
+databases/schemas
+
+locally one log. when sync, we can split? split at client or at server? client allows some sharding efficiently.
+

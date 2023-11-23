@@ -11,6 +11,15 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
+type CommitOp struct {
+	Proof []struct {
+		Type int
+		Data []byte // token or cbor proof
+	}
+	// operations are ordered only if they are for the same database.
+	Log []LogOp
+}
+
 // for each database we write to, we must provide a proof that this device has access to that database. The proof is a chain of signatures rooted in the keypair that defines the database
 const (
 	Writers   = 100
@@ -25,18 +34,8 @@ const (
 type LogOp struct {
 	Proof int // index into proof array
 	// note that the proof may cover multiple databases and schemas
-	Type   int // blob or log entry
-	Db     uint64
-	Schema uint64
-	Data   []byte
-}
-type CommitOp struct {
-	Proof []struct {
-		Type int
-		Data []byte // token or cbor proof
-	}
-	// operations are ordered only if they are for the same database.
-	Log []LogOp
+	Type int // blob or log entry
+	Data []byte
 }
 
 type Result struct {

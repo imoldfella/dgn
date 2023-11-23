@@ -38,7 +38,7 @@ func Test_one(t *testing.T) {
 		_, e = rand.Read(commit[:])
 		sha := sha256.Sum256(commit[:])
 
-		pr, e = db.Grant(from, pr, sha[:], x[i].Public, "host", 365*24*time.Hour)
+		pr, e = Grant(from, pr, sha[:], x[i].Public, "host", 365*24*time.Hour)
 		from = x[i]
 		if e != nil {
 			t.Fatal(e)
@@ -46,7 +46,7 @@ func Test_one(t *testing.T) {
 	}
 
 	// verify checks that there is a valid path from the root to the target that includes the requested capability.
-	ok := Verify(db.RootPublic, pr, "host")
+	ok := db.Verify(db.RootPublic, pr, "host")
 	if !ok {
 		t.Fatal("failed to verify")
 	}

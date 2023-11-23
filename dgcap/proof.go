@@ -2,8 +2,6 @@ package dgcap
 
 import (
 	"crypto/ed25519"
-	"crypto/rand"
-	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -24,6 +22,8 @@ import (
 
 type CapDbConfig struct {
 }
+
+// we need a database so that we can revoke grants. We can use a simple database that stores the revoked serial numbers. We can also use a cuckoo filte
 type CapDb struct {
 	CapDbConfig
 	Serial     uint64
@@ -47,57 +47,9 @@ func NewCapDb(dir string) (*CapDb, error) {
 		store:  &SimpleCapStore{},
 	}
 
-	// generate a root keypair and a host keypair.
-	generateRoot := func() error {
-		// create a mnemonic
-		mn, e := Bip39()
-		if e != nil {
-			return e
-		}
-		os.WriteFile(path.Join(dir, "/root.txt"), []byte(mn), 0644)
-
-		// create a keypair from the mnemonic
-
-		root, e := NewIdentityFromSeed(mn)
-		if e != nil {
-			return e
-		}
-		host, e := NewKeypair()
-		host.WriteFile(path.Join(dir, "/host.key"))
-		if e != nil {
-			return e
-		}
-		var commit [32]byte
-		_, e = rand.Read(commit[:])
-		if e != nil {
-			return e
-		}
-		c2 := sha256.Sum256(commit[:])
-		gr := GrantData{
-			To:         host.Public,
-			Commitment: c2[:],
-			NotBefore:  uint64(time.Now().Unix()),
-			NotAfter:   uint64(time.Now().Add(365 * 24 * time.Hour).Unix()),
-			Can:        "host|",
-			Signature:  []byte{},
-		}
-		pr := &Proof{
-			Version: 0,
-			Root:    root.Public,
-			Grant:   []GrantData{gr},
-		}
-
-		b, e := json.Marshal(&config)
-		if e != nil {
-			return e
-		}
-		os.WriteFile(path.Join(dir, "/index.jsonc"), b, 0644)
-		return nil
-	}
-
 	b, e := os.ReadFile(path.Join(dir, "/index.jsonc"))
 	if e != nil {
-		e := generateRoot()
+
 		if e != nil {
 			return nil, e
 		}
@@ -156,7 +108,7 @@ type GrantData struct {
 	Commitment []byte // we can use the hash^-1(Commitment) to revoke.
 	NotBefore  uint64
 	NotAfter   uint64
-	Can        string // db db schema schema write
+	Can        uint64 // db db schema schema write
 	Signature  []byte
 }
 
@@ -170,43 +122,47 @@ type GrantData struct {
 // we need to look up a proof that allows us to grant the requested capability.
 // all proofs start with the root key, but we can cache signatures like the active root->active so we don't have to keep prooving them.
 
-func MarshalGrant(buffer []byte, from []byte, g *GrantData) ([]byte, error) {
-	if len(g.Can) > (1024 - 16 - 32) {
-		return nil, fmt.Errorf("invalid grant")
-	}
-	var buf [1024]byte
+const (
+	GrantSize = 88 + 32
+)
+
+func MarshalGrant(buf [GrantSize]byte, from []byte, g *GrantData) ([]byte, error) {
 	copy(buf[:], from)
 	copy(buf[32:], g.To)
 	binary.LittleEndian.PutUint64(buf[64:], g.NotBefore)
 	binary.LittleEndian.PutUint64(buf[72:], g.NotAfter)
-	copy(buf[80:], g.Can)
-	return buf[:80+len(g.Can)], nil
+	binary.LittleEndian.PutUint64(buf[80:], g.Can)
+	copy(buf[88:], g.Commitment)
+	return buf[:], nil
 }
 
 // what caps do we need? do we need verify a range of database/schema? a prefix? can I check every assertion at each step that its restricting? Can I return the final cap set? does a return token represent all the capability of the proof, or only the requested parts? We can always modify the proof to reduce the capability.
 
+// grant allows us to create a revocable signature.
 type CapSet struct {
+	Db     uint64
+	Schema uint64
+	Flags  uint64 // write|grant  (always read)
 }
 
-// convert to a string to stash in a token.
-func (c *CapSet) ToString() {
-
-}
+// can string =
 
 func (c *CapDb) Verify(proof *Proof) (*CapSet, error) {
 	var r CapSet
 
-	var buf [1024]byte
+	var buf [GrantSize]byte
 
-	cap = cap + "|"
 	from := proof.Root
+	// we must ensure that capabilities are only narrowed.
+	flags := uint64(0xFFFFFFFFFFFFFFFF)
+
 	for _, g := range proof.Grant {
-		if !strings.Contains(g.Can, cap) {
-			return false
-		}
-		message, e := MarshalGrant(buf[:], from, &g)
+		flags = flags & g.Can
+		message, e := MarshalGrant(buf, from, &g)
+		c.store.IsRevoked(g.Commitment)
 		if e != nil || !ed25519.Verify(from, message, g.Signature) {
-			return false
+			flags = 0
+			break
 		}
 		from = g.To
 	}
@@ -218,7 +174,7 @@ func Grant(key Keypair, proof *Proof, commit []byte, toPublicKey []byte, can str
 		To:         toPublicKey,
 		NotBefore:  uint64(time.Now().Unix()),
 		NotAfter:   uint64(time.Now().Add(dur).Unix()),
-		Can:        can + "|",
+		Can:        0,
 		Signature:  nil,
 		Commitment: commit,
 	}
