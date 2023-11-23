@@ -173,7 +173,7 @@ func Commit(data []byte) ([]byte, error) {
 		case dglib.ProofType:
 			var proof dgcap.Proof
 			cbor.Unmarshal(p.Data, &proof)
-			tok, e := app.CapDb.ProofToken(&proof, 0)
+			tok, rev, e := app.CapDb.ProofToken(&proof, 0)
 			// a, e := dgcap.ProofToken(&dbo, serverSecret, login.Time)
 			// if e == nil {
 			// 	r.Token = append(r.Token, a)

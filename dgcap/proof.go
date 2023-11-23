@@ -1,7 +1,6 @@
 package dgcap
 
 import (
-	"bytes"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
@@ -157,15 +156,15 @@ type GrantData struct {
 	Commitment []byte // we can use the hash^-1(Commitment) to revoke.
 	NotBefore  uint64
 	NotAfter   uint64
-	Can        string
+	Can        string // db db schema schema write
 	Signature  []byte
 }
 
-type Revoke = string // paseto token
-type RevokeData struct {
-	Serial uint64
-	Secret []byte
-}
+// type Revoke = string // paseto token
+// type RevokeData struct {
+// 	Serial uint64
+// 	Secret []byte
+// }
 
 // we have to look up a private key in the key chain.
 // we need to look up a proof that allows us to grant the requested capability.
@@ -183,11 +182,22 @@ func MarshalGrant(buffer []byte, from []byte, g *GrantData) ([]byte, error) {
 	copy(buf[80:], g.Can)
 	return buf[:80+len(g.Can)], nil
 }
-func Verify(root []byte, proof *Proof, cap string) bool {
+
+// what caps do we need? do we need verify a range of database/schema? a prefix? can I check every assertion at each step that its restricting? Can I return the final cap set? does a return token represent all the capability of the proof, or only the requested parts? We can always modify the proof to reduce the capability.
+
+type CapSet struct {
+}
+
+// convert to a string to stash in a token.
+func (c *CapSet) ToString() {
+
+}
+
+func (c *CapDb) Verify(proof *Proof) (*CapSet, error) {
+	var r CapSet
+
 	var buf [1024]byte
-	if !bytes.Equal(proof.Root, root) {
-		return false
-	}
+
 	cap = cap + "|"
 	from := proof.Root
 	for _, g := range proof.Grant {
@@ -200,39 +210,10 @@ func Verify(root []byte, proof *Proof, cap string) bool {
 		}
 		from = g.To
 	}
-	return true
+	return &r, nil
 }
 
-func RevokeCommit() ([]byte, []byte) {
-	var revokeKey [32]byte
-	rand.Read(revokeKey[:])
-	b := sha256.Sum256(revokeKey[:])
-	return b[:], revokeKey[:]
-}
-
-/*
-	c.store.AddDependsOn(sn, commit)
-
-	RevokeToken := func(r uint64) (string, error) {
-		var t paseto.JSONToken
-		t.Subject = fmt.Sprintf("%d", r)
-		t.Audience = "revoke"
-		secret := c.CurrentSecret()
-		b, e := paseto.Encrypt(secret.Secret, &t, "")
-		if e != nil {
-			return "", e
-		}
-		return b, nil
-	}
-	revoke, e := RevokeToken(sn)
-	if e != nil {
-		return nil, "", e
-	}
-*/
-
-// return an encrypted token that can be used to revoke the grant.
-// the app secret should be a serial number + random bytes so we can rotate it, then regress the key back to that state.
-func (c *CapDb) Grant(key Keypair, proof *Proof, commit []byte, toPublicKey []byte, can string, dur time.Duration) (*Proof, error) {
+func Grant(key Keypair, proof *Proof, commit []byte, toPublicKey []byte, can string, dur time.Duration) (*Proof, error) {
 	gr := &GrantData{
 		To:         toPublicKey,
 		NotBefore:  uint64(time.Now().Unix()),
@@ -253,21 +234,6 @@ func (c *CapDb) Grant(key Keypair, proof *Proof, commit []byte, toPublicKey []by
 	return proof, nil
 }
 
-// every grant has a serial number. The revoke identifies this serial number, and then the database identifies all active refresh tokens that depend on this grant. To refresh, we then have to check that our refresh token has not been invalidated. We can do this in memory by checking a cuckoo filter, although its not clear what we can do when the cuckoo filter fills? it might be just as well to use a database indexed by the time that the refresh token will be invalidated as a lamport (unique) clock.
-func (c *CapDb) Revoke(token string) error {
-	var t paseto.JSONToken
-	e := c.DecryptToken(token, &t)
-	if e != nil || t.Audience != "revoke" {
-		return fmt.Errorf("invalid token")
-	}
-	serial, e := strconv.Atoi(t.Subject)
-	if e != nil {
-		return e
-	}
-	c.store.AddRevoke(uint64(serial), t.Expiration)
-	return nil
-}
-
 // client must send the correct authorization header for the database being written.
 // the auth string is serial,paseto
 func (c *CapDb) CheckRequest(token string) ([]byte, error) {
@@ -279,10 +245,9 @@ func (c *CapDb) CheckRequest(token string) ([]byte, error) {
 	return []byte(t.Subject), nil
 }
 
-// check the proof and create a token and a refresh token. The token avoids having to check the proof again.
-// the refresh token provides a cheaper way to check the proof again. (in case of revocation)
+// a serial number with revoke database allows us to work without a refresh token. We can do a simple database check on the expired token (look up by serial number) to see if we can refresh it or not.
 
-func (c *CapDb) ProofToken(proof *Proof, proofTime int64) (string, string, error) {
+func (c *CapDb) ProofToken(proof *Proof, proofTime int64) (string, error) {
 	now := time.Now()
 	exp := now.Add(24 * time.Hour)
 
@@ -290,6 +255,8 @@ func (c *CapDb) ProofToken(proof *Proof, proofTime int64) (string, string, error
 
 	// todo: check that the proof is valid
 	// todo: check that the database is valid
+
+	//c.store.AddDependsOn(secret.Serial, exp)
 
 	jsonToken := paseto.JSONToken{
 		Audience:   "test",
@@ -301,17 +268,6 @@ func (c *CapDb) ProofToken(proof *Proof, proofTime int64) (string, string, error
 		NotBefore:  now,
 	}
 
-	refreshToken := paseto.JSONToken{
-		Audience:   "refresh",
-		Subject:    fmt.Sprintf("%d", proof.Db),
-		IssuedAt:   now,
-		NotBefore:  now,
-		Expiration: exp,
-	}
-	footer2, e := json.Marshal(refreshToken)
-	if e != nil {
-		return "", "", e
-	}
 	// Add custom claim    to the token
 	// jsonToken.Set("data", "this is a signed message")
 	footer := ""
@@ -320,23 +276,10 @@ func (c *CapDb) ProofToken(proof *Proof, proofTime int64) (string, string, error
 	prefix := fmt.Sprintf("%d,", secret.Serial)
 	token, err := paseto.Encrypt(secret.Secret, jsonToken, footer)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	token2, err := paseto.Encrypt(secret.Secret, refreshToken, footer2)
 	return prefix + token, prefix + token2, err
-}
-
-func CanRead(token []byte, secret []byte) (Dbid, error) {
-	return 0, nil
-}
-
-func CanWrite(token []byte, secret []byte) (Dbid, error) {
-	return 0, nil
-}
-
-// returns the account that the database can be created in
-func CanCreate(token []byte, secret []byte) (Dbid, error) {
-	return 0, nil
 }
 
 // func VerifyAuthHeader(auth string,) (int64, error) {

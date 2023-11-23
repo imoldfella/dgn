@@ -127,7 +127,18 @@ func SignedBlock(d *GrantData) []byte {
 
 	return b
 }
+func CanRead(token []byte, secret []byte) (Dbid, error) {
+	return 0, nil
+}
 
+func CanWrite(token []byte, secret []byte) (Dbid, error) {
+	return 0, nil
+}
+
+// returns the account that the database can be created in
+func CanCreate(token []byte, secret []byte) (Dbid, error) {
+	return 0, nil
+}
 // 1. auth must be in the final authorization
 // 2. Each signature must be valid
 func Verify(tok *AccessToken, pubkey []byte, auth string) bool {
@@ -183,3 +194,46 @@ func Unmarshal(data []byte) (*AccessToken, error) {
 	return nil, nil
 }
 */
+
+// every grant has a serial number. The revoke identifies this serial number, and then the database identifies all active refresh tokens that depend on this grant. To refresh, we then have to check that our refresh token has not been invalidated. We can do this in memory by checking a cuckoo filter, although its not clear what we can do when the cuckoo filter fills? it might be just as well to use a database indexed by the time that the refresh token will be invalidated as a lamport (unique) clock.
+func (c *CapDb) Revoke(token string) error {
+	var t paseto.JSONToken
+	e := c.DecryptToken(token, &t)
+	if e != nil || t.Audience != "revoke" {
+		return fmt.Errorf("invalid token")
+	}
+	serial, e := strconv.Atoi(t.Subject)
+	if e != nil {
+		return e
+	}
+	c.store.AddDependsOn(uint64(serial), t.Expiration)
+	return nil
+}
+/*
+	c.store.AddDependsOn(sn, commit)
+
+	RevokeToken := func(r uint64) (string, error) {
+		var t paseto.JSONToken
+		t.Subject = fmt.Sprintf("%d", r)
+		t.Audience = "revoke"
+		secret := c.CurrentSecret()
+		b, e := paseto.Encrypt(secret.Secret, &t, "")
+		if e != nil {
+			return "", e
+		}
+		return b, nil
+	}
+	revoke, e := RevokeToken(sn)
+	if e != nil {
+		return nil, "", e
+	}
+*/
+//func  RevokeCommit() ([]byte, []byte) {
+// var revokeKey [32]byte
+// rand.Read(revokeKey[:])
+// b := sha256.Sum256(revokeKey[:])
+// return b[:], revokeKey[:]
+//}
+
+// return an encrypted token that can be used to revoke the grant.
+// the app secret should be a serial number + random bytes so we can rotate it, then regress the key back to that state.
