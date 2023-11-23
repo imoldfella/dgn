@@ -2,16 +2,15 @@ package dgcap
 
 import (
 	"crypto/ed25519"
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"os"
 	"path"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/o1egl/paseto/v2"
 	cuckoo "github.com/seiflotfy/cuckoofilter"
@@ -96,9 +95,13 @@ type Proof struct {
 	// these three values are hashed into each grant.
 	// note that dbid is only unique in context of the root key.
 	Version int
-	Root    []byte // this must be a root key controlled by the host.
+	Db      uint64
+	Schema  uint64
+
+	Root []byte // this must be a root key controlled by the host.
 	// the host grant always uses a db of 0, so it can be cached.
 	Grant []GrantData // host grants to other keys, eventually to the challenge created by the host.
+
 }
 
 // a revoke is a paseto token that can be used to revoke a grant. These are checked by refresh.
@@ -138,116 +141,61 @@ func MarshalGrant(buf [GrantSize]byte, from []byte, g *GrantData) ([]byte, error
 
 // what caps do we need? do we need verify a range of database/schema? a prefix? can I check every assertion at each step that its restricting? Can I return the final cap set? does a return token represent all the capability of the proof, or only the requested parts? We can always modify the proof to reduce the capability.
 
-// grant allows us to create a revocable signature.
+// an independent commitment allows delegating revoke, but is it worth that?
+
+// grant allows us to create a revocable signature. we could simply sign the signature with the original key. The original key is more dangerous to keep around though? Also using a commitment allows the person to give up their own commit.
+
+// is the capset simply the final approved grant stored in the database by serial number? Also with dependencies, so if we can delete if any dependencies are revoked.
 type CapSet struct {
-	Db     uint64
-	Schema uint64
-	Flags  uint64 // write|grant  (always read)
+	Db           uint64
+	Schema       uint64
+	Can          uint64 // write|grant  (always read)
+	NotAfter     uint64 // we don't need notBefore, because tokens are never issued preemptively.
+	RefreshAfter uint64
+	// the token can be used to verify faster than the proof.
+	// to make this work we need to store the commitment dependencies of the token. The token then is just a stored capset and a signed serial number. The token must be treated as a secret. By design it can replayed.
+	// periodically check that this serial number is still valid.
+	Serial uint64
 }
 
-// can string =
-
 func (c *CapDb) Verify(proof *Proof) (*CapSet, error) {
-	var r CapSet
-
-	var buf [GrantSize]byte
-
 	from := proof.Root
 	// we must ensure that capabilities are only narrowed.
 	flags := uint64(0xFFFFFFFFFFFFFFFF)
 
 	for _, g := range proof.Grant {
 		flags = flags & g.Can
+		var buf [GrantSize]byte
 		message, e := MarshalGrant(buf, from, &g)
-		c.store.IsRevoked(g.Commitment)
-		if e != nil || !ed25519.Verify(from, message, g.Signature) {
+		if e != nil ||
+			!ed25519.Verify(from, message, g.Signature) ||
+			c.store.IsRevokedSignature(g.Commitment) {
 			flags = 0
 			break
 		}
 		from = g.To
 	}
-	return &r, nil
+
+	sn := c.GetSerialNumber()
+	r := &CapSet{
+		Serial: sn,
+	}
+	for _, g := range proof.Grant {
+		c.store.AddDependsOn(g.Commitment, sn)
+	}
+
+	return r, nil
 }
 
-func Grant(key Keypair, proof *Proof, commit []byte, toPublicKey []byte, can string, dur time.Duration) (*Proof, error) {
-	gr := &GrantData{
-		To:         toPublicKey,
-		NotBefore:  uint64(time.Now().Unix()),
-		NotAfter:   uint64(time.Now().Add(dur).Unix()),
-		Can:        0,
-		Signature:  nil,
-		Commitment: commit,
-	}
-
-	var buf [1024]byte
-	message, e := MarshalGrant(buf[:], key.Public, gr)
-	if e != nil {
-		return nil, e
-	}
-
-	gr.Signature = ed25519.Sign(key.Private, message)
-	proof.Grant = append(proof.Grant, *gr)
-	return proof, nil
+func (c *CapDb) Revoke(secret []byte) error {
+	commitment := sha256.Sum256(secret)
+	c.store.Revoke(commitment[:])
+	return nil
 }
 
-// client must send the correct authorization header for the database being written.
-// the auth string is serial,paseto
-func (c *CapDb) CheckRequest(token string) ([]byte, error) {
-	var t paseto.JSONToken
-	e := c.DecryptToken(token, &t)
-	if e != nil || t.Audience != "revoke" {
-		return nil, fmt.Errorf("invalid token")
-	}
-	return []byte(t.Subject), nil
+func (c *CapDb) CreateDb(pubkey []byte) (Dbid, error) {
+	return 0, nil
 }
-
-// a serial number with revoke database allows us to work without a refresh token. We can do a simple database check on the expired token (look up by serial number) to see if we can refresh it or not.
-
-func (c *CapDb) ProofToken(proof *Proof, proofTime int64) (string, error) {
-	now := time.Now()
-	exp := now.Add(24 * time.Hour)
-
-	secret := c.CurrentSecret()
-
-	// todo: check that the proof is valid
-	// todo: check that the database is valid
-
-	//c.store.AddDependsOn(secret.Serial, exp)
-
-	jsonToken := paseto.JSONToken{
-		Audience:   "test",
-		Issuer:     "test_service",
-		Jti:        "123",
-		Subject:    "", // dbo.Db,
-		IssuedAt:   now,
-		Expiration: exp,
-		NotBefore:  now,
-	}
-
-	// Add custom claim    to the token
-	// jsonToken.Set("data", "this is a signed message")
-	footer := ""
-
-	// Encrypt data
-	prefix := fmt.Sprintf("%d,", secret.Serial)
-	token, err := paseto.Encrypt(secret.Secret, jsonToken, footer)
-	if err != nil {
-		return "", err
-	}
-	token2, err := paseto.Encrypt(secret.Secret, refreshToken, footer2)
-	return prefix + token, prefix + token2, err
+func (c *CapDb) CreateSchema() (Dbid, error) {
+	return 0, nil
 }
-
-// func VerifyAuthHeader(auth string,) (int64, error) {
-// 	var token paseto.JSONToken
-// 	var footer string
-// 	err := paseto.Decrypt(auth, secret, &token, &footer)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	dbid, e := strconv.Atoi(token.Subject)
-// 	if e != nil {
-// 		return 0, e
-// 	}
-// 	return int64(dbid), nil
-// }

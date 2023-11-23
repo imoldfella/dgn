@@ -3,6 +3,7 @@ package dgcap
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"log"
 	"testing"
 	"time"
 )
@@ -46,8 +47,9 @@ func Test_one(t *testing.T) {
 	}
 
 	// verify checks that there is a valid path from the root to the target that includes the requested capability.
-	ok := db.Verify(db.RootPublic, pr, "host")
-	if !ok {
+	set, e := db.Verify(pr)
+	if e != nil {
 		t.Fatal("failed to verify")
 	}
+	log.Printf("verified: %v", set)
 }

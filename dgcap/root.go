@@ -11,6 +11,7 @@ import (
 
 // generate a root keypair and a host keypair.
 func generateRoot(dir string) error {
+	var config CapDbConfig
 	// create a mnemonic
 	mn, e := Bip39()
 	if e != nil {
@@ -43,11 +44,13 @@ func generateRoot(dir string) error {
 		Can:        0,
 		Signature:  []byte{},
 	}
+
 	pr := &Proof{
 		Version: 0,
 		Root:    root.Public,
 		Grant:   []GrantData{gr},
 	}
+	_ = pr
 
 	b, e := json.Marshal(&config)
 	if e != nil {
@@ -56,3 +59,5 @@ func generateRoot(dir string) error {
 	os.WriteFile(path.Join(dir, "/index.jsonc"), b, 0644)
 	return nil
 }
+
+// allocate a

@@ -237,3 +237,14 @@ func (c *CapDb) Revoke(token string) error {
 
 // return an encrypted token that can be used to revoke the grant.
 // the app secret should be a serial number + random bytes so we can rotate it, then regress the key back to that state.
+
+// client must send the correct authorization header for the database being written.
+// the auth string is serial,paseto
+func (c *CapDb) CheckRequest(token string) ([]byte, error) {
+	var t paseto.JSONToken
+	e := c.DecryptToken(token, &t)
+	if e != nil || t.Audience != "revoke" {
+		return nil, fmt.Errorf("invalid token")
+	}
+	return []byte(t.Subject), nil
+}

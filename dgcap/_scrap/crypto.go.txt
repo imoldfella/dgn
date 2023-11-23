@@ -74,3 +74,56 @@ func NewSimpleIdentityDatabase() *SimpleIdentityDatabase {
 }
 
 var _ IdentityDatabase = (*SimpleIdentityDatabase)(nil)
+
+
+
+// a serial number with revoke database allows us to work without a refresh token. We can do a simple database check on the expired token (look up by serial number) to see if we can refresh it or not.
+
+func (c *CapDb) ProofToken(proof *Proof, proofTime int64) (string, error) {
+	now := time.Now()
+	exp := now.Add(24 * time.Hour)
+
+	secret := c.CurrentSecret()
+
+	// todo: check that the proof is valid
+	// todo: check that the database is valid
+
+	//c.store.AddDependsOn(secret.Serial, exp)
+
+	jsonToken := paseto.JSONToken{
+		Audience:   "test",
+		Issuer:     "test_service",
+		Jti:        "123",
+		Subject:    "", // dbo.Db,
+		IssuedAt:   now,
+		Expiration: exp,
+		NotBefore:  now,
+	}
+
+	// Add custom claim    to the token
+	// jsonToken.Set("data", "this is a signed message")
+	//footer := ""
+
+	// Encrypt data
+	// prefix := fmt.Sprintf("%d,", secret.Serial)
+	// token, err := paseto.Encrypt(secret.Secret, jsonToken, footer)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// token2, err := paseto.Encrypt(secret.Secret, refreshToken, footer2)
+	// return prefix + token, prefix + token2, err
+}
+
+// func VerifyAuthHeader(auth string,) (int64, error) {
+// 	var token paseto.JSONToken
+// 	var footer string
+// 	err := paseto.Decrypt(auth, secret, &token, &footer)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	dbid, e := strconv.Atoi(token.Subject)
+// 	if e != nil {
+// 		return 0, e
+// 	}
+// 	return int64(dbid), nil
+// }
