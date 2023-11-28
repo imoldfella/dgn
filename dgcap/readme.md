@@ -57,3 +57,5 @@ databases/schemas
 
 locally one log. when sync, we can split? split at client or at server? client allows some sharding efficiently.
 
+https://soatok.blog/2022/05/19/guidance-for-choosing-an-elliptic-curve-signature-algorithm-in-2022/#:~:text=NIST%20P%2D256%20(ECDSA%2C,use%20in%20FIPS%2Dvalidated%20modules.
+
