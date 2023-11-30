@@ -111,6 +111,7 @@ require (
 	github.com/pkg/sftp v1.13.6
 	github.com/seiflotfy/cuckoofilter v0.0.0-20220411075957-e3b120b3f5fb
 	github.com/spf13/cobra v1.7.0
+	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/stripe/stripe-go/v76 v76.6.0
 	github.com/tailscale/hujson v0.0.0-20221223112325-20486734a56a
 	github.com/twilio/twilio-go v1.15.1
