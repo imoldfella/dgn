@@ -1,0 +1,21 @@
+{
+  "name": "ui",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.3.1",
+    "@astrojs/tailwind": "^5.0.2",
+    "@builder.io/qwik": "^1.2.19",
+    "@qwikdev/astro": "^0.2.8",
+    "astro": "^3.6.4",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.3.2"
+  }
+}
