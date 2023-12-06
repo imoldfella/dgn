@@ -1,7 +1,7 @@
-import { JSXChildren, component$, useVisibleTask$ } from "@builder.io/qwik";
-import { Language, useLanguage } from "../provider";
+import { component$, useVisibleTask$ } from "@builder.io/qwik";
+import {  useLanguage } from "./language";
 import { useNavigate } from "@builder.io/qwik-city";
-import { JSX } from "@builder.io/qwik/jsx-runtime";
+import { type JSX } from "@builder.io/qwik/jsx-runtime";
 import { language } from "./heroicon";
 import { Icon } from "./icon";
 
