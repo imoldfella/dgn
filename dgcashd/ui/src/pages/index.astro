@@ -3,6 +3,7 @@ import { Counter } from "../components/counter";
 import DarkButton from "../components/dark";
 import { moon } from "../components/heroicon.ts";
 import { Icon } from "../components/icon";
+import { SimplePage } from "../components/simple_page";
 ---
 
 
@@ -16,7 +17,7 @@ import { Icon } from "../components/icon";
 		<script src="https://js.stripe.com/v3/"></script>
 	</head>
 	<body class='prose dark:prose-invert dark:bg-black dark:text-white'>
-		<h1>Datagrove</h1>
+		<SimplePage><h1>Datagrove</h1>
 
 		<p> The home page is a social media style story aggregation </p>
 		<p> If the user doesn't have an account one is created automatically. </p>
@@ -39,6 +40,6 @@ import { Icon } from "../components/icon";
 
 		</form>
 
-		<Counter />
+		<Counter /></SimplePage>
 	</body>
 </html>

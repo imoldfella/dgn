@@ -4,7 +4,7 @@ import {
   useContextProvider,
   createContextId,
 } from '@builder.io/qwik';
-import { useLocation } from '@builder.io/qwik-city';
+//import { useLocation } from '@builder.io/qwik-city';
  
 export interface Language {
   ln: string
@@ -17,12 +17,27 @@ export const LanguageContext = createContextId<Language>(
 );
 
 const rtl = ["iw","ar"]
- 
+export interface RouteLocation {
+  // (undocumented)
+  readonly isNavigating: boolean;
+  // (undocumented)
+  readonly params: Readonly<Record<string, string>>;
+  // (undocumented)
+  readonly prevUrl: URL | undefined;
+  // (undocumented)
+  readonly url: URL;
+}
+
+export const RouteLocationContext = /*#__PURE__*/ createContextId<RouteLocation>('qc-l');
+
+const useLocation = () => useContext(RouteLocationContext);
+
 export interface Props {
   avail: string
   default: string
   defaultlc?: string
 }
+
 export const LanguageProvider =  component$<Props>((props) => {
   const loc = useLocation()
   let ln = loc.url.pathname.split('/')[1]
