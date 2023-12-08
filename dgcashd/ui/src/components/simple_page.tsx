@@ -5,8 +5,11 @@ import { LanguageSelect } from "./language_select"
 
 
 
-
 export const SimplePage = component$(() => {
+    return <Slot/>
+})
+
+export const SimplePage2 = component$(() => {
     const ln = useLanguage()
 
     return <><div dir={ln.dir} class='px-2 space-x-1 my-2 fixed w-screen flex flex-row items-center'>

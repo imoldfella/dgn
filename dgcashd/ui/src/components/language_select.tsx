@@ -1,6 +1,5 @@
 import { component$, useVisibleTask$ } from "@builder.io/qwik";
 import {  useLanguage } from "./language";
-import { useNavigate } from "@builder.io/qwik-city";
 import { type JSX } from "@builder.io/qwik/jsx-runtime";
 import { language } from "./heroicon";
 import { Icon } from "./icon";
@@ -24,6 +23,13 @@ const languages: LanguageMap = {
 }
 const wtf = ['en', 'es', 'iw']
 
+const useNavigate = () => {
+    return (e: string) => {
+        const p = window.location.pathname.split('/')
+        p[1] = e
+        window.location.pathname = p.join('/')
+    }
+}
 
 // this has to work with the router(s)
 // unclear if we should use the list of languages from a context or require it to be passed as a prop. 
