@@ -12,12 +12,9 @@ export interface Language {
   dir: 'ltr'|'rtl'|'auto'
   avail: string[]
 }
-export const LanguageContext = createContextId<Language>(
-  'docs.theme-context'
-);
+export const LanguageContext = createContextId<Language>('ln');
 
 const rtl = ["iw","ar"]
-
 
 export interface Props {
   avail: string

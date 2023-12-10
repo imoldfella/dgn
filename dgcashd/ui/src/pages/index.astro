@@ -4,9 +4,9 @@ import DarkButton from "../components/dark";
 import { Debug } from "../components/debug";
 import { moon } from "../components/heroicon.ts";
 import { Icon } from "../components/icon";
-import { LanguageProvider } from "../components/language";
 import { LocationProvider } from "../components/location";
-import { SimplePage } from "../components/simple_page";
+import { SimplePage, SimplePage2 } from "../components/simple_page";
+import { QwikApp } from "../components/app";
 ---
 
 
@@ -20,34 +20,6 @@ import { SimplePage } from "../components/simple_page";
 		<script src="https://js.stripe.com/v3/"></script>
 	</head>
 	<body class='prose dark:prose-invert dark:bg-black dark:text-white'>
-		<LocationProvider url={Astro.url}>
-		<!-- <LanguageProvider avail="en es" default="en"> -->
-		<SimplePage><h1>Datagrove</h1>
-
-		<p> The home page is a social media style story aggregation </p>
-		<p> If the user doesn't have an account one is created automatically. </p>
-			<Debug/>
-			
-		<DarkButton/>
-		<p>
-			Login, buy credits, save credit card.
-			Api to provide blind cash bank.
-			
-		</p>
-
-		<p>
-			How is login different? Does it allow third party login?
-
-		</p>
-		<div>
-			<a href="/login">Login</a>
-		</div>
-		<form>
-
-		</form>
-
-		<Counter /></SimplePage>
-		<!-- </LanguageProvider> -->
-		</LocationProvider>
+		<QwikApp url={Astro.url}/>
 	</body>
 </html>

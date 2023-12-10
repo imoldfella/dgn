@@ -2,7 +2,7 @@ import { component$, useVisibleTask$ } from "@builder.io/qwik";
 import { type JSX } from "@builder.io/qwik/jsx-runtime";
 import { language } from "./heroicon";
 import { Icon } from "./icon";
-import { useLocation } from "./location";
+import { usePage } from "./location";
 
 type LanguageMap = {
     [key: string]: { name: string, dir: 'ltr' | 'rtl' | 'auto' }
@@ -35,7 +35,8 @@ const useNavigate = () => {
 // unclear if we should use the list of languages from a context or require it to be passed as a prop. 
 type Props = JSX.IntrinsicElements['select'] 
 export const LanguageSelect = component$((props: Props) => {
-    const ln = useLocation()
+    const ln = usePage()
+    const nav = useNavigate()
     useVisibleTask$(()=>{
         console.log('ln', ln)
     })
@@ -48,7 +49,7 @@ export const LanguageSelect = component$((props: Props) => {
             class='flex-1  rounded-md dark:bg-neutral-900 text-black dark:text-white '
             onInput$={(e, target) => {
                 const newlang = target.value
-                useNavigate()(newlang)
+                nav(newlang)
             }}
             {...props}
         >
