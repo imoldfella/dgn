@@ -4,7 +4,7 @@ import Icon from "./icon";
 import { $localize } from '@angular/localize/init'
 import { language } from "./heroicon";
 import { DarkButton } from "./dark";
-
+import  CanvasKit from 'canvaskit-wasm'
 
 
 export interface RouteLocation {
@@ -127,7 +127,7 @@ export const LanguageSelect = component$((props: Props2) => {
             class='flex-1  rounded-md dark:bg-neutral-900 text-black dark:text-white '
             onInput$={(e: Event,target:any) => {
               const newlang = target.value
-              nav(newlang)
+              //nav(newlang)
           }}
             {...props}
         >
