@@ -1,10 +1,6 @@
 import Icon from "./icon";
-
 import { moon, sun } from "./heroicon";
 import { $, useSignal, useVisibleTask$ } from "@builder.io/qwik";
-
-
-
 import { component$} from "@builder.io/qwik";
 
 export const DarkButton = component$(() => {
@@ -13,10 +9,6 @@ export const DarkButton = component$(() => {
     dark.value =  document.documentElement.classList.contains("dark")
   })
 
-// export function setDark( dark: boolean) {
-//     const html = document.querySelector("html")!
-//     dark ? html.classList.add("dark") : html.classList.remove("dark");
-//   }
  const toggleDark = $(() =>{
     if (document) {
       const html = document.querySelector("html");
